@@ -5,11 +5,15 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 const Dashboard = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text>yooooo</Text>
+      <Text>yooooo hi</Text>
       <Text>mamafdafdaf</Text>
       <Button
         title="Go to Details"
         onPress={() => navigation.navigate('Details')}
+      />
+      <Button
+        title="Go to Log In"
+        onPress={() => navigation.navigate('LogIn')}
       />
     </View>
   );
