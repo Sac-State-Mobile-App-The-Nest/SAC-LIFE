@@ -10,6 +10,10 @@ const Dashboard = ({ navigation }) => {
         title="Go to Dashboard"
         onPress={() => navigation.navigate('Dashboard')}
       />
+      <Button
+        title="Go to Log In"
+        onPress={() => navigation.navigate('LogIn')}
+      />
     </View>
   );
 };
