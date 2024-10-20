@@ -3,8 +3,10 @@
     "",
     "\\SacStateApp",
     "\\SacStateApp\\src",
-    "\\SacStateApp\\src\\screens"
+    "\\SacStateApp\\src\\screens",
+    "\\SacStateApp\\src\\services",
+    "\\SacStateApp\\src\\styles"
   ],
-  "SelectedNode": "\\SacStateApp\\App.js",
+  "SelectedNode": "\\SacStateApp\\src\\services",
   "PreviewInSolutionExplorer": false
 }
