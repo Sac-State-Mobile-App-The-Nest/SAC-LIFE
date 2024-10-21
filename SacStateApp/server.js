@@ -45,3 +45,49 @@ async function connectAndGetDB() {
         console.error(err.message);
     }
 }
+
+// Additional function for another query
+async function connectAndGetAdditionalData() {
+    try {
+        console.log('Attempting to connect and retrieve additional data');
+        var poolConnection = await sql.connect(config);
+        var additionalResultSet = await poolConnection.request().query('SELECT * FROM another_table'); // Replace with your actual query
+        console.log('Retrieved additional data');
+        console.log(additionalResultSet);
+        // Close connection
+        poolConnection.close();
+    } catch (err) {
+        console.error(err.message);
+    }
+}
+
+// Data retrieval function for Student Services
+async function connectAndGetServices() {
+    try {
+        console.log('Attempting to connect and retrieve additional data');
+        var poolConnection = await sql.connect(config);
+        var additionalResultSet = await poolConnection.request().query('SELECT * FROM test_campus_services'); // Replace with your actual query
+        console.log('Retrieved additional data');
+        console.log(additionalResultSet);
+        // Close connection
+        poolConnection.close();
+    } catch (err) {
+        console.error(err.message);
+    }
+}
+
+// Function to retrieve students and their tags (Need to test this one still...)
+async function connectAndGetStudentNamesAndTags() {
+    try {
+        console.log('Attempting to connect and retrieve additional data');
+        var poolConnection = await sql.connect(config);
+        var additionalResultSet = await poolConnection.request().query('SELECT s.std_id, s.f_name, s.l_name, t.tag_name FROM test_students AS s JOIN test_student_tags AS st ON s.std_id = st.std_id JOIN test_tags AS t ON st.tag_id = t.tag_id ORDER BY s.l_name, s.f_name;'); // Replace with your actual query
+        console.log('Retrieved additional data');
+        console.log(additionalResultSet);
+        // Close connection
+        poolConnection.close();
+    } catch (err) {
+        console.error(err.message);
+    }
+}
+
