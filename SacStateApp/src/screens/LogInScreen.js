@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import backgroundImage from '../../assets/logIn_background.jpg';
+import backgroundImage from './../assets/logInBackground.jpg'; 
 
 const LogInScreen = () => {
     const navigation = useNavigation(); // Hook to access the navigation object
