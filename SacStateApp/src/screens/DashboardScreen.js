@@ -26,6 +26,25 @@ const DashboardScreen = () => {
 
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
 
+  ////////
+  const [retsentence, setretsentence] = useState('')
+    //Services recommendation
+  const fetchBackendMsg = async () => {
+    try{
+      const response = await fetch('http://10.0.0.21:5000/api/helloMessage');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const msg = await response.text();
+      setretsentence(msg);
+      console.log('Response: ', response)
+      console.log('Msg: ', msg)
+    } catch (error) {
+      console.error('Error fetching data: ', error)
+    }
+  }
+ ////////
+
   useEffect(() => {
     const prompts = [
       "How are you feeling today?",
@@ -34,6 +53,10 @@ const DashboardScreen = () => {
     ];
     const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
     setWellBeingPrompt(randomPrompt);
+
+    ////////
+    fetchBackendMsg();
+    ////////
   }, []);
 
   const renderItem = ({ item }) => (
@@ -61,6 +84,10 @@ const DashboardScreen = () => {
       <Text style={styles.subHeader}>{user.email}</Text>
       <Text style={styles.details}>Major: {user.major} | Year: {user.year}</Text>
       <Text style={styles.interests}>Interests: {user.interests.join(', ')}</Text>
+
+      {/**dev **/}
+      <Text style={styles.subHeader}>TEXT FROM BACKEND: {retsentence}</Text>
+
 
       <Text style={styles.sectionHeader}>Notifications</Text>
       <FlatList
