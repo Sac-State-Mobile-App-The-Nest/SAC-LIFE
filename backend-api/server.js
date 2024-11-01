@@ -2,8 +2,9 @@
 const express = require('express');
 const sql = require("mssql");
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const port = 5000;
-
+const config = require('./config'); //server config file
 
 require('dotenv').config();
 
@@ -11,6 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use(cors());
+app.use(bodyParser.json());
 
 const studentsRoute = require('./routes/students');
 const campus_servicesRoute = require('./routes/campus_services');
@@ -20,45 +22,38 @@ app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);
 app.use('/api/tags', tagsRoute);
 
-const config = {
-    user: 'SacStateLifeAdmin',
-    password: 'TheNest2024',
-    server: 'csuslife.database.windows.net',
-    database: 'csusLifeAppMainDB',
-    options: {
-        encrypt: true
-    }
-};
 
 app.get('/api/helloMessage', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
 
-// Get test_student_tags table from SQL
-app.get('/api/tags', async (req, res) => {
-    try {
-        const result = await sql.query('SELECT * FROM test_student_tags')
-        res.json(result.recordset);
-    } catch (err) {
-        console.error('SQL error', err);
-        res.status(500).send('Server Error');
-    }
-})
-
-// Get test_student_tags table from SQL
-app.get('/api/tags_service', async (req, res) => {
-    try {
-        const result = await sql.query('SELECT * FROM test_tag_service')
-        res.json(result.recordset);
-    } catch (err) {
-        console.error('SQL error', err);
-        res.status(500).send('Server Error');
-    }
-})
-
 app.listen(port, ()=>{
     console.log(`Server running on port http://localhost:${port}`);
 })
+
+// // Get test_student_tags table from SQL
+// app.get('/api/tags', async (req, res) => {
+//     try {
+//         const result = await sql.query('SELECT * FROM test_student_tags')
+//         res.json(result.recordset);
+//     } catch (err) {
+//         console.error('SQL error', err);
+//         res.status(500).send('Server Error');
+//     }
+// })
+
+// // Get test_student_tags table from SQL
+// app.get('/api/tags_service', async (req, res) => {
+//     try {
+//         const result = await sql.query('SELECT * FROM test_tag_service')
+//         res.json(result.recordset);
+//     } catch (err) {
+//         console.error('SQL error', err);
+//         res.status(500).send('Server Error');
+//     }
+// })
+
+
 
 
 // //sql connect(config) establishes connection to Azure SQL database using config
