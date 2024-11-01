@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import ModalSelector from 'react-native-modal-selector';
 import { ProgressBar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import backgroundImage from './../assets/logInbackground.jpg';
+import backgroundImage from '../assets/logInBackground.jpg';
 
 const { height, width } = Dimensions.get('window');
 
