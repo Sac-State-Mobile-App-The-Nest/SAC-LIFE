@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 
-// Get  ALL login_info table from SQL
+// Gets the whole login_info table from SQL
 router.get('/', async (req, res) => {
     try {
         const result = await sql.query('SELECT * FROM login_info');
@@ -13,41 +13,24 @@ router.get('/', async (req, res) => {
     }
 })
 
-// router.get('/:studentId', async (req, res) => {
-//     const { studentId } = req.params;
-
-//     try {
-//         const request = new sql.Request();
-
-//         request.input('studentId', sql.Int, studentId);
-
-//         const result = await request.query('SELECT * FROM login_info WHERE std_id = @studentId');
-//         res.json(result.recordset);
-//     } catch (err) {
-//         console.error('SQL error', err);
-//         res.status(500).send('Server Error');
-//     }
-// })
-
-// const result = await request.query('SELECT * FROM login_info WHERE username = @username AND @hashed_pwd');
-
-
-// TODO: Convert to POST request
-// TODO: Send in a whole object or multiple parameters (user AND password), 
-
-router.get('/login/:username', async (req, res) => {
-    const { username } = req.params;
+// POST requests checks the username and password inputs with the database
+router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    console.log('Received Username:', username);
+    console.log('Received Password:', password);
 
     try {
         const request = new sql.Request();
 
-        // TODO: Add new input for password
         request.input('username', sql.VarChar, username);
+        request.input('password', sql.VarChar, password);
 
-        // TODO: Verifying username, add in password verification logic
-        const result = await request.query('SELECT * FROM login_info WHERE username = @username');
+        // Checks if the username and password input match any fields in the database
+        const result = await request.query('SELECT * FROM login_info WHERE username = @username AND hashed_pwd = @password');
 
-        // If username is empty -> Login failed
+        console.log('Query Result:', result.recordset);
+
+        // If there are no matches, recordset.length will be 0
         if (result.recordset.length == 0) {
             res.send('Login failed.')
         } else {
@@ -55,8 +38,12 @@ router.get('/login/:username', async (req, res) => {
         }
     } catch (err) {
         console.error('SQL error', err);
-        res.status(500).send('Server Error');
+        res.status(500).send('Server Error.');
     }
 })
 
 module.exports = router;
+
+
+// Navigate to the 'backend-api' folder and then run:
+// npm install bcryptjs jsonwebtoken
