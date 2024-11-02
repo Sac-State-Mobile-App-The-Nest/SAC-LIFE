@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const port = 5000;
 const config = require('./config'); //server config file
 
+
 require('dotenv').config();
 
 const app = express();
@@ -17,10 +18,12 @@ app.use(bodyParser.json());
 const studentsRoute = require('./routes/students');
 const campus_servicesRoute = require('./routes/campus_services');
 const tagsRoute = require('./routes/tags');
+const login_infoRoute = require('./routes/login_info');
 
 app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);
 app.use('/api/tags', tagsRoute);
+app.use('/api/login_info', login_infoRoute);
 
 
 app.get('/api/helloMessage', (req, res) => {

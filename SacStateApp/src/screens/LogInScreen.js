@@ -12,6 +12,9 @@ const LogInScreen = () => {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false); // State for password visibility
 
+
+    // Send in username/password and run through the POST request for validation
+    // Redirect to the corresponding pages
     const handleLogin = () => {
         setError(''); // Clear previous errors
         if (!username || !password) {
