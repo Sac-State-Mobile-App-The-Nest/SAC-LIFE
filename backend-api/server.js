@@ -1,4 +1,3 @@
-
 const express = require('express');
 const sql = require("mssql");
 const cors = require('cors');
@@ -9,13 +8,26 @@ const config = require('./config'); //server config file
 
 require('dotenv').config();
 
+
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use(cors());
 app.use(bodyParser.json());
 
-const studentsRoute = require('./routes/students');
+// Initialize SQL connection pool once
+const poolPromise = sql.connect(config)
+  .then(pool => {
+    console.log('Connected to SQL Database');
+    return pool;
+  })
+  .catch(err => {
+    console.error('Database connection error:', err);
+    process.exit(1); // Exit if connection fails
+  });
+
+const studentsRoute = require('./routes/students')(poolPromise);
 const campus_servicesRoute = require('./routes/campus_services');
 const tagsRoute = require('./routes/tags');
 const login_infoRoute = require('./routes/login_info');

@@ -12,7 +12,11 @@ function Users() {
   const fetchUsers = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/students'); // Adjust to your backend's URL
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
       const data = await response.json();
+      console.log("Fetched data:", data); 
       setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -46,19 +50,19 @@ function Users() {
         <thead>
           <tr>
             <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
+            <th>Middle Name</th>
+            <th>Last Name</th>
+            <th>Email </th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user) => (
             <tr key={user.std_id}>
-              <td>{user.name}</td>
+              <td>{user.f_name}</td>
+              <td>{user.m_name}</td>
+              <td>{user.l_name}</td>
               <td>{user.email}</td>
-              <td>{user.role}</td>
-              <td>{user.status}</td>
               <td>
                 <button>Edit</button>
                 <button onClick={() => handleDelete(user.std_id)}>Delete</button>
