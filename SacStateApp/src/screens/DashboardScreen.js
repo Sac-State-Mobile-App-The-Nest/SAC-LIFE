@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Button, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import ChatWidget from '../components/ChatWidget';
+
 
 const DashboardScreen = () => {
   const navigation = useNavigation();
@@ -77,6 +79,9 @@ const DashboardScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
       />
+      <View style={stylesC.chatWidgetContainer}>
+        <ChatWidget />
+      </View>
     </View>
   );
 };
@@ -126,6 +131,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginVertical: 10,
     fontWeight: 'bold', // Add this line to make the header bold
+  },
+});
+const stylesC = StyleSheet.create({
+  chatWidgetContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 1000, // Ensures it stays on top of other elements
   },
 });
 

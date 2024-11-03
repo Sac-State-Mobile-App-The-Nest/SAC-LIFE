@@ -1,6 +1,7 @@
 // screens/Dashboard.js
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import ChatWidget from '../components/ChatWidget';
 
 const Dashboard = ({ navigation }) => {
   return (
@@ -18,7 +19,13 @@ const Dashboard = ({ navigation }) => {
         title="Go to Questionnaire"
         onPress={() => navigation.navigate('Questionnaire')}
       />
+      
+      <View style={stylesC.chatWidgetContainer}>
+        <ChatWidget />
+      </View>
     </View>
+    
+    
   );
 };
 
@@ -28,6 +35,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+});
+
+const stylesC = StyleSheet.create({
+  chatWidgetContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 1000, // Ensures it stays on top of other elements
   },
 });
 

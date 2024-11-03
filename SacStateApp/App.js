@@ -8,6 +8,9 @@ import LogInScreen from './src/screens/LogInScreen';
 import { StatusBar } from 'expo-status-bar';
 import Questionnaire from './src/screens/Questionnaire';
 
+
+
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -19,8 +22,15 @@ export default function App() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="LogIn" component={LogInScreen}/>
         <Stack.Screen name="Questionnaire" component = {Questionnaire}/>
+        
       </Stack.Navigator>
-      <StatusBar style="auto" />
+      
+        
     </NavigationContainer>
+
+    
+    
   );
+  
 }
+
