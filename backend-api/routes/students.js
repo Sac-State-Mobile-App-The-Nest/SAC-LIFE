@@ -77,4 +77,29 @@ router.post('/loginAndGetName', async (req, res) => {
         await sql.close();
     }
 });
+
+// DELETE /api/students/:studentId - Delete a student by studentId
+router.delete('/:studentId', async (req, res) => {
+    const { studentId } = req.params;
+    try {
+      const pool = await sql.connect(config); // Connect to the database
+      const result = await pool.request()
+        .input('studentId', sql.Int, studentId) // Use parameterized input
+        .query('DELETE FROM test_students WHERE std_id = @studentId'); // Replace with your actual column and table name
+  
+      if (result.rowsAffected[0] === 0) {
+        // No rows affected, student not found
+        res.status(404).json({ message: 'Student not found' });
+      } else {
+        // Student deleted successfully
+        res.json({ message: 'Student deleted successfully' });
+      }
+    } catch (error) {
+      console.error('SQL error', error);
+      res.status(500).json({ message: 'Server error deleting student' });
+    } finally {
+      // Close the database connection
+      await sql.close();
+    }
+  });
 module.exports = router;
