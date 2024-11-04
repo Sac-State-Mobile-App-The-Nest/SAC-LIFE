@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Button, Alert, ImageBackground, TouchableOpacity, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useNavigation } from '@react-navigation/native';
+import ChatWidget from '../components/ChatWidget';
 import backgroundImage from '../assets/logInBackground.jpg'; 
 
 const DashboardScreen = () => {
@@ -187,6 +188,9 @@ const DashboardScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
       />
+      <View style={stylesC.chatWidgetContainer}>
+        <ChatWidget />
+      </View>
     </View>
     </ScrollView>
     </ImageBackground>
@@ -291,6 +295,14 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white', // Text color for buttons
     fontSize: 16,
+  },
+});
+const stylesC = StyleSheet.create({
+  chatWidgetContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 1000, // Ensures it stays on top of other elements
   },
 });
 
