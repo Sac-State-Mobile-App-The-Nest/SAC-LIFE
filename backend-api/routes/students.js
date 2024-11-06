@@ -5,6 +5,11 @@ const sql = require('mssql');
 
 // Export a function that accepts the poolPromise
 module.exports = function(poolPromise) {
+
+  //Posting to test student tags table
+  router.post('/profile', async (req, res) => {
+
+  });
   
   // Get all students
   router.get('/', async (req, res) => {
