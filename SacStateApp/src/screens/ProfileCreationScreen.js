@@ -70,12 +70,13 @@ const ProfileCreation = () => {
 
     const questions = [
         new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", []),
-        new Question(1, "What is your major?", []),
-        new Question(2, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior", "Graduate"]),
-        new Question(3, "What are your primary interests or hobbies?", []),
-        new Question(4, "What type of campus events are you interested in?", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
-        new Question(5, "Which areas of support would you find most helpful?", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
-        new Question(6, "What are your academic goals?", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
+        new Question(1, "What type of student are you?", ["New Student", "Transfer Student", "Re-entry Student"]),
+        new Question(2, "What is your major?", []),
+        new Question(3, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
+        new Question(4, "What are your primary interests or hobbies?", []),
+        new Question(5, "What type of campus events are you interested in?", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
+        new Question(6, "Which areas of support would you find most helpful?", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
+        new Question(7, "What are your academic goals?", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
@@ -120,7 +121,17 @@ const ProfileCreation = () => {
                     />
                 </View>
             );
-        } else if (question.id === 1) {
+        } else if (question.id === 1 || question.id === 3 || question.id === 5 || question.id === 6 || question.id === 7) {
+            return question.options.map((option) => (
+                <TouchableOpacity
+                    key={option}
+                    style={styles.optionButton}
+                    onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
+                >
+                    <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+            ));
+        } else if (question.id === 2) {
             return (
                 <ModalSelector
                     data={[
@@ -137,16 +148,14 @@ const ProfileCreation = () => {
                     selectTextStyle={styles.pickerText}
                 />
             );
-        } else if (question.options.length > 0) {
-            return question.options.map((option) => (
-                <TouchableOpacity
-                    key={option}
-                    style={styles.optionButton}
-                    onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
-                >
-                    <Text style={styles.optionText}>{option}</Text>
-                </TouchableOpacity>
-            ));
+        } else if (question.id === 4) {
+            return (
+                <TextInput
+                    style={styles.input}
+                    placeholder="Your interests or hobbies"
+                    onChangeText={(text) => setAnswers((prev) => ({ ...prev, [question.id]: text }))}
+                />
+            );
         } else {
             return (
                 <TextInput
@@ -156,6 +165,23 @@ const ProfileCreation = () => {
                 />
             );
         }
+    };
+
+    const handleNextPress = () => {
+        if (currentQuestion === 0) {
+            if (firstName.trim() === "" || lastName.trim() === "") {
+                Alert.alert("Error", "Please fill in both First and Last names.");
+                return;
+            }
+            profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
+        } else if (currentQuestion === 4) { // For hobbies and interests
+            const hobbies = answers[4] || ""; // Get the answer for the "interests or hobbies" question
+            if (hobbies.trim().length < 3) { // Require at least 3 characters
+                Alert.alert("Error", "Please provide a more detailed answer for your hobbies and interests.");
+                return;
+            }
+        }
+        profileCreationManager.goToNext(currentQuestion);
     };
 
     const renderCompletionScreen = () => (
@@ -172,20 +198,6 @@ const ProfileCreation = () => {
             </TouchableOpacity>
         </View>
     );
-
-    // Use this function to handle "Next" button clicks and validate for question 0
-    const handleNextPress = () => {
-        if (currentQuestion === 0) {
-            // Validate first and last name fields
-            if (firstName.trim() === "" || lastName.trim() === "") {
-                Alert.alert("Error", "Please fill in both First and Last names.");
-                return;
-            }
-            // Store answer for question 0
-            profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
-        }
-        profileCreationManager.goToNext(currentQuestion);
-    };
 
     return (
         <ImageBackground source={backgroundImage} style={styles.background}>
@@ -264,3 +276,4 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileCreation;
+
