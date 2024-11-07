@@ -16,8 +16,8 @@ const Dashboard = ({ navigation }) => {
         onPress={() => navigation.navigate('LogIn')}
       />
        <Button
-        title="Go to Questionnaire"
-        onPress={() => navigation.navigate('Questionnaire')}
+        title="Go to Profile Creation"
+        onPress={() => navigation.navigate('ProfileCreation')}
       />
       
       <View style={stylesC.chatWidgetContainer}>

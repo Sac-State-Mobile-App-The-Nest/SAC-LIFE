@@ -24,7 +24,7 @@ class Question {
     }
 }
 
-class QuestionnaireManager {
+class ProfileCreationManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;
         this.setCurrentQuestion = setCurrentQuestion;
@@ -57,7 +57,7 @@ class QuestionnaireManager {
     }
 }
 
-const Questionnaire = () => {
+const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [selectedMajor, setSelectedMajor] = useState("");
@@ -78,13 +78,13 @@ const Questionnaire = () => {
         new Question(6, "What's your sexual orientation?", ["Heterosexual", "Homosexual", "Bisexual", "Prefer not to say", "Other"])
     ];
 
-    const questionnaireManager = new QuestionnaireManager(questions, setCurrentQuestion, setAnswers);
+    const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
-    const completeQuestionnaire = () => {
+    const completeProfileCreation = () => {
         setIsCompleted(true);
     };
 
-    const restartQuestionnaire = () => {
+    const restartProfileCreation = () => {
         setCurrentQuestion(0);
         setAnswers({});
         setSelectedMajor("");
@@ -133,7 +133,7 @@ const Questionnaire = () => {
                 <TouchableOpacity
                     key={option}
                     style={styles.optionButton}
-                    onPress={() => questionnaireManager.handleAnswer(question.id, option, currentQuestion)}
+                    onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
                 >
                     <Text style={styles.optionText}>{option}</Text>
                 </TouchableOpacity>
@@ -145,7 +145,7 @@ const Questionnaire = () => {
                     placeholder="Your name"
                     value={name}
                     onChangeText={(text) => setName(text)}
-                    onSubmitEditing={() => questionnaireManager.handleAnswer(question.id, name, currentQuestion)}
+                    onSubmitEditing={() => profileCreationManager.handleAnswer(question.id, name, currentQuestion)}
                     blurOnSubmit={true}
                     onBlur={() => Keyboard.dismiss()}
                 />
@@ -155,7 +155,7 @@ const Questionnaire = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="Your answer"
-                    onChangeText={(text) => questionnaireManager.handleAnswer(question.id, text, currentQuestion)}
+                    onChangeText={(text) => profileCreationManager.handleAnswer(question.id, text, currentQuestion)}
                 />
             );
         }
@@ -164,7 +164,7 @@ const Questionnaire = () => {
     const renderCompletionScreen = () => (
         <View style={styles.completionContainer}>
             <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-            <TouchableOpacity style={styles.largeButton} onPress={restartQuestionnaire}>
+            <TouchableOpacity style={styles.largeButton} onPress={restartProfileCreation}>
                 <Text style={styles.largeButtonText}>Redo</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -191,16 +191,16 @@ const Questionnaire = () => {
                                 {renderQuestion(questions[currentQuestion])}
                             </View>
                             <View style={styles.navigationButtons}>
-                                <TouchableOpacity style={styles.button} onPress={() => questionnaireManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
+                                <TouchableOpacity style={styles.button} onPress={() => profileCreationManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
                                     <Text style={styles.buttonText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={() => {
                                         if (currentQuestion === questions.length - 1) {
-                                            completeQuestionnaire();
+                                            completeProfileCreation();
                                         } else {
-                                            questionnaireManager.goToNext(currentQuestion);
+                                            profileCreationManager.goToNext(currentQuestion);
                                         }
                                     }}
                                 >
@@ -252,5 +252,5 @@ const styles = StyleSheet.create({
     largeButtonText: { color: 'white', fontSize: 18, fontWeight: '600', alignItems: 'center', textAlign: 'center'},
 });
 
-export default Questionnaire;
+export default ProfileCreation;
 
