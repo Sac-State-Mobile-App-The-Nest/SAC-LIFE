@@ -62,20 +62,20 @@ const ProfileCreation = () => {
     const [answers, setAnswers] = useState({});
     const [selectedMajor, setSelectedMajor] = useState("");
     const [selectedDisability, setSelectedDisability] = useState("");
-    const [name, setName] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [middleInitial, setMiddleInitial] = useState("");
+    const [lastName, setLastName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
 
     const questions = [
-        new Question(0, "What is your full name?", []),
+        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", []),
         new Question(1, "What is your major?", []),
         new Question(2, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior", "Graduate"]),
-        new Question(3, "Do you have any disabilities?", ["Yes", "No", "Prefer not to say"], (answer, actions) => {
-            answer === "Yes" ? actions.goToNext() : actions.skipQuestion();
-        }),
-        new Question(4, "If you have a disability, what kind do you have?", ["Physical", "Learning", "Visual", "Hearing", "Other"]),
-        new Question(5, "Are you a veteran?", ["Yes", "No"]),
-        new Question(6, "What's your sexual orientation?", ["Heterosexual", "Homosexual", "Bisexual", "Prefer not to say", "Other"])
+        new Question(3, "What are your primary interests or hobbies?", []),
+        new Question(4, "What type of campus events are you interested in?", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
+        new Question(5, "Which areas of support would you find most helpful?", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
+        new Question(6, "What are your academic goals?", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
@@ -89,12 +89,38 @@ const ProfileCreation = () => {
         setAnswers({});
         setSelectedMajor("");
         setSelectedDisability("");
-        setName("");
+        setFirstName("");
+        setMiddleInitial("");
+        setLastName("");
         setIsCompleted(false);
     };
 
     const renderQuestion = (question) => {
-        if (question.id === 1) {
+        if (question.id === 0) {
+            return (
+                <View>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="First Name"
+                        value={firstName}
+                        onChangeText={(text) => setFirstName(text)}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Middle Initial (Optional)"
+                        value={middleInitial}
+                        onChangeText={(text) => setMiddleInitial(text)}
+                        maxLength={1}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Last Name"
+                        value={lastName}
+                        onChangeText={(text) => setLastName(text)}
+                    />
+                </View>
+            );
+        } else if (question.id === 1) {
             return (
                 <ModalSelector
                     data={[
@@ -111,23 +137,6 @@ const ProfileCreation = () => {
                     selectTextStyle={styles.pickerText}
                 />
             );
-        } else if (question.id === 4) {
-            return (
-                <ModalSelector
-                    data={[
-                        { key: 'Physical', label: 'Physical' },
-                        { key: 'Learning', label: 'Learning' },
-                        { key: 'Visual', label: 'Visual' },
-                        { key: 'Hearing', label: 'Hearing' },
-                        { key: 'Other', label: 'Other' }
-                    ]}
-                    initValue="Select disability type"
-                    onChange={(option) => setSelectedDisability(option.label)}
-                    style={styles.pickerContainer}
-                    initValueTextStyle={styles.pickerText}
-                    selectTextStyle={styles.pickerText}
-                />
-            );
         } else if (question.options.length > 0) {
             return question.options.map((option) => (
                 <TouchableOpacity
@@ -138,18 +147,6 @@ const ProfileCreation = () => {
                     <Text style={styles.optionText}>{option}</Text>
                 </TouchableOpacity>
             ));
-        } else if (question.id === 0) {
-            return (
-                <TextInput
-                    style={styles.input}
-                    placeholder="Your name"
-                    value={name}
-                    onChangeText={(text) => setName(text)}
-                    onSubmitEditing={() => profileCreationManager.handleAnswer(question.id, name, currentQuestion)}
-                    blurOnSubmit={true}
-                    onBlur={() => Keyboard.dismiss()}
-                />
-            );
         } else {
             return (
                 <TextInput
@@ -176,6 +173,20 @@ const ProfileCreation = () => {
         </View>
     );
 
+    // Use this function to handle "Next" button clicks and validate for question 0
+    const handleNextPress = () => {
+        if (currentQuestion === 0) {
+            // Validate first and last name fields
+            if (firstName.trim() === "" || lastName.trim() === "") {
+                Alert.alert("Error", "Please fill in both First and Last names.");
+                return;
+            }
+            // Store answer for question 0
+            profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
+        }
+        profileCreationManager.goToNext(currentQuestion);
+    };
+
     return (
         <ImageBackground source={backgroundImage} style={styles.background}>
             <View style={styles.overlay}>
@@ -200,7 +211,7 @@ const ProfileCreation = () => {
                                         if (currentQuestion === questions.length - 1) {
                                             completeProfileCreation();
                                         } else {
-                                            profileCreationManager.goToNext(currentQuestion);
+                                            handleNextPress();
                                         }
                                     }}
                                 >
@@ -253,4 +264,3 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileCreation;
-
