@@ -1,0 +1,31 @@
+/* Card.css */
+.card {
+  width: 95%; /* Increase the width to make the card wider */
+  max-width: 800px; /* Increase the max-width for larger screens */
+  padding: 20px;
+  background-color: #faf9e6; /* Soft, muted pale gold */
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #e5d9a8, 0 4px 8px rgba(34, 85, 51, 0.15); /* Faint gold outline with subtle green shadow */
+  text-align: center;
+  font-weight: bold;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  color: #3b4f3d; /* Muted Sac State green for text */
+  margin-bottom: 40px; /* Additional space between cards */
+}
+
+.card h2 {
+  color: #2f3e35; /* Darker, faded green for headers */
+  margin-bottom: 10px;
+}
+
+.card p {
+  color: #5a6a60; /* Soft green-gray for supporting text */
+  margin-top: 5px; /* Space between title and content */
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  background-color: #d3e0d5; /* Faded Sac State green on hover */
+  box-shadow: 0 6px 12px rgba(34, 85, 51, 0.2); /* Slightly darker green shadow for depth */
+  color: #f7f8f5; /* Light neutral text for readability on green background */
+}
