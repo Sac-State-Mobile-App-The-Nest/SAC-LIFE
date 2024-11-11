@@ -24,7 +24,7 @@ class Question {
     }
 }
 
-class QuestionnaireManager {
+class ProfileCreationManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;
         this.setCurrentQuestion = setCurrentQuestion;
@@ -57,44 +57,81 @@ class QuestionnaireManager {
     }
 }
 
-const Questionnaire = () => {
+const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [selectedMajor, setSelectedMajor] = useState("");
     const [selectedDisability, setSelectedDisability] = useState("");
-    const [name, setName] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [middleInitial, setMiddleInitial] = useState("");
+    const [lastName, setLastName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
 
     const questions = [
-        new Question(0, "What is your full name?", []),
-        new Question(1, "What is your major?", []),
-        new Question(2, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior", "Graduate"]),
-        new Question(3, "Do you have any disabilities?", ["Yes", "No", "Prefer not to say"], (answer, actions) => {
-            answer === "Yes" ? actions.goToNext() : actions.skipQuestion();
-        }),
-        new Question(4, "If you have a disability, what kind do you have?", ["Physical", "Learning", "Visual", "Hearing", "Other"]),
-        new Question(5, "Are you a veteran?", ["Yes", "No"]),
-        new Question(6, "What's your sexual orientation?", ["Heterosexual", "Homosexual", "Bisexual", "Prefer not to say", "Other"])
+        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", []),
+        new Question(1, "What type of student are you?", ["New Student", "Transfer Student", "Re-entry Student"]),
+        new Question(2, "What is your major?", []),
+        new Question(3, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
+        new Question(4, "What are your primary interests or hobbies?", []),
+        new Question(5, "What type of campus events are you interested in?", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
+        new Question(6, "Which areas of support would you find most helpful?", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
+        new Question(7, "What are your academic goals?", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
     ];
 
-    const questionnaireManager = new QuestionnaireManager(questions, setCurrentQuestion, setAnswers);
+    const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
-    const completeQuestionnaire = () => {
+    const completeProfileCreation = () => {
         setIsCompleted(true);
     };
 
-    const restartQuestionnaire = () => {
+    const restartProfileCreation = () => {
         setCurrentQuestion(0);
         setAnswers({});
         setSelectedMajor("");
         setSelectedDisability("");
-        setName("");
+        setFirstName("");
+        setMiddleInitial("");
+        setLastName("");
         setIsCompleted(false);
     };
 
     const renderQuestion = (question) => {
-        if (question.id === 1) {
+        if (question.id === 0) {
+            return (
+                <View>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="First Name"
+                        value={firstName}
+                        onChangeText={(text) => setFirstName(text)}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Middle Initial (Optional)"
+                        value={middleInitial}
+                        onChangeText={(text) => setMiddleInitial(text)}
+                        maxLength={1}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Last Name"
+                        value={lastName}
+                        onChangeText={(text) => setLastName(text)}
+                    />
+                </View>
+            );
+        } else if (question.id === 1 || question.id === 3 || question.id === 5 || question.id === 6 || question.id === 7) {
+            return question.options.map((option) => (
+                <TouchableOpacity
+                    key={option}
+                    style={styles.optionButton}
+                    onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
+                >
+                    <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+            ));
+        } else if (question.id === 2) {
             return (
                 <ModalSelector
                     data={[
@@ -113,41 +150,10 @@ const Questionnaire = () => {
             );
         } else if (question.id === 4) {
             return (
-                <ModalSelector
-                    data={[
-                        { key: 'Physical', label: 'Physical' },
-                        { key: 'Learning', label: 'Learning' },
-                        { key: 'Visual', label: 'Visual' },
-                        { key: 'Hearing', label: 'Hearing' },
-                        { key: 'Other', label: 'Other' }
-                    ]}
-                    initValue="Select disability type"
-                    onChange={(option) => setSelectedDisability(option.label)}
-                    style={styles.pickerContainer}
-                    initValueTextStyle={styles.pickerText}
-                    selectTextStyle={styles.pickerText}
-                />
-            );
-        } else if (question.options.length > 0) {
-            return question.options.map((option) => (
-                <TouchableOpacity
-                    key={option}
-                    style={styles.optionButton}
-                    onPress={() => questionnaireManager.handleAnswer(question.id, option, currentQuestion)}
-                >
-                    <Text style={styles.optionText}>{option}</Text>
-                </TouchableOpacity>
-            ));
-        } else if (question.id === 0) {
-            return (
                 <TextInput
                     style={styles.input}
-                    placeholder="Your name"
-                    value={name}
-                    onChangeText={(text) => setName(text)}
-                    onSubmitEditing={() => questionnaireManager.handleAnswer(question.id, name, currentQuestion)}
-                    blurOnSubmit={true}
-                    onBlur={() => Keyboard.dismiss()}
+                    placeholder="Your interests or hobbies"
+                    onChangeText={(text) => setAnswers((prev) => ({ ...prev, [question.id]: text }))}
                 />
             );
         } else {
@@ -155,16 +161,33 @@ const Questionnaire = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="Your answer"
-                    onChangeText={(text) => questionnaireManager.handleAnswer(question.id, text, currentQuestion)}
+                    onChangeText={(text) => profileCreationManager.handleAnswer(question.id, text, currentQuestion)}
                 />
             );
         }
     };
 
+    const handleNextPress = () => {
+        if (currentQuestion === 0) {
+            if (firstName.trim() === "" || lastName.trim() === "") {
+                Alert.alert("Error", "Please fill in both First and Last names.");
+                return;
+            }
+            profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
+        } else if (currentQuestion === 4) { // For hobbies and interests
+            const hobbies = answers[4] || ""; // Get the answer for the "interests or hobbies" question
+            if (hobbies.trim().length < 3) { // Require at least 3 characters
+                Alert.alert("Error", "Please provide a more detailed answer for your hobbies and interests.");
+                return;
+            }
+        }
+        profileCreationManager.goToNext(currentQuestion);
+    };
+
     const renderCompletionScreen = () => (
         <View style={styles.completionContainer}>
             <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-            <TouchableOpacity style={styles.largeButton} onPress={restartQuestionnaire}>
+            <TouchableOpacity style={styles.largeButton} onPress={restartProfileCreation}>
                 <Text style={styles.largeButtonText}>Redo</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -191,16 +214,16 @@ const Questionnaire = () => {
                                 {renderQuestion(questions[currentQuestion])}
                             </View>
                             <View style={styles.navigationButtons}>
-                                <TouchableOpacity style={styles.button} onPress={() => questionnaireManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
+                                <TouchableOpacity style={styles.button} onPress={() => profileCreationManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
                                     <Text style={styles.buttonText}>Previous</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={() => {
                                         if (currentQuestion === questions.length - 1) {
-                                            completeQuestionnaire();
+                                            completeProfileCreation();
                                         } else {
-                                            questionnaireManager.goToNext(currentQuestion);
+                                            handleNextPress();
                                         }
                                     }}
                                 >
@@ -252,5 +275,5 @@ const styles = StyleSheet.create({
     largeButtonText: { color: 'white', fontSize: 18, fontWeight: '600', alignItems: 'center', textAlign: 'center'},
 });
 
-export default Questionnaire;
+export default ProfileCreation;
 

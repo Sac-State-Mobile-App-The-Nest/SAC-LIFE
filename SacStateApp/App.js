@@ -6,7 +6,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LogInScreen from './src/screens/LogInScreen';
 import { StatusBar } from 'expo-status-bar';
-import Questionnaire from './src/screens/Questionnaire';
+import ProfileCreationScreen from './src/screens/ProfileCreationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,7 +18,7 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="LogIn" component={LogInScreen}/>
-        <Stack.Screen name="Questionnaire" component = {Questionnaire}/>
+        <Stack.Screen name="ProfileCreation" component = {ProfileCreationScreen}/>
       </Stack.Navigator>
         
     </NavigationContainer>   
