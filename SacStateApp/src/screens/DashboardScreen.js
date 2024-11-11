@@ -14,7 +14,7 @@ import SettingsScreen from './SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
-const DashboardScreen = () => {
+const DashboardTab = () => {
   const navigation = useNavigation();
 
   const [userInfo, setUserInfo] = useState(null);
@@ -25,39 +25,22 @@ const DashboardScreen = () => {
   const [isEventTabVisible, setEventTabVisible] = useState(false);
   const [markedDates, setMarkedDates] = useState({});
 
-  const userLogin = {
-    username: 'user1',
-    password: 'hashed_password_123',
-  };
-
-  const user = {
-    name: "John Doe",
-    email: "johndoe@example.com",
-    major: "Computer Science",
-    year: "Sophomore",
-    interests: ["Coding", "Music", "Sports"],
-  };
-
-  const activities = [
-    { id: '1', activity: 'Viewed profile' },
-    { id: '2', activity: 'Updated settings' },
-  ];
-
-  const notifications = [
-    { id: '1', message: 'Assignment due tomorrow!' },
-    { id: '2', message: 'Join the Coding Club meeting this Friday.' },
-  ];
-
+  // Define the events object here
   const events = {
     '2024-11-10': { title: 'Meet with Professor Smith', description: 'Discussion on the upcoming project.' },
     '2024-11-15': { title: 'Coding Club Meeting', description: 'Join us for the weekly coding session.' },
     '2024-11-20': { title: 'Midterm Exam', description: 'Prepare for the midterm exam in your Computer Science course.' },
   };
 
-  // Function to fetch user data by login info
+  const userLogin = {
+    username: 'user1',
+    password: 'hashed_password_123',
+  };
+
+  // Fetch user data from the backend API
   const getUser = async (userLoginData) => {
     try {
-      const response = await fetch('http://10.0.0.21:5000/api/students/loginAndGetName', {
+      const response = await fetch('http://192.168.1.223:5000/api/students/loginAndGetName', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,30 +49,18 @@ const DashboardScreen = () => {
         body: JSON.stringify(userLoginData),
       });
       const data = await response.json();
-      setUserInfo(data);
+
+      if (response.ok) {
+        setUserInfo(data); // Successfully set the user information
+      } else {
+        Alert.alert('Login Error', data.message || 'Unable to retrieve user information.');
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      Alert.alert('Error', 'Failed to fetch user data.');
     }
   };
 
-  // Fetch user services recommendations
-  const getUserServicesRec = async (std_id) => {
-    try {
-      const response = await fetch(`http://10.0.0.21:5000/api/campus_services/${std_id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-      const data = await response.json();
-      setUserServicesRec(data);
-    } catch (error) {
-      console.error('Error fetching service recommendations:', error);
-    }
-  };
-
-  // Set well-being prompt and fetch user data on mount
   useEffect(() => {
     const prompts = [
       "How are you feeling today?",
@@ -99,20 +70,14 @@ const DashboardScreen = () => {
     const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
     setWellBeingPrompt(randomPrompt);
 
-    const fetchUser = async () => {
-      await getUser(userLogin);
-    };
-    fetchUser();
+    // Call getUser with login details
+    getUser(userLogin);
   }, []);
 
-  // Fetch user services after user info is fetched
-  useEffect(() => {
-    if (userInfo && userInfo.std_id) {
-      getUserServicesRec(userInfo.std_id);
-    }
-  }, [userInfo]);
+  const handleWellBeingCheckIn = () => {
+    Alert.alert("Well-Being Check", wellBeingPrompt);
+  };
 
-  // Function to handle day press in the calendar
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
     const eventForDay = events[day.dateString] || null;
@@ -125,41 +90,13 @@ const DashboardScreen = () => {
     });
   };
 
-  // Function to close the event tab and unmark the date
   const closeEventTab = () => {
-    // Unmark the date when closing the event tab
     setMarkedDates({});
     setEventTabVisible(false);
     setEvent(null);
   };
 
-  // Handle well-being check-in
-  const handleWellBeingCheckIn = () => {
-    Alert.alert("Well-Being Check", wellBeingPrompt);
-  };
-
-  // Render Activity Item
-  const renderActivityItem = ({ item }) => (
-    <View style={styles.activityContainer}>
-      <Text style={styles.activityItem}>{item.activity}</Text>
-      {item.activity === 'Viewed profile' && (
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Profile')}
-        >
-          <Text style={{ color: 'white' }}>Go to Profile</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  // Render Notification Item
-  const renderNotificationItem = ({ item }) => (
-    <View style={styles.notificationContainer}>
-      <Text style={styles.notificationItem}>{item.message}</Text>
-    </View>
-  );
-
+  
   return (
     <ImageBackground source={backgroundImage} style={styles.background}>
       <ScrollView contentContainerStyle={styles.scrollViewContainer}>
@@ -169,26 +106,15 @@ const DashboardScreen = () => {
           <Text style={styles.header}>
             Welcome, {userInfo ? `${userInfo.f_name} ${userInfo.m_name} ${userInfo.l_name}` : 'Loading Name'}!
           </Text>
-          <Text style={styles.sectionHeader}>Notifications</Text>
-          <FlatList
-            data={notifications}
-            keyExtractor={(item) => item.id}
-            renderItem={renderNotificationItem}
-          />
-          <View style={styles.serviceContainer}>
-            <Text style={styles.sectionHeader}>Services Available</Text>
-            {userServicesRec.length === 0 ? (
-              <Text style={styles.details}>No services available</Text>
-            ) : (
-              userServicesRec.map((service, index) => (
-                <Text key={index} style={{ fontSize: 14 }}>
-                  {service.serv_name}: {service.service_link}
-                </Text>
-              ))
-            )}
+
+          <View style={styles.calendarContainer}>
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={markedDates}
+              style={styles.calendar}
+            />
           </View>
 
-          {/* Event Popup Tab */}
           {isEventTabVisible && event && (
             <View style={styles.eventTab}>
               <Text style={styles.eventDate}>{selectedDate}</Text>
@@ -200,25 +126,9 @@ const DashboardScreen = () => {
             </View>
           )}
 
-          {/* Calendar */}
-          <View style={styles.calendarContainer}>
-            <Calendar
-              onDayPress={handleDayPress}
-              markedDates={markedDates}
-              style={styles.calendar}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.button} onPress={handleWellBeingCheckIn}>
+          <TouchableOpacity style={styles.button} onPress={() => Alert.alert("Well-Being Check", wellBeingPrompt)}>
             <Text style={{ color: 'white' }}>Check In on Well-Being</Text>
           </TouchableOpacity>
-
-          <Text style={styles.sectionHeader}>Recent Activities</Text>
-          <FlatList
-            data={activities}
-            keyExtractor={(item) => item.id}
-            renderItem={renderActivityItem}
-          />
 
           <View style={styles.chatWidgetContainer}>
             <ChatWidget />
@@ -226,100 +136,36 @@ const DashboardScreen = () => {
         </View>
       </ScrollView>
     </ImageBackground>
-=======
+  );
+};
+
+const DashboardScreen = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           let iconName;
-          if (route.name === 'Dashboard Tab') {
+          if (route.name === 'Dashboard') {
             iconName = 'home';
           } else if (route.name === 'Profile') {
             iconName = 'person';
-          } else if (route.name === 'Social Messenger') {
-            iconName = 'people-outline';
+          } else if (route.name === 'Messenger') {
+            iconName = 'chatbubble-ellipses';
           } else if (route.name === 'Settings') {
             iconName = 'settings';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#e6b711', // Hornet Yellow
+        tabBarActiveTintColor: '#e6b711',
         tabBarInactiveTintColor: 'grey',
         tabBarStyle: {
-          backgroundColor: '#021e14', // Redwood Grove Green
+          backgroundColor: '#021e14',
         },
       })}
     >
-      {/* Dashboard Tab  (Renamed to Dashboard Tab from Dashboard to avoid confusing behaivor during navigation.) */}
-      <Tab.Screen name= "Dashboard Tab" options={{ headerShown: false, title: 'Dashboard'}}>
-        {() => (
-          <ImageBackground source={backgroundImage} style={styles.background}>
-            <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-              <View style={styles.goldBackground}>
-                <Text style={styles.header}>  Welcome, {userInfo ? `${userInfo.f_name} ${userInfo.m_name} ${userInfo.l_name}` : 'Loading Name'}!</Text>
-                {/* <Text style={styles.header}>Welcome, {user.name}!</Text>
-                <Text style={styles.subHeader}>{user.email}</Text> */}
-                <Text style={styles.details}>Major: {user.major}</Text>
-                <Text style={styles.details}>Year: {user.year}</Text>
-                {/* <Text style={styles.interests}>Interests: {user.interests.join(', ')}</Text> */}
-
-                {/**dev **/}
-
-                <Text style={styles.subHeader}>Student ID: {userInfo ? `${userInfo.std_id}` : 'Loading ID'}</Text>
-                <View style={styles.serviceContainer}>
-                  <Text style={styles.sectionHeader}>Services Available</Text>
-                  {userServicesRec.length === 0 ? (
-                    <Text style={styles.details}>No services available</Text>
-                  ) : (
-                    userServicesRec.map((service, index) => (
-                      <Text key={index} style={{ fontSize: 14 }}>
-                        {service.serv_name}: {service.service_link}
-                      </Text>
-                    ))
-                  )}
-                </View>
-                <View style={styles.calendarContainer}>
-                <Calendar
-                    onDayPress={(day) => {
-                        console.log('selected day', day);
-                        // You can add your logic for when a day is pressed
-                    }}
-                    markedDates={{
-                        '2024-11-01': { selected: true, marked: true, selectedColor: 'blue' },
-                        // Add more dates here as needed
-                    }}
-                    style={styles.calendar}
-                />
-              </View>
-
-                <Text style={styles.sectionHeader}>Notifications</Text>
-                <FlatList data={notifications}
-                 keyExtractor={(item) => item.id} 
-                 renderItem={renderNotification} />
-
-                <TouchableOpacity style={styles.button} 
-                onPress={handleWellBeingCheckIn}>
-
-                  <Text style={{ color: 'white' }}>Check In on Well-Being</Text>
-                </TouchableOpacity>
-
-                <View style={stylesC.chatWidgetContainer}>
-                  <ChatWidget />
-                </View>
-              </View>
-            </ScrollView>
-          </ImageBackground>
-        )}
-      </Tab.Screen>
-
-
-      {/* Profile Tab */}
+      <Tab.Screen name="Dashboard" component={DashboardTab} options={{ headerShown: false }} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
-
-      {/* Messenger Tab */}
-      <Tab.Screen name="Social Messenger"  component={MessengerScreen} />
-
-      {/* Settings Tab */}
+      <Tab.Screen name="Messenger" component={MessengerScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
@@ -349,7 +195,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   logo: {
-    width: 50, 
+    width: 50,
     height: 50,
     position: 'absolute',
     top: 20,
@@ -359,38 +205,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'black',
-    marginTop: 80, 
-  },
-  sectionHeader: {
-    fontSize: 20,
-    marginVertical: 10,
-    fontWeight: 'bold',
-    color: '#043927',
-  },
-  activityContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  activityItem: {
-    fontSize: 16,
-    color: '#043927',
-  },
-  notificationContainer: {
-    paddingVertical: 10,
-  },
-  notificationItem: {
-    fontSize: 16,
-    color: '#043927',
-  },
-  button: {
-    backgroundColor: '#043927',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 80,
   },
   calendarContainer: {
     marginVertical: 20,
@@ -444,6 +259,14 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: 'white',
+  },
+  button: {
+    backgroundColor: '#043927',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
   },
   chatWidgetContainer: {
     position: 'absolute',
