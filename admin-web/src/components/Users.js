@@ -24,14 +24,13 @@ function Users() {
     }
   };
 
-  // Function to handle deleting a user
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/students/${id}`, {
+        const response = await fetch(`http://localhost:5000/api/students/cascade-delete/${id}`, {
           method: 'DELETE',
         });
-
+  
         if (response.ok) {
           setUsers(users.filter((user) => user.std_id !== id));
           alert('Student deleted successfully');

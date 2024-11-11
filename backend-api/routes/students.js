@@ -74,25 +74,64 @@ module.exports = function(poolPromise) {
     }
   });
 
-  // DELETE a student by studentId
-  router.delete('/:studentId', async (req, res) => {
+  router.delete('/cascade-delete/:studentId', async (req, res) => {
     const { studentId } = req.params;
+    const pool = await poolPromise;
+
     try {
-      const pool = await poolPromise;
-      const result = await pool.request()
-        .input('studentId', sql.Int, studentId)
-        .query('DELETE FROM test_students WHERE std_id = @studentId');
+        console.log("Attempting to delete student:", studentId);
 
-      if (result.rowsAffected[0] === 0) {
-        res.status(404).json({ message: 'Student not found' });
-      } else {
-        res.json({ message: 'Student deleted successfully' });
-      }
+        // Use a single transaction request object
+        const transaction = pool.transaction();
+        
+        // Start the transaction
+        await transaction.begin();
+        console.log("Transaction started");
+
+        // Delete from related tables first
+        await transaction.request()
+            .input('studentId', sql.Int, studentId)
+            .query('DELETE FROM login_info WHERE std_id = @studentId');
+        console.log("Deleted from login_info");
+
+        await transaction.request()
+            .input('studentId', sql.Int, studentId)
+            .query('DELETE FROM test_student_tags WHERE std_id = @studentId');
+        console.log("Deleted from test_student_tags");
+
+        // Delete from the main table
+        const result = await transaction.request()
+            .input('studentId', sql.Int, studentId)
+            .query('DELETE FROM test_students WHERE std_id = @studentId');
+        console.log("Deleted from test_students");
+
+        // Commit the transaction if all deletions were successful
+        await transaction.commit();
+        console.log("Transaction committed");
+
+        if (result.rowsAffected[0] === 0) {
+            console.log(`Student with std_id ${studentId} not found`);
+            res.status(404).json({ message: 'Student not found' });
+        } else {
+            console.log("Deleted student and related records successfully");
+            res.json({ message: 'Student and related records deleted successfully' });
+        }
     } catch (error) {
-      console.error('SQL error', error);
-      res.status(500).json({ message: 'Server error deleting student' });
-    }
-  });
+        console.error('SQL error during delete operation:', error.message);
 
-  return router;
+        // Rollback the transaction in case of an error
+        try {
+            await transaction.rollback();
+            console.log("Transaction rolled back due to error");
+        } catch (rollbackError) {
+            console.error('Error during transaction rollback:', rollbackError.message);
+        }
+
+        res.status(500).json({ message: 'Server error deleting student and related records', error: error.message });
+    }
+});
+
+  
+  
+return router;
 };
