@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../css/Users.css';
 
 function Users() {
   const [users, setUsers] = useState([]);
@@ -32,7 +33,7 @@ function Users() {
         });
 
         if (response.ok) {
-          setUsers(users.filter((user) => user.std_id !== id)); // Update state to remove the deleted user
+          setUsers(users.filter((user) => user.std_id !== id));
           alert('Student deleted successfully');
         } else {
           alert('Failed to delete student');
@@ -44,15 +45,15 @@ function Users() {
   };
 
   return (
-    <div>
+    <div className="users-container">
       <h2>Users</h2>
-      <table>
+      <table className="users-table">
         <thead>
           <tr>
             <th>Name</th>
             <th>Middle Name</th>
             <th>Last Name</th>
-            <th>Email </th>
+            <th>Email</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -63,7 +64,7 @@ function Users() {
               <td>{user.m_name}</td>
               <td>{user.l_name}</td>
               <td>{user.email}</td>
-              <td>
+              <td className="users-buttons">
                 <button>Edit</button>
                 <button onClick={() => handleDelete(user.std_id)}>Delete</button>
               </td>
