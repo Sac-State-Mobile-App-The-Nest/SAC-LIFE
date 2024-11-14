@@ -70,7 +70,7 @@ const ProfileCreation = () => {
 
     const questions = [
         new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", []),
-        new Question(1, "What type of student are you?", ["New Student", "Transfer Student", "Re-entry Student"]),
+        new Question(1, "What type of student are you?", ["New student", "Transfer Student", "Re-entry Student"]),
         new Question(2, "What is your major?", []),
         new Question(3, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
         new Question(4, "What are your primary interests or hobbies?", []),
@@ -83,6 +83,36 @@ const ProfileCreation = () => {
 
     const completeProfileCreation = () => {
         setIsCompleted(true);
+        sendProfileDataToServer();  // send data to server after completion
+    };
+
+    // Will send the answers to server
+    // will categorize student with tags
+    const sendProfileDataToServer = async () => {
+        try {
+            // Need a way to send StudentId to backend
+            
+            const specificAnswers = {
+                question1: answers["1"].toLowerCase(),  // type of student [new, transfer, reentry]
+                question2: answers["2"],                // major
+                question3: answers["3"].toLowerCase()   // academic year [freshman, sophomore, junior, senior]
+            }
+            const response = await fetch('http://192.168.0.117:5000/api/students/profile-answers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ specificAnswers })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error sending profile data to server');
+            }
+
+        } catch (err) {
+            console.error('Error sending profile answers: ', err);
+            Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+        }
     };
 
     const restartProfileCreation = () => {
