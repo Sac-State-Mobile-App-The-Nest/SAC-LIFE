@@ -5,10 +5,7 @@ const bodyParser = require('body-parser');
 const port = 5000;
 const config = require('./config'); //server config file
 
-
 require('dotenv').config();
-
-
 
 const app = express();
 app.use(express.json());

@@ -4,33 +4,8 @@ const sql = require('mssql');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Replace this key with an environment variable so it's not just in the code...
-// Key was obtained by running in the terminal:
-// > node
-// > require('crypto').randomBytes(64).toString('hex')
+const { authenticateToken } = require('../authMiddleware')
 const JWT_SECRET_TOKEN = 'eea7a9c77a0ee1b50710563929964c15631e1e898871c90fe32784c5e9b925fc882554a81e3695d5cd3a919a6203a31c4371ad82c920a5257f03db3d635f0301';
-const JWT_REFRESH_TOKEN = 'c8ee858d844fe98367a533e7320967c10d76d4a14122b7b584244505ad560c0fa7a7433dd94b38aaf158d04c317fcdd4ca7c10b18701881b80cd0f17edb27151';
-
-// Function to authenticate JWT
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Split the "Bearer <token>"
-
-    if (!token) {
-        return res.status(401).send('Access denied. No token provided');
-    }
-
-    // Token verification
-    jwt.verify(token, JWT_SECRET_TOKEN, (err, user) => {
-        if (err) {
-            return res.status(403).send('Invalid token.');
-        }
-        // Attach the user information (decoded JWT) to the request object
-        req.user = user;
-        next(); // Pass the request to the next middleware/route handler
-    });
-}
-
 
 // Get request for the whole login_info table from SQL
 router.get('/', async (req, res) => {
@@ -45,7 +20,7 @@ router.get('/', async (req, res) => {
 
 // Testing function with bcrypt hashing
 router.post('/login', async (req, res) => {
-    const { username, password, std_id } = req.body;
+    const { username, password } = req.body;
     let userInputPassword = password;
 
     try {
@@ -55,15 +30,13 @@ router.post('/login', async (req, res) => {
         request.input('password', sql.VarChar, password);
 
         // Checks if the username and password input match any fields in the database
-        const result = await request.query('SELECT * FROM login_info WHERE username = @username');
+        const loginQuery = await request.query('SELECT * FROM login_info WHERE username = @username');
 
         // Get the hashed password from the database result
-        const storedHashedPassword = result.recordset[0].hashed_pwd;
-        studentID = result.recordset[0].std_id;
-        console.log(studentID);
+        const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
 
         // If there are no matches, recordset.length will be 0
-        if (result.recordset.length == 0) {
+        if (loginQuery.recordset.length == 0) {
             res.send('Login failed.')
             
         } else {    // If the user exists, compare input password with the corresponding hashed password in the database
@@ -83,9 +56,9 @@ router.post('/login', async (req, res) => {
                     console.log('Passwords match! User authenticated.');
 
                     // Create JWT after authenticating the user
-                    const accessToken = jwt.sign({username: username}, JWT_SECRET_TOKEN);
+                    const accessToken = jwt.sign(loginQuery.recordset[0], JWT_SECRET_TOKEN);
                     res.json({ accessToken });
-                    console.log("Username: " + username);
+                    // console.log("Username: " + username);
                 } else {
                     // Passwords don't match, authentication failed
                     res.send('Passwords do not match! Authentication failed.');
@@ -102,7 +75,7 @@ router.post('/login', async (req, res) => {
 
 // Protected route
 router.get('/protected', authenticateToken, async (req, res) => {
-    const username = req.user;
+    const username = req.user.username;
     
     try {
         const request = new sql.Request();

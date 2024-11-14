@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 
+const { authenticateToken } = require('../authMiddleware')
+
 // Export a function that accepts the poolPromise
 module.exports = function(poolPromise) {
   
@@ -70,10 +72,10 @@ module.exports = function(poolPromise) {
   });
 
   //Posting to test student tags table
-  router.post('/profile-answers', async (req, res) => {
+  router.post('/profile-answers',authenticateToken, async (req, res) => {
     const { specificAnswers } = req.body;
     // replace with req.studentId
-    const studentId = 15;
+    const studentId = req.user.std_id;
 
     const { question1, question2, question3 } = specificAnswers;
 
