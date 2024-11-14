@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 // Key was obtained by running in the terminal:
 // > node
 // > require('crypto').randomBytes(64).toString('hex')
-const JWT_SECRET = 'eea7a9c77a0ee1b50710563929964c15631e1e898871c90fe32784c5e9b925fc882554a81e3695d5cd3a919a6203a31c4371ad82c920a5257f03db3d635f0301';
+const JWT_SECRET_TOKEN = 'eea7a9c77a0ee1b50710563929964c15631e1e898871c90fe32784c5e9b925fc882554a81e3695d5cd3a919a6203a31c4371ad82c920a5257f03db3d635f0301';
 const JWT_REFRESH_TOKEN = 'c8ee858d844fe98367a533e7320967c10d76d4a14122b7b584244505ad560c0fa7a7433dd94b38aaf158d04c317fcdd4ca7c10b18701881b80cd0f17edb27151';
 
 
@@ -51,14 +51,19 @@ router.post('/login', async (req, res) => {
                 // Error handler
                 if (err) {
                     console.log("An error occured comparing passwords.", err);
+                    console.log("Data type: ", typeof userInputPassword)
                     console.log(err.message + " " + err.name);
                     return;
                 }
     
                 if (result) {
                     // Passwords match, authentication successful
-                    res.send('Passwords match! User authenticated.');
+                    // res.send('Passwords match! User authenticated.');
                     console.log('Passwords match! User authenticated.');
+
+                    // Create JWT after authenticating the user
+                    const accessToken = jwt.sign(username, JWT_SECRET_TOKEN);
+                    res.json({ accessToken });
                 } else {
                     // Passwords don't match, authentication failed
                     res.send('Passwords do not match! Authentication failed.');
@@ -71,9 +76,9 @@ router.post('/login', async (req, res) => {
         console.error('SQL error', err);
         res.status(500).send('Server Error.');
     }
-
-    
 })
+
+
 
 // Get request to hash a password
 // Call in Postman with: localhost:5000/api/login_info/login/hasher
