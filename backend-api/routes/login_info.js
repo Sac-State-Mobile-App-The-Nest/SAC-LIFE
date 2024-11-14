@@ -11,6 +11,26 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET_TOKEN = 'eea7a9c77a0ee1b50710563929964c15631e1e898871c90fe32784c5e9b925fc882554a81e3695d5cd3a919a6203a31c4371ad82c920a5257f03db3d635f0301';
 const JWT_REFRESH_TOKEN = 'c8ee858d844fe98367a533e7320967c10d76d4a14122b7b584244505ad560c0fa7a7433dd94b38aaf158d04c317fcdd4ca7c10b18701881b80cd0f17edb27151';
 
+// Function to authenticate JWT
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Split the "Bearer <token>"
+
+    if (!token) {
+        return res.status(401).send('Access denied. No token provided');
+    }
+
+    // Token verification
+    jwt.verify(token, JWT_SECRET_TOKEN, (err, user) => {
+        if (err) {
+            return res.status(403).send('Invalid token.');
+        }
+        // Attach the user information (decoded JWT) to the request object
+        req.user = user;
+        next(); // Pass the request to the next middleware/route handler
+    });
+}
+
 
 // Get request for the whole login_info table from SQL
 router.get('/', async (req, res) => {
@@ -25,7 +45,7 @@ router.get('/', async (req, res) => {
 
 // Testing function with bcrypt hashing
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, std_id } = req.body;
     let userInputPassword = password;
 
     try {
@@ -39,6 +59,8 @@ router.post('/login', async (req, res) => {
 
         // Get the hashed password from the database result
         const storedHashedPassword = result.recordset[0].hashed_pwd;
+        studentID = result.recordset[0].std_id;
+        console.log(studentID);
 
         // If there are no matches, recordset.length will be 0
         if (result.recordset.length == 0) {
@@ -58,12 +80,12 @@ router.post('/login', async (req, res) => {
     
                 if (result) {
                     // Passwords match, authentication successful
-                    // res.send('Passwords match! User authenticated.');
                     console.log('Passwords match! User authenticated.');
 
                     // Create JWT after authenticating the user
-                    const accessToken = jwt.sign(username, JWT_SECRET_TOKEN);
+                    const accessToken = jwt.sign({username: username}, JWT_SECRET_TOKEN);
                     res.json({ accessToken });
+                    console.log("Username: " + username);
                 } else {
                     // Passwords don't match, authentication failed
                     res.send('Passwords do not match! Authentication failed.');
@@ -77,6 +99,30 @@ router.post('/login', async (req, res) => {
         res.status(500).send('Server Error.');
     }
 })
+
+// Protected route
+router.get('/protected', authenticateToken, async (req, res) => {
+    const username = req.user;
+    
+    try {
+        const request = new sql.Request();
+        request.input('username', sql.VarChar, username);
+        const result = await request.query('SELECT std_id FROM login_info WHERE username = @username')
+
+        console.log(result.recordset);  // Currently prints: [ { std_id: 4 } ]
+
+        res.send(`Hello, ${username}, you are authenticated!`);
+    } catch (err) {
+        console.error('SQL error', err);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+
+
+
+
 
 
 
