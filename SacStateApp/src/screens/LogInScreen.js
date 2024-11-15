@@ -18,22 +18,21 @@ const LogInScreen = () => {
     // Login function
     const login = async () => {
         try {
-            const response = await axios.post('http://10.0.0.43:5000/api/login_info/login', { username, password, });   // Will add IP's to a .env file in the future
+            const response = await axios.post('http://192.168.0.117:5000/api/login_info/login', { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
 
             await AsyncStorage.setItem('token', token);
 
-            const booleanResponse = await axios.get('http://10.0.0.43:5000/api/login_info/check-login-bool', {
+            const booleanResponse = await axios.get('http://192.168.0.117:5000/api/login_info/check-login-bool', {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
             Alert.alert('Login successful');
-
             // If login is successful, navigate to homescreen
-            if(booleanResponse == true) {
-                navigation.navigate('ProfileCreation'); 
-            } else {
+            if(booleanResponse.data == true) {
                 navigation.navigate('Dashboard'); 
+            } else {
+                navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
         // Handle the error case
