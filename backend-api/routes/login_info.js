@@ -32,15 +32,15 @@ router.post('/login', async (req, res) => {
         // Checks if the username and password input match any fields in the database
         const loginQuery = await request.query('SELECT * FROM login_info WHERE username = @username');
 
-        // Get the hashed password from the database result
-        const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
+
+        
 
         // If there are no matches, recordset.length will be 0
         if (loginQuery.recordset.length == 0) {
             res.send('Login failed.')
-            
         } else {    // If the user exists, compare input password with the corresponding hashed password in the database
-
+                    // Get the hashed password from the database result
+            const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
             // Function call to compare password
             bcrypt.compare(userInputPassword, storedHashedPassword, (err, result) => {
                 // Error handler
@@ -69,34 +69,34 @@ router.post('/login', async (req, res) => {
 
     } catch (err) {
         console.error('SQL error', err);
-        res.status(500).send('Server Error.');
+        res.status(500).send('Server error.');
     }
 })
 
-// Protected route
-router.get('/protected', authenticateToken, async (req, res) => {
-    const username = req.user.username;
-    
-    try {
-        const request = new sql.Request();
-        request.input('username', sql.VarChar, username);
-        const result = await request.query('SELECT std_id FROM login_info WHERE username = @username')
 
-        console.log(result.recordset);  // Currently prints: [ { std_id: 4 } ]
-
-        res.send(`Hello, ${username}, you are authenticated!`);
-    } catch (err) {
-        console.error('SQL error', err);
-        res.status(500).send('Server Error');
-    }
+router.get('/check-login-bool', authenticateToken, (req, res) => {
+    const firstLogin = req.user.first_login;
+    console.log(firstLogin);
+    res.send(firstLogin);
 });
 
+// Protected route
+// router.get('/protected', authenticateToken, async (req, res) => {
+//     const username = req.user.username;
+    
+//     try {
+//         const request = new sql.Request();
+//         request.input('username', sql.VarChar, username);
+//         const result = await request.query('SELECT std_id FROM login_info WHERE username = @username')
 
+//         console.log(result.recordset);  // Currently prints: [ { std_id: 4 } ]
 
-
-
-
-
+//         res.send(`Hello, ${username}, you are authenticated!`);
+//     } catch (err) {
+//         console.error('SQL error', err);
+//         res.status(500).send('Server Error');
+//     }
+// });
 
 
 // Get request to hash a password

@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import backgroundImage from '../assets/logInBackground.jpg'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { Alert } from 'react-native';
 
 const LogInScreen = () => {
     const navigation = useNavigation(); // Hook to access the navigation object
@@ -11,6 +14,37 @@ const LogInScreen = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false); // State for password visibility
+
+    // Login function
+    const login = async () => {
+        try {
+            const response = await axios.post('http://10.0.0.43:5000/api/login_info/login', { username, password, });   // Will add IP's to a .env file in the future
+            const token = response.data.accessToken;
+
+            await AsyncStorage.setItem('token', token);
+
+            const booleanResponse = await axios.get('http://10.0.0.43:5000/api/login_info/check-login-bool', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            Alert.alert('Login successful');
+
+            // If login is successful, navigate to homescreen
+            if(booleanResponse == true) {
+                navigation.navigate('ProfileCreation'); 
+            } else {
+                navigation.navigate('Dashboard'); 
+            }
+        } catch (error) {
+        // Handle the error case
+        if (error.response && error.response.data) {
+            Alert.alert('Login failed', error.response.data);
+        } else {
+            Alert.alert('Login failed', 'An unexpected error occurred.');
+        }
+        console.error("Error logging in:", error.message);
+    }
+};
 
 
     // Send in username/password and run through the POST request for validation
@@ -26,11 +60,7 @@ const LogInScreen = () => {
         // Simulate a login process
         setTimeout(() => {
             setLoading(false);
-            if (username === 'test' && password === 'password') {
-                console.log('Login successful!');
-            } else {
-                setError('Invalid username or password.');
-            }
+            login();
         }, 2000);
     };
 
