@@ -5,6 +5,7 @@ import { ProgressBar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import backgroundImage from '../assets/logInBackground.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {DEV_BACKEND_SERVER_IP} from "@env";
 
 const { height, width } = Dimensions.get('window');
 
@@ -100,7 +101,7 @@ const ProfileCreation = () => {
             }
             token = await AsyncStorage.getItem('token');
             
-            const response = await fetch('http://192.168.0.117:5000/api/students/profile-answers', {
+            const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
