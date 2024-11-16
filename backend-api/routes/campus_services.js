@@ -54,7 +54,7 @@ module.exports = function(poolPromise) {
             const pool = await poolPromise;
             const servicesList = await pool.request()
                 .input('std_id', sql.Int, std_id)
-                .query(`SELECT serv_name, service_desc, service_link, service_phone, service_email, service_location
+                .query(`SELECT DISTINCT serv_name, service_desc, service_link, service_phone, service_email, service_location
                     FROM test_student_tags, test_tag_service, test_campus_services 
                     WHERE @std_id = test_student_tags.std_id 
                     AND test_student_tags.tag_id = test_tag_service.tag_id 
