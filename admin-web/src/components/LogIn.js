@@ -7,6 +7,7 @@ function LogIn() {
   const [password, setPassword] = useState('');
 
   const handleLogin = async (event) => {
+    console.log("Login button is clicked");
     event.preventDefault();
     
     try {

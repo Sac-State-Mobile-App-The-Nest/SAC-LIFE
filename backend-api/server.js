@@ -31,7 +31,7 @@ const studentsRoute = require('./routes/students')(poolPromise);
 const campus_servicesRoute = require('./routes/campus_services');
 const tagsRoute = require('./routes/tags');
 const login_infoRoute = require('./routes/login_info');
-const adminLoginRoute = require('./routes/admin_login');
+const adminLoginRoute = require('./routes/admin_login')(poolPromise);
 
 app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);

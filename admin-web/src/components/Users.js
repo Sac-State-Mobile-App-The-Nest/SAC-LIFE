@@ -3,6 +3,9 @@ import '../css/Users.css';
 
 function Users() {
   const [users, setUsers] = useState([]);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [deleteUserId, setDeleteUserId] = useState(null);
 
   // Fetch users from the backend API when the component mounts
   useEffect(() => {
@@ -17,30 +20,47 @@ function Users() {
         throw new Error('Failed to fetch users');
       }
       const data = await response.json();
-      console.log("Fetched data:", data); 
       setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      try {
-        const response = await fetch(`http://localhost:5000/api/students/cascade-delete/${id}`, {
-          method: 'DELETE',
-        });
-  
-        if (response.ok) {
-          setUsers(users.filter((user) => user.std_id !== id));
-          alert('Student deleted successfully');
-        } else {
-          alert('Failed to delete student');
-        }
-      } catch (error) {
-        console.error('Error deleting user:', error);
+  const handleDelete = async () => {
+    try {
+      const token = localStorage.getItem('token'); // Get the JWT token
+      const response = await fetch(`http://localhost:5000/api/students/cascade-delete/${deleteUserId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Include the JWT token
+        },
+        body: JSON.stringify({ password }), // Send the password for re-authentication
+      });
+
+      if (response.ok) {
+        setUsers(users.filter((user) => user.std_id !== deleteUserId));
+        alert('Student deleted successfully');
+      } else if (response.status === 401) {
+        alert('Invalid password. Deletion not authorized.');
+      } else {
+        alert('Failed to delete student');
       }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    } finally {
+      setShowPasswordModal(false); // Close modal
+      setPassword(''); // Reset password field
+      setDeleteUserId(null); // Clear user ID
     }
+  };
+
+  const openPasswordModal = (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this student?');
+    if (!confirmDelete) return;
+
+    setDeleteUserId(id); // Set the user ID for deletion
+    setShowPasswordModal(true); // Open the modal
   };
 
   return (
@@ -65,12 +85,31 @@ function Users() {
               <td>{user.email}</td>
               <td className="users-buttons">
                 <button>Edit</button>
-                <button onClick={() => handleDelete(user.std_id)}>Delete</button>
+                <button onClick={() => openPasswordModal(user.std_id)}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Password Confirmation Modal */}
+      {showPasswordModal && (
+        <div className="password-modal">
+          <div className="password-modal-content">
+            <h3>Enter Password</h3>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <div className="password-modal-actions">
+              <button onClick={handleDelete}>Confirm</button>
+              <button onClick={() => setShowPasswordModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
