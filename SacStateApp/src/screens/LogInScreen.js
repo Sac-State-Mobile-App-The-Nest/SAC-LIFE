@@ -25,16 +25,16 @@ const LogInScreen = () => {
             await AsyncStorage.setItem('token', token);
 
             const booleanResponse = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/check-login-bool`, {
+
                 headers: { Authorization: `Bearer ${token}` },
             });
 
             Alert.alert('Login successful');
-
             // If login is successful, navigate to homescreen
-            if(booleanResponse == true) {
-                navigation.navigate('ProfileCreation'); 
-            } else {
+            if(booleanResponse.data == true) {
                 navigation.navigate('Dashboard'); 
+            } else {
+                navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
         // Handle the error case

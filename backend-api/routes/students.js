@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 
-const { authenticateToken } = require('../authMiddleware')
+const { authenticateToken } = require('../authMiddleware');
 
 // Export a function that accepts the poolPromise
 module.exports = function(poolPromise) {
@@ -98,6 +98,10 @@ module.exports = function(poolPromise) {
         .input('std_id', sql.Int, studentId)
         .input('tagId3', sql.Int, tagMap[question3])
         .query('INSERT INTO test_student_tags (std_id, tag_id) VALUES (@std_id, @tagId3)');
+      
+      await pool.request()
+        .input('std_id', sql.Int, studentId)
+        .query('UPDATE login_info SET first_login = 1 WHERE std_id = @std_id');
 
       res.status(200).json({ message: 'Profile creation made'});
     } catch (err) {
