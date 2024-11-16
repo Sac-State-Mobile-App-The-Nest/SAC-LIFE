@@ -25,7 +25,7 @@ const poolPromise = sql.connect(config)
   });
 
 const studentsRoute = require('./routes/students')(poolPromise);
-const campus_servicesRoute = require('./routes/campus_services');
+const campus_servicesRoute = require('./routes/campus_services')(poolPromise);
 const tagsRoute = require('./routes/tags');
 const login_infoRoute = require('./routes/login_info');
 
