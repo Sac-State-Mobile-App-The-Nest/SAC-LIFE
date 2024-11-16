@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ImageBackground, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Linking, TouchableOpacity, Alert, ImageBackground, ScrollView, Image } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -7,16 +7,16 @@ import ChatWidget from '../components/ChatWidget';
 import backgroundImage from '../assets/logInBackground.jpg';
 import logo from '../assets/sac-state-logo.png';
 import { Ionicons } from '@expo/vector-icons';
-
+import axios from 'axios';
 import ProfileScreen from './ProfileScreen';
 import MessengerScreen from './MessengerScreen';
 import SettingsScreen from './SettingsScreen';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {DEV_BACKEND_SERVER_IP} from "@env";
 const Tab = createBottomTabNavigator();
 
 const DashboardTab = () => {
   const navigation = useNavigation();
-
   const [userInfo, setUserInfo] = useState(null);
   const [userServicesRec, setUserServicesRec] = useState([]);
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
@@ -32,36 +32,40 @@ const DashboardTab = () => {
     '2024-11-20': { title: 'Midterm Exam', description: 'Prepare for the midterm exam in your Computer Science course.' },
   };
 
-  const userLogin = {
-    username: 'user1',
-    password: 'hashed_password_123',
-  };
-
-  // Fetch user data from the backend API
-  const getUser = async (userLoginData) => {
-    try {
-      const response = await fetch('http://192.168.1.223:5000/api/students/loginAndGetName', {
-        method: 'POST',
+  //Displays the User's name by JWT authentication
+  const displayUserFirstLastName = async () => {
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(userLoginData),
       });
-      const data = await response.json();
-
-      if (response.ok) {
-        setUserInfo(data); // Successfully set the user information
-      } else {
-        Alert.alert('Login Error', data.message || 'Unable to retrieve user information.');
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      Alert.alert('Error', 'Failed to fetch user data.');
+      setUserInfo(response.data);
+      console.log(userInfo);
+    } catch(error){
+      console.error('Error displaying user first and last name: ', error);
     }
-  };
+  }
+
+  //Fetch user services recommendations by using std_id
+  const getUserServicesRec = async () => {
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/campus_services/servicesRecommendation`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      });
+      setUserServicesRec(response.data);
+    } catch(error){
+      console.error('Error fetching services recommendations', error)
+    }
+  }
 
   useEffect(() => {
+    displayUserFirstLastName();
+    getUserServicesRec();
     const prompts = [
       "How are you feeling today?",
       "Need any support? Let us know!",
@@ -71,7 +75,6 @@ const DashboardTab = () => {
     setWellBeingPrompt(randomPrompt);
 
     // Call getUser with login details
-    getUser(userLogin);
   }, []);
 
   const handleWellBeingCheckIn = () => {
@@ -96,6 +99,13 @@ const DashboardTab = () => {
     setEvent(null);
   };
 
+  const handlePress = (link) => {
+    if (link) {
+      Linking.openURL(link).catch((err) =>
+        console.error('Failed to open link:', err)
+      );
+    }
+  };
   
   return (
     <ImageBackground source={backgroundImage} style={styles.background}>
@@ -103,8 +113,8 @@ const DashboardTab = () => {
         <View style={styles.goldBackground}>
           <Image source={logo} style={styles.logo} />
 
-          <Text style={styles.header}>
-            Welcome, {userInfo ? `${userInfo.f_name} ${userInfo.m_name} ${userInfo.l_name}` : 'Loading Name'}!
+          <Text style={styles.welcomeHeader}>
+            Welcome, {userInfo ? `${userInfo.f_name} ${userInfo.m_name ? `${userInfo.m_name} ` : ''}${userInfo.l_name}` : 'Loading Name'}!
           </Text>
 
           <View style={styles.calendarContainer}>
@@ -125,7 +135,22 @@ const DashboardTab = () => {
               </TouchableOpacity>
             </View>
           )}
-
+          <View style={styles.serviceContainer}>
+            <Text style={styles.servicesHeader}>Services Available</Text>
+            {userServicesRec.length === 0 ? (
+              <Text style={styles.details}>No services available</Text>
+            ) : (
+              userServicesRec.map((service, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.serviceBox}
+                  onPress={() => handlePress(service.service_link)}
+                >
+                  <Text style={styles.serviceTitle}>{service.serv_name}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
           <TouchableOpacity style={styles.button} onPress={() => Alert.alert("Well-Being Check", wellBeingPrompt)}>
             <Text style={{ color: 'white' }}>Check In on Well-Being</Text>
           </TouchableOpacity>
@@ -207,11 +232,18 @@ const styles = StyleSheet.create({
     color: 'black',
     marginTop: 80,
   },
+  welcomeHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'rgb(0, 46, 35)',
+    marginTop: 80,
+  },
   calendarContainer: {
     marginVertical: 20,
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 3,
+    marginBottom: 0,
   },
   calendar: {
     borderWidth: 1,
@@ -273,6 +305,36 @@ const styles = StyleSheet.create({
     bottom: 20,
     right: 20,
     zIndex: 1000,
+  },
+  serviceContainer: {
+    padding: 20,
+  },
+  servicesHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'rgb(0, 46, 35)',
+  },
+  details: {
+    fontSize: 16,
+    color: 'gray',
+  },
+  serviceBox: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 15,
+    marginVertical: 10,
+    elevation: 3, // Adds a shadow effect for Android
+    shadowColor: '#000', // Adds a shadow effect for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  serviceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgb(0,132,83)', 
+    textAlign: 'center',
   },
 });
 

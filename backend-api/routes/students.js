@@ -21,7 +21,7 @@ module.exports = function(poolPromise) {
   });
 
   // Get a specific student by ID
-  router.get('/:studentId', async (req, res) => {
+  router.get('/student/:studentId', async (req, res) => {
     const { studentId } = req.params;
     try {
       const pool = await poolPromise;
@@ -40,21 +40,11 @@ module.exports = function(poolPromise) {
     }
   });
 
-  // Login and return student's name
-  router.post('/loginAndGetName', async (req, res) => {
-    const { username, password } = req.body;
+  // return student's name
+  router.get('/getName', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id
     try {
       const pool = await poolPromise;
-      const result = await pool.request()
-        .input('username', sql.VarChar, username)
-        .input('password', sql.VarChar, password)
-        .query(`SELECT std_id FROM login_info WHERE username = @username AND hashed_pwd = @password`);
-
-      if (result.recordset.length === 0) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      const std_id = result.recordset[0].std_id;
       const studentInfo = await pool.request()
         .input('std_id', sql.Int, std_id)
         .query(`SELECT f_name, m_name, l_name FROM test_students WHERE std_id = @std_id`);
@@ -64,7 +54,7 @@ module.exports = function(poolPromise) {
       }
 
       const { f_name, m_name, l_name } = studentInfo.recordset[0];
-      res.json({ f_name, m_name, l_name, std_id });
+      res.json({ f_name, m_name, l_name });
     } catch (err) {
       console.error('SQL error', err);
       res.status(500).json({ message: 'Backend server error' });
