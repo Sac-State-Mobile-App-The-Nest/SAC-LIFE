@@ -31,11 +31,13 @@ const studentsRoute = require('./routes/students')(poolPromise);
 const campus_servicesRoute = require('./routes/campus_services');
 const tagsRoute = require('./routes/tags');
 const login_infoRoute = require('./routes/login_info');
+const adminLoginRoute = require('./routes/admin_login');
 
 app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);
 app.use('/api/tags', tagsRoute);
 app.use('/api/login_info', login_infoRoute);
+app.use('/api', adminLoginRoute);
 
 
 app.get('/api/helloMessage', (req, res) => {
