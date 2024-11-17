@@ -4,13 +4,16 @@ import ModalSelector from 'react-native-modal-selector';
 import { ProgressBar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import backgroundImage from '../assets/logInBackground.jpg';
+import majorList from '../assets/majorList.json';
+import clubList from '../assets/clubList.json';
 
 const { height, width } = Dimensions.get('window');
 
 class Question {
-    constructor(id, text, options = [], conditional = null) {
+    constructor(id, text, inputType, options = [], conditional = null) {
         this.id = id;
         this.text = text;
+        this.inputType = inputType;
         this.options = options;
         this.conditional = conditional;
     }
@@ -61,22 +64,23 @@ const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [selectedMajor, setSelectedMajor] = useState("");
-    const [selectedDisability, setSelectedDisability] = useState("");
+    const [selectedClub, setSelectedClub] = useState("");
     const [firstName, setFirstName] = useState("");
     const [middleInitial, setMiddleInitial] = useState("");
     const [lastName, setLastName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
+   
 
     const questions = [
-        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", []),
-        new Question(1, "What type of student are you?", ["New Student", "Transfer Student", "Re-entry Student"]),
-        new Question(2, "What is your major?", []),
-        new Question(3, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
-        new Question(4, "What are your primary interests or hobbies?", []),
-        new Question(5, "What type of campus events are you interested in?", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
-        new Question(6, "Which areas of support would you find most helpful?", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
-        new Question(7, "What are your academic goals?", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
+        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", "text"),
+        new Question(1, "What type of student are you?", "radio", ["New Student", "Transfer Student", "Re-entry Student"]),
+        new Question(2, "What is your major?", "dropdown", majorList.parse()["major"]),
+        new Question(3, "What academic year are you in?", "radio", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
+        new Question(4, "Which clubs are you apart of or interest in?", "multiDropdown", clubList.parse()["club"]),
+        new Question(5, "What type of campus events are you interested in?", "checkbox", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
+        new Question(6, "Which areas of support would you find most helpful?", "checkbox", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
+        new Question(7, "What are your academic goals?", "checkbox", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
@@ -89,7 +93,7 @@ const ProfileCreation = () => {
         setCurrentQuestion(0);
         setAnswers({});
         setSelectedMajor("");
-        setSelectedDisability("");
+        setSelectedClub("");
         setFirstName("");
         setMiddleInitial("");
         setLastName("");
@@ -97,75 +101,76 @@ const ProfileCreation = () => {
     };
 
     const renderQuestion = (question) => {
-        if (question.id === 0) {
-            return (
-                <View>
+        switch(question.inputType){
+            case 'text': 
+                return (
+                    <View>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="First Name"
+                            value={firstName}
+                            onChangeText={(text) => setFirstName(text)}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Middle Initial (Optional)"
+                            value={middleInitial}
+                            onChangeText={(text) => setMiddleInitial(text)}
+                            maxLength={1}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Last Name"
+                            value={lastName}
+                            onChangeText={(text) => setLastName(text)}
+                        />
+                    </View>
+                );
+            case "checkbox":
+                return question.options.map((option) => (
+                    <TouchableOpacity
+                        key={option}
+                        style={styles.optionButton}
+                        onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
+                    >
+                        <Text style={styles.optionText}>{option}</Text>
+                    </TouchableOpacity>
+                ));
+            case "dropdown":
+                return (
+                    <ModalSelector
+                        data = {question.options}
+                        initValue="Select your major"
+                        onChange={(option) => setSelectedMajor(option.label)}
+                        style={styles.pickerContainer}
+                        initValueTextStyle={styles.pickerText}
+                        selectTextStyle={styles.pickerText}
+                    />
+                );
+            case "multiDropdown": 
+                return (
+                    <ModalSelector
+                        data =  {question.options}
+                        initValue="Select the clubs"
+                        onChange={(option) => setSelectedClub(option.label)}
+                        style={styles.pickerContainer}
+                        initValueTextStyle={styles.pickerText}
+                        selectTextStyle={styles.pickerText}
+                    />
+                );
+            default: 
+                return (
                     <TextInput
                         style={styles.input}
-                        placeholder="First Name"
-                        value={firstName}
-                        onChangeText={(text) => setFirstName(text)}
+                        placeholder="Your answer"
+                        onChangeText={(text) => profileCreationManager.handleAnswer(question.id, text, currentQuestion)}
                     />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Middle Initial (Optional)"
-                        value={middleInitial}
-                        onChangeText={(text) => setMiddleInitial(text)}
-                        maxLength={1}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Last Name"
-                        value={lastName}
-                        onChangeText={(text) => setLastName(text)}
-                    />
-                </View>
-            );
-        } else if (question.id === 1 || question.id === 3 || question.id === 5 || question.id === 6 || question.id === 7) {
-            return question.options.map((option) => (
-                <TouchableOpacity
-                    key={option}
-                    style={styles.optionButton}
-                    onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
-                >
-                    <Text style={styles.optionText}>{option}</Text>
-                </TouchableOpacity>
-            ));
-        } else if (question.id === 2) {
-            return (
-                <ModalSelector
-                    data={[
-                        { key: 'Computer Science', label: 'Computer Science' },
-                        { key: 'Business', label: 'Business' },
-                        { key: 'Biology', label: 'Biology' },
-                        { key: 'Engineering', label: 'Engineering' },
-                        { key: 'Other', label: 'Other' }
-                    ]}
-                    initValue="Select your major"
-                    onChange={(option) => setSelectedMajor(option.label)}
-                    style={styles.pickerContainer}
-                    initValueTextStyle={styles.pickerText}
-                    selectTextStyle={styles.pickerText}
-                />
-            );
-        } else if (question.id === 4) {
-            return (
-                <TextInput
-                    style={styles.input}
-                    placeholder="Your interests or hobbies"
-                    onChangeText={(text) => setAnswers((prev) => ({ ...prev, [question.id]: text }))}
-                />
-            );
-        } else {
-            return (
-                <TextInput
-                    style={styles.input}
-                    placeholder="Your answer"
-                    onChangeText={(text) => profileCreationManager.handleAnswer(question.id, text, currentQuestion)}
-                />
-            );
-        }
-    };
+                );
+            
+    }
+}
+        
+       
 
     const handleNextPress = () => {
         if (currentQuestion === 0) {
@@ -174,69 +179,65 @@ const ProfileCreation = () => {
                 return;
             }
             profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
-        } else if (currentQuestion === 4) { // For hobbies and interests
-            const hobbies = answers[4] || ""; // Get the answer for the "interests or hobbies" question
-            if (hobbies.trim().length < 3) { // Require at least 3 characters
-                Alert.alert("Error", "Please provide a more detailed answer for your hobbies and interests.");
-                return;
-            }
-        }
-        profileCreationManager.goToNext(currentQuestion);
-    };
-
-    const renderCompletionScreen = () => (
-        <View style={styles.completionContainer}>
-            <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-            <TouchableOpacity style={styles.largeButton} onPress={restartProfileCreation}>
-                <Text style={styles.largeButtonText}>Redo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.largeButton}
-                onPress={() => navigation.navigate('Home')}
-            >
-                <Text style={styles.largeButtonText}>Return to Home</Text>
-            </TouchableOpacity>
-        </View>
-    );
-
-    return (
-        <ImageBackground source={backgroundImage} style={styles.background}>
-            <View style={styles.overlay}>
-                <ScrollView contentContainerStyle={styles.container}>
-                    {isCompleted ? (
-                        renderCompletionScreen()
-                    ) : (
-                        <>
-                            <ProgressBar progress={(currentQuestion + 1) / questions.length} color="#B3A369" style={styles.progressBar} />
-                            <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                            <View style={styles.box}>
-                                <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                                {renderQuestion(questions[currentQuestion])}
-                            </View>
-                            <View style={styles.navigationButtons}>
-                                <TouchableOpacity style={styles.button} onPress={() => profileCreationManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
-                                    <Text style={styles.buttonText}>Previous</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.button}
-                                    onPress={() => {
-                                        if (currentQuestion === questions.length - 1) {
-                                            completeProfileCreation();
-                                        } else {
-                                            handleNextPress();
-                                        }
-                                    }}
-                                >
-                                    <Text style={styles.buttonText}>{currentQuestion < questions.length - 1 ? "Next" : "Submit"}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </>
-                    )}
-                </ScrollView>
-            </View>
-        </ImageBackground>
-    );
+        }    
+    }
+          profileCreationManager.goToNext(currentQuestion);
 };
+
+const renderCompletionScreen = () => {(
+    <View style={styles.completionContainer}>
+        <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
+        <TouchableOpacity style={styles.largeButton} onPress={restartProfileCreation}>
+            <Text style={styles.largeButtonText}>Redo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+            style={styles.largeButton}
+            onPress={() => navigation.navigate('Home')}
+        >
+            <Text style={styles.largeButtonText}>Return to Home</Text>
+        </TouchableOpacity>
+    </View>
+);
+
+return (
+    <ImageBackground source={backgroundImage} style={styles.background}>
+        <View style={styles.overlay}>
+            <ScrollView contentContainerStyle={styles.container}>
+                {isCompleted ? (
+                    renderCompletionScreen()
+                ) : (
+                    <>
+                        <ProgressBar progress={Math.round((currentQuestion + 1) / questions.length)} color="#B3A369" style={styles.progressBar} />
+                        <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
+                        <View style={styles.box}>
+                            <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
+                            {renderQuestion(questions[currentQuestion])}
+                        </View>
+                        <View style={styles.navigationButtons}>
+                            <TouchableOpacity style={styles.button} onPress={() => profileCreationManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
+                                <Text style={styles.buttonText}>Previous</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.button}
+                                onPress={() => {
+                                    if (currentQuestion === questions.length - 1) {
+                                        completeProfileCreation();
+                                    } else {
+                                        handleNextPress();
+                                    }
+                                }}
+                            >
+                                <Text style={styles.buttonText}>{currentQuestion < questions.length - 1 ? 'Next' : 'Submit'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </>
+                )}
+            </ScrollView>
+        </View>
+    </ImageBackground>
+);
+};
+
 
 const styles = StyleSheet.create({
     background: { flex: 1, justifyContent: 'center', alignItems: 'center' },
