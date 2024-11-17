@@ -32,22 +32,6 @@ const DashboardTab = () => {
     '2024-11-20': { title: 'Midterm Exam', description: 'Prepare for the midterm exam in your Computer Science course.' },
   };
 
-  //Displays the User's name by JWT authentication
-  const displayUserFirstLastName = async () => {
-    try{
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-      });
-      setUserInfo(response.data);
-      console.log(userInfo);
-    } catch(error){
-      console.error('Error displaying user first and last name: ', error);
-    }
-  }
-
   //Fetch user services recommendations by using std_id
   const getUserServicesRec = async () => {
     try{
@@ -64,7 +48,6 @@ const DashboardTab = () => {
   }
 
   useEffect(() => {
-    displayUserFirstLastName();
     getUserServicesRec();
     const prompts = [
       "How are you feeling today?",
@@ -113,9 +96,7 @@ const DashboardTab = () => {
         <View style={styles.goldBackground}>
           <Image source={logo} style={styles.logo} />
 
-          <Text style={styles.welcomeHeader}>
-            Welcome, {userInfo ? `${userInfo.f_name} ${userInfo.m_name ? `${userInfo.m_name} ` : ''}${userInfo.l_name}` : 'Loading Name'}!
-          </Text>
+          <Text style={styles.welcomeHeader}></Text>
 
           <View style={styles.calendarContainer}>
             <Calendar
@@ -236,7 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'rgb(0, 46, 35)',
-    marginTop: 80,
+    marginTop: 10,
   },
   calendarContainer: {
     marginVertical: 20,
