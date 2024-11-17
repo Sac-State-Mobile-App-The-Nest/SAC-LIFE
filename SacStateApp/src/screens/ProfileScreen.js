@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Image } from 'react-native';
 import backgroundImage from '../assets/logInBackground.jpg';
 import defaultPFP from '../assets/defaultPFP.png'; // Profile picture
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {DEV_BACKEND_SERVER_IP} from "@env";
 
 const ProfileScreen = () => {
+  const [userInfo, setUserInfo] = useState(null);
+  //Displays the User's name by JWT authentication
+  const displayUserFirstLastName = async () => {
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      });
+      setUserInfo(response.data);
+      console.log(userInfo);
+    } catch(error){
+      console.error('Error displaying user first and last name: ', error);
+    }
+  }
+  useEffect(() => {
+    displayUserFirstLastName();
+  }, []);
+
   return (
     <ImageBackground 
       source={backgroundImage} 
@@ -18,7 +41,9 @@ const ProfileScreen = () => {
           <Text style={styles.header}>Profile</Text>
 
           {/* Profile Name */}
-          <Text style={styles.name}>John M. Doe</Text>
+          <Text style={styles.name}>
+            {userInfo ? `${userInfo.f_name} ${userInfo.m_name ? `${userInfo.m_name} ` : ''}${userInfo.l_name}` : 'Loading Name'}
+          </Text>
 
           {/* Profile Details */}
           <View style={styles.detailsContainer}>
