@@ -88,7 +88,7 @@ const ProfileCreation = () => {
     const completeProfileCreation = () => {
         setIsCompleted(true);
         console.log(answers);
-        // sendProfileDataToServer();  // send data to server after completion
+        sendProfileDataToServer();  // send data to server after completion
     };
 
     // Will send the answers to server
@@ -175,7 +175,10 @@ const ProfileCreation = () => {
                     <ModalSelector
                         data={question.options}
                         initValue="Select your major"
-                        onChange={(option) => setSelectedMajor(option.label)}
+                        onChange={(option) => {
+                            setSelectedMajor(option.label);
+                            profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
+                        }}
                         style={styles.pickerContainer}
                         initValueTextStyle={styles.pickerText}
                         selectTextStyle={styles.pickerText}
@@ -186,7 +189,10 @@ const ProfileCreation = () => {
                     <ModalSelector
                         data={question.options}
                         initValue="Select the clubs"
-                        onChange={(option) => setSelectedClub(option.label)}
+                        onChange={(option) => {
+                            setSelectedClub(option.label);
+                            profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
+                        }}
                         style={styles.pickerContainer}
                         initValueTextStyle={styles.pickerText}
                         selectTextStyle={styles.pickerText}
