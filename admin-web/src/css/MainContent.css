@@ -1,0 +1,22 @@
+.main-content {
+  display: flex;
+  flex-direction: column; /* Stack header and cards vertically */
+  align-items: center; /* Center-align header and cards */
+  padding: 30px;
+  background-color: white;
+  border-radius: 10px;
+  margin: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  text-align: center; /* Center the header text */
+}
+
+.main-content h1 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  color: #2e5339; /* Sac State theme dark green */
+  margin-bottom: 20px; /* Space between the header and cards */
+  font-size: 24px;
+}
