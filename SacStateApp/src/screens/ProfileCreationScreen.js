@@ -3,13 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import backgroundImage from '../assets/logInBackground.jpg';
-<<<<<<< HEAD
 import majorList from '../assets/majorList.json';
 import clubList from '../assets/clubList.json';
-=======
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {DEV_BACKEND_SERVER_IP} from "@env";
->>>>>>> origin/dev
 
 const { height, width } = Dimensions.get('window');
 
@@ -76,7 +73,6 @@ const ProfileCreation = () => {
     const navigation = useNavigation();
 
     const questions = [
-<<<<<<< HEAD
         new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", "text"),
         new Question(1, "What type of student are you?", "checkbox", ["New Student", "Transfer Student", "Re-entry Student"]),
         new Question(2, "What is your major?", "dropdown", majorList["major"]),
@@ -85,23 +81,14 @@ const ProfileCreation = () => {
         new Question(5, "What type of campus events are you interested in?", "checkbox", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
         new Question(6, "Which areas of support would you find most helpful?", "checkbox", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
         new Question(7, "What are your academic goals?", "checkbox", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
-=======
-        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", []),
-        new Question(1, "What type of student are you?", ["New Student", "Transfer Student", "Re-entry Student"]),
-        new Question(2, "What is your major?", []),
-        new Question(3, "What academic year are you in?", ["Freshman", "Sophomore", "Junior", "Senior", "Graduate"]),
-        new Question(4, "What are your primary interests or hobbies?", []),
-        new Question(5, "What type of campus events are you interested in?", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
-        new Question(6, "Which areas of support would you find most helpful?", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
-        new Question(7, "What are your academic goals?", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
->>>>>>> origin/dev
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
     const completeProfileCreation = () => {
         setIsCompleted(true);
-        sendProfileDataToServer();  // send data to server after completion
+        console.log(answers);
+        // sendProfileDataToServer();  // send data to server after completion
     };
 
     // Will send the answers to server
