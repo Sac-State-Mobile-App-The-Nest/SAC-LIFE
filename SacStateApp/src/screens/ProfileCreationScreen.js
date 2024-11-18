@@ -72,9 +72,9 @@ const ProfileCreation = () => {
 
     const questions = [
         new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", "text"),
-        new Question(1, "What type of student are you?", "radio", ["New Student", "Transfer Student", "Re-entry Student"]),
+        new Question(1, "What type of student are you?", "checkbox", ["New Student", "Transfer Student", "Re-entry Student"]),
         new Question(2, "What is your major?", "dropdown", majorList["major"]),
-        new Question(3, "What academic year are you in?", "radio", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
+        new Question(3, "What academic year are you in?", "checkbox", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
         new Question(4, "Which clubs are you a part of or interested in?", "multiDropdown", clubList["club"]),
         new Question(5, "What type of campus events are you interested in?", "checkbox", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
         new Question(6, "Which areas of support would you find most helpful?", "checkbox", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
