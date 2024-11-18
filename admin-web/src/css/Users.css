@@ -1,0 +1,184 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px); /* Slight slide-up effect */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.users-table tr {
+    opacity: 0; /* Start hidden */
+    animation: fadeIn 0.5s ease forwards; /* Fade in each row */
+}
+
+.users-table tr:nth-child(even) {
+    animation-delay: 0.1s; /* Staggered delay for even rows */
+}
+
+.users-table tr:nth-child(odd) {
+    animation-delay: 0.2s; /* Staggered delay for odd rows */
+}
+
+/* Other styles */
+
+.users-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f7f8f5; /* Very light gray-green for a soft background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 51, 17, 0.1); /* Subtle green shadow */
+    margin: 20px;
+    max-width: 1000px;
+    width: 95%;
+    overflow: hidden;
+}
+
+.users-container h2 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    color: #2e5339; /* Dark green aligned with Sac State theme */
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-align: center;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.users-table th, .users-table td {
+    padding: 12px;
+    text-align: left;
+    color: #3b4f3d; /* Muted Sac State green */
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.users-table th {
+    background-color: #faf9e6; /* Soft, muted pale gold */
+    font-weight: bold;
+}
+
+.users-table tr:hover {
+    background-color: #d3e0d5; /* Faded Sac State green on row hover */
+}
+
+.users-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Edit Button Styles */
+button:first-of-type {
+    background-color: #e2e8d4; /* Soft green-gray for edit */
+    color: #2e5339;
+    border-color: #c9d4b4; /* Light border for edit button */
+}
+
+button:first-of-type:hover {
+    background-color: #d5dfc2; /* Slightly darker green-gray on hover */
+    border-color: #b8c49e;
+}
+
+/* Delete Button Styles */
+button:last-of-type {
+    background-color: #e8b4b4; /* Muted soft red for delete */
+    color: #5a1e1e; /* Dark red text */
+    border-color: #d89a9a; /* Light border for delete button */
+}
+
+button:last-of-type:hover {
+    background-color: #d89a9a; /* Darker muted red on hover */
+    border-color: #c08484;
+}
+
+/* Password Modal Styles */
+.password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.password-modal-content {
+    background: #f7f8f5; /* Very light gray-green */
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(0, 51, 17, 0.2); /* Subtle green shadow */
+}
+
+.password-modal-content h3 {
+    margin-bottom: 10px;
+    color: #2e5339; /* Dark green */
+}
+
+.password-modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    color: #2e5339; /* Dark green text */
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.password-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.password-modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.password-modal-actions button:first-child {
+    background-color: #35654d; /* Sac State green */
+    color: white;
+}
+
+.password-modal-actions button:first-child:hover {
+    background-color: #2f5544; /* Darker green */
+}
+
+.password-modal-actions button:last-child {
+    background-color: #ccc;
+    color: black;
+}
+
+.password-modal-actions button:last-child:hover {
+    background-color: #aaa;
+}

@@ -39,8 +39,7 @@
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAOAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2024-10-18T00:27:29.758Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -50,7 +49,7 @@
               "RelativeDocumentMoniker": "SacStateApp\\src\\screens\\DashboardScreen.js",
               "ToolTip": "C:\\Users\\Darry\\Documents\\GitHub\\SAC-LIFE\\SacStateApp\\src\\screens\\DashboardScreen.js",
               "RelativeToolTip": "SacStateApp\\src\\screens\\DashboardScreen.js",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAAAEAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABYAAAAEAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2024-10-17T16:17:29.37Z",
               "EditorCaption": ""
@@ -65,8 +64,7 @@
               "RelativeToolTip": "SacStateApp\\App.js",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAfAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2024-10-17T16:14:14.858Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-10-17T16:14:14.858Z"
             },
             {
               "$type": "Document",
@@ -78,8 +76,7 @@
               "RelativeToolTip": "SacStateApp\\src\\screens\\HomeScreen.js",
               "ViewState": "AQIAABoAAAAAAAAAAAAAAA8AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2024-10-17T16:17:04.183Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-10-17T16:17:04.183Z"
             }
           ]
         }
