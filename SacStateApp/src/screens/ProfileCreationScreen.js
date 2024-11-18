@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import backgroundImage from '../assets/logInBackground.jpg';
 import majorList from '../assets/majorList.json';
 import clubList from '../assets/clubList.json';
-import { useEffect} from 'react';
 
 const { height, width } = Dimensions.get('window');
 
@@ -76,21 +75,15 @@ const ProfileCreation = () => {
     const questions = [
         new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", "text"),
         new Question(1, "What type of student are you?", "radio", ["New Student", "Transfer Student", "Re-entry Student"]),
-        new Question(2, "What is your major?", "dropdown", majorList["major"]),
+        new Question(2, "What is your major?", "dropdown", majorList.parse()["major"]),
         new Question(3, "What academic year are you in?", "radio", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
-        new Question(4, "Which clubs are you apart of or interest in?", "multiDropdown", clubList["club"]),
+        new Question(4, "Which clubs are you apart of or interest in?", "multiDropdown", clubList.parse()["club"]),
         new Question(5, "What type of campus events are you interested in?", "checkbox", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
         new Question(6, "Which areas of support would you find most helpful?", "checkbox", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
         new Question(7, "What are your academic goals?", "checkbox", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
-
-    useEffect(() => {
-        if (isCompleted){
-                setCurrentQuestion(0);
-        }
-    }, [isCompleted]);
 
     const completeProfileCreation = () => {
         setIsCompleted(true);
@@ -158,7 +151,7 @@ const ProfileCreation = () => {
                 return (
                     <ModalSelector
                         data =  {question.options}
-                        initValue="Select the club(s)"
+                        initValue="Select the clubs"
                         onChange={(option) => setSelectedClub(option.label)}
                         style={styles.pickerContainer}
                         initValueTextStyle={styles.pickerText}
@@ -187,9 +180,9 @@ const ProfileCreation = () => {
             }
             profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
         }    
-          setCurrentQuestion(currentQuestion + 1);
-    };
-}
+    }
+          profileCreationManager.goToNext(currentQuestion);
+};
 
 const renderCompletionScreen = () => {(
     <View style={styles.completionContainer}>
