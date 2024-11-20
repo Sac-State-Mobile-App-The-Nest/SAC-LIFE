@@ -4,7 +4,6 @@ import backgroundImage from '../assets/logInBackground.jpg';
 import defaultPFP from '../assets/defaultPFP.png'; // Profile picture
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {DEV_BACKEND_SERVER_IP} from "@env";
 
 const ProfileScreen = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -12,7 +11,7 @@ const ProfileScreen = () => {
   const displayUserFirstLastName = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
+      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
         headers: {
           Authorization: `Bearer ${token}`
         },

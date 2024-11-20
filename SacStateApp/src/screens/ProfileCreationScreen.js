@@ -6,7 +6,6 @@ import backgroundImage from '../assets/logInBackground.jpg';
 import majorList from '../assets/majorList.json';
 import clubList from '../assets/clubList.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {DEV_BACKEND_SERVER_IP} from "@env";
 
 const { height, width } = Dimensions.get('window');
 

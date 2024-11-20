@@ -12,7 +12,6 @@ import ProfileScreen from './ProfileScreen';
 import MessengerScreen from './MessengerScreen';
 import SettingsScreen from './SettingsScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {DEV_BACKEND_SERVER_IP} from "@env";
 const Tab = createBottomTabNavigator();
 
 const DashboardTab = () => {
@@ -36,7 +35,7 @@ const DashboardTab = () => {
   const getUserServicesRec = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http:${process.env.DEV_BACKEND_SERVER_IP}:5000/api/campus_services/servicesRecommendation`, {
+      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/campus_services/servicesRecommendation`, {
         headers: {
           Authorization: `Bearer ${token}`
         },
