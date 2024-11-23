@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
-import backgroundImage from '../assets/logInBackground.jpg';
 import majorList from '../assets/majorList.json';
 import clubList from '../assets/clubList.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
-const { height, width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 class Question {
     constructor(id, text, inputType, options = [], conditional = null) {
@@ -87,22 +87,17 @@ const ProfileCreation = () => {
     const completeProfileCreation = () => {
         setIsCompleted(true);
         console.log(answers);
-        sendProfileDataToServer();  // send data to server after completion
+        sendProfileDataToServer();
     };
 
-    // Will send the answers to server
-    // will categorize student with tags
     const sendProfileDataToServer = async () => {
         try {
-            // Need a way to send StudentId to backend
-            
             const specificAnswers = {
-                question1: answers["1"].toLowerCase(),  // type of student [new, transfer, reentry]
-                question2: answers["2"],                // major
-                question3: answers["3"].toLowerCase()   // academic year [freshman, sophomore, junior, senior]
-            }
-            token = await AsyncStorage.getItem('token');
-            
+                question1: answers["1"].toLowerCase(),
+                question2: answers["2"],
+                question3: answers["3"].toLowerCase()
+            };
+            const token = await AsyncStorage.getItem('token');
             const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
                 method: 'POST',
                 headers: {
@@ -113,24 +108,12 @@ const ProfileCreation = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Error sending profile data to server');
+                // throw new Error('Error sending profile data to server');
             }
-
         } catch (err) {
-            console.error('Error sending profile answers: ', err);
-            Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+             console.error('Error sending profile answers: ', err);
+             Alert.alert('Error', 'Failed to send profile answers. Please try again.');
         }
-    };
-
-    const restartProfileCreation = () => {
-        setCurrentQuestion(0);
-        setAnswers({});
-        setSelectedMajor("");
-        setSelectedClub("");
-        setFirstName("");
-        setMiddleInitial("");
-        setLastName("");
-        setIsCompleted(false);
     };
 
     const renderQuestion = (question) => {
@@ -209,6 +192,7 @@ const ProfileCreation = () => {
     };
 
     const handleNextPress = () => {
+        // Validate only for question 0 (Name details)
         if (currentQuestion === 0) {
             if (firstName.trim() === "" || lastName.trim() === "") {
                 Alert.alert("Error", "Please fill in both First and Last names.");
@@ -216,26 +200,44 @@ const ProfileCreation = () => {
             }
             profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
         }
-        profileCreationManager.goToNext(currentQuestion);
+    
+        if (currentQuestion === questions.length - 1) {
+            // If on the last question, go to completion screen
+            setIsCompleted(true);
+        } else {
+            // Move to the next question
+            profileCreationManager.goToNext(currentQuestion);
+        }
     };
-
+    
     const renderCompletionScreen = () => (
         <View style={styles.completionContainer}>
             <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-            <TouchableOpacity style={styles.largeButton} onPress={restartProfileCreation}>
-                <Text style={styles.largeButtonText}>Redo</Text>
-            </TouchableOpacity>
             <TouchableOpacity
                 style={styles.largeButton}
-                onPress={() => navigation.navigate("Home")}
+                onPress={async () => {
+                    try {
+                        // Call the function to send data to the server
+                        await sendProfileDataToServer();
+    
+                        // Navigate to Dashboard and reset the navigation stack
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "Dashboard" }],
+                        });
+                    } catch (error) {
+                        console.error("Error submitting profile data:", error);
+                        Alert.alert("Error", "Failed to submit profile data. Please try again.");
+                    }
+                }}
             >
-                <Text style={styles.largeButtonText}>Return to Home</Text>
+                <Text style={styles.largeButtonText}>Create Your Profile!</Text>
             </TouchableOpacity>
         </View>
     );
 
     return (
-        <ImageBackground source={backgroundImage} style={styles.background}>
+        <View style={styles.background}>
             <View style={styles.overlay}>
                 <ScrollView contentContainerStyle={styles.container}>
                     {isCompleted ? (
@@ -248,64 +250,37 @@ const ProfileCreation = () => {
                                 {renderQuestion(questions[currentQuestion])}
                             </View>
                             <View style={styles.navigationButtons}>
-                                <TouchableOpacity style={styles.button} onPress={() => profileCreationManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
-                                    <Text style={styles.buttonText}>Previous</Text>
-                                </TouchableOpacity>
+                                {/* Conditionally render the "Previous" button only if it's not the first question */}
+                                {currentQuestion !== 0 ? (
+                                    <TouchableOpacity
+                                        style={[styles.button, styles.previousButton]}
+                                        onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
+                                    >
+                                        <Text style={styles.buttonText}>Previous</Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <View style={styles.placeholderButton} /> // Placeholder for alignment
+                                )}
+
                                 <TouchableOpacity
-                                    style={styles.button}
+                                    style={[styles.button, styles.nextButton]} // Ensure consistent styling
                                     onPress={() => {
                                         if (currentQuestion === questions.length - 1) {
-                                            completeProfileCreation();
+                                            completeProfileCreation(); // Execute when the last question is reached
                                         } else {
                                             handleNextPress();
                                         }
                                     }}
                                 >
-                                    <Text style={styles.buttonText}>{currentQuestion < questions.length - 1 ? "Next" : "Submit"}</Text>
+                                    <Text style={styles.buttonText}>Next</Text>
                                 </TouchableOpacity>
                             </View>
                         </>
                     )}
                 </ScrollView>
             </View>
-        </ImageBackground>
+        </View>
     );
 };
-
-const styles = StyleSheet.create({
-    background: { flex: 1, justifyContent: "center", alignItems: "center" },
-    overlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)", width: "100%" },
-    container: { padding: 20, backgroundColor: "transparent", flex: 1 },
-    heading: { fontSize: 26, fontWeight: "bold", color: "white", marginBottom: 15, textAlign: "center" },
-    box: {
-        backgroundColor: "#c4b581",
-        borderRadius: 10,
-        padding: 20,
-        width: "80%",
-        minHeight: height * 0.2,
-        justifyContent: "center",
-        alignItems: "center",
-        alignSelf: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.5,
-        elevation: 5,
-        marginVertical: 10,
-    },
-    questionText: { fontSize: 20, color: "#043927", fontWeight: "500", textAlign: "center", marginBottom: 20 },
-    optionButton: { padding: 14, backgroundColor: "#043927", marginVertical: 5, borderRadius: 8, width: "90%", alignItems: "center" },
-    optionText: { fontSize: 18, color: "#FFFFFF", fontWeight: "500" },
-    input: { padding: 12, borderWidth: 1, borderColor: "gray", borderRadius: 5, backgroundColor: "white", marginBottom: 10, width: "90%" },
-    pickerContainer: { width: "90%", backgroundColor: "white", borderRadius: 8, borderColor: "#043927", borderWidth: 1, paddingHorizontal: 10, paddingVertical: 12 },
-    pickerText: { color: "#043927", fontSize: 18, textAlign: "center" },
-    navigationButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 20, width: "90%", alignSelf: "center" },
-    button: { paddingVertical: 12, paddingHorizontal: 30, backgroundColor: "#043927", borderRadius: 12, width: "45%", alignItems: "center" },
-    buttonText: { color: "white", fontSize: 16, fontWeight: "500", textAlign: "center" },
-    completionContainer: { alignItems: "center", padding: 30 },
-    completionText: { fontSize: 24, fontWeight: "bold", color: "white", marginBottom: 25, textAlign: "center" },
-    largeButton: { paddingVertical: 12, paddingHorizontal: 40, backgroundColor: "#043927", borderRadius: 10, width: "80%", marginVertical: 10, alignItems: "center" },
-    largeButtonText: { color: "white", fontSize: 18, fontWeight: "600", alignItems: "center", textAlign: "center" },
-});
 
 export default ProfileCreation;
