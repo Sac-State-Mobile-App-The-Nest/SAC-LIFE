@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
@@ -8,6 +8,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
 const { height } = Dimensions.get('window');
+
+// Ensure the Sac State logo is stored in your assets directory
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // Replace with the correct path to your logo file
 
 class Question {
     constructor(id, text, inputType, options = [], conditional = null) {
@@ -72,15 +75,15 @@ const ProfileCreation = () => {
     const navigation = useNavigation();
 
     const questions = [
-        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", "text"),
-        new Question(1, "What type of student are you?", "checkbox", ["New Student", "Transfer Student", "Re-entry Student"]),
-        new Question(2, "What is your major?", "dropdown", majorList["major"]),
-        new Question(3, "What academic year are you in?", "checkbox", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
-        new Question(4, "Which clubs are you a part of or interested in?", "multiDropdown", clubList["club"]),
-        new Question(5, "What type of campus events are you interested in?", "checkbox", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
-        new Question(6, "Which areas of support would you find most helpful?", "checkbox", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
-        new Question(7, "What are your academic goals?", "checkbox", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
-    ];
+    new Question(0, "Tell us your name!", "text"),
+    new Question(1, "How would you describe your student journey?", "checkbox", ["New Student", "Transfer student", "Returning student"]),
+    new Question(2, "What’s your major or area of study?", "dropdown", majorList["major"]),
+    new Question(3, "What year are you in your studies?", "checkbox", ["First-year (Freshman)", "Second-year (Sophomore)", "Third-year (Junior)", "Fourth-year (Senior+)", "Graduate/Professional"]),
+    new Question(4, "Which clubs are you a part of or would like to join?", "multiDropdown", clubList["club"]),
+    new Question(5, "What kinds of campus events interest you the most?", "checkbox", ["Workshops to boost your skills", "Fun and social meet-ups", "Sports and fitness activities", "Community service/volunteering"]),
+    new Question(6, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
+    new Question(7, "What’s your top priority for your time at Sac State?", "checkbox", ["Excelling in classes", "Getting hands-on experience", "Building a network for my future", "Preparing for grad school or beyond"])
+];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
@@ -192,7 +195,6 @@ const ProfileCreation = () => {
     };
 
     const handleNextPress = () => {
-        // Validate only for question 0 (Name details)
         if (currentQuestion === 0) {
             if (firstName.trim() === "" || lastName.trim() === "") {
                 Alert.alert("Error", "Please fill in both First and Last names.");
@@ -202,10 +204,8 @@ const ProfileCreation = () => {
         }
     
         if (currentQuestion === questions.length - 1) {
-            // If on the last question, go to completion screen
             setIsCompleted(true);
         } else {
-            // Move to the next question
             profileCreationManager.goToNext(currentQuestion);
         }
     };
@@ -217,10 +217,7 @@ const ProfileCreation = () => {
                 style={styles.largeButton}
                 onPress={async () => {
                     try {
-                        // Call the function to send data to the server
                         await sendProfileDataToServer();
-    
-                        // Navigate to Dashboard and reset the navigation stack
                         navigation.reset({
                             index: 0,
                             routes: [{ name: "Dashboard" }],
@@ -237,8 +234,12 @@ const ProfileCreation = () => {
     );
 
     return (
-        <View style={styles.background}>
-            <View style={styles.overlay}>
+        <ImageBackground
+            source={SAC_STATE_LOGO}
+            style={styles.background}
+            imageStyle={styles.logoImage} // Apply specific style for the logo
+        >
+            <View style={styles.logoContainer}>
                 <ScrollView contentContainerStyle={styles.container}>
                     {isCompleted ? (
                         renderCompletionScreen()
@@ -250,7 +251,6 @@ const ProfileCreation = () => {
                                 {renderQuestion(questions[currentQuestion])}
                             </View>
                             <View style={styles.navigationButtons}>
-                                {/* Conditionally render the "Previous" button only if it's not the first question */}
                                 {currentQuestion !== 0 ? (
                                     <TouchableOpacity
                                         style={[styles.button, styles.previousButton]}
@@ -259,14 +259,13 @@ const ProfileCreation = () => {
                                         <Text style={styles.buttonText}>Previous</Text>
                                     </TouchableOpacity>
                                 ) : (
-                                    <View style={styles.placeholderButton} /> // Placeholder for alignment
+                                    <View style={styles.placeholderButton} />
                                 )}
-
                                 <TouchableOpacity
-                                    style={[styles.button, styles.nextButton]} // Ensure consistent styling
+                                    style={[styles.button, styles.nextButton]}
                                     onPress={() => {
                                         if (currentQuestion === questions.length - 1) {
-                                            completeProfileCreation(); // Execute when the last question is reached
+                                            completeProfileCreation();
                                         } else {
                                             handleNextPress();
                                         }
@@ -279,7 +278,7 @@ const ProfileCreation = () => {
                     )}
                 </ScrollView>
             </View>
-        </View>
+        </ImageBackground>
     );
 };
 
