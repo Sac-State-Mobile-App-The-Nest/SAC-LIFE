@@ -43,22 +43,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-  backgroundColor: '#FBF8EF', // Subtle faded Sac State gold for background
-  borderWidth: 2, // Gold outline for the button
-  borderColor: '#E4CFA3', // Sac State gold for the border
-  paddingVertical: 12,
-  paddingHorizontal: 20,
-  borderRadius: 10,
-  alignItems: 'center',
-  alignSelf: 'center', // Centers the button
-  width: '80%', // Makes the button narrower (80% of screen width)
-  marginVertical: 15,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 3,
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FBF8EF', // Faded Sac State gold
+    borderColor: '#E4CFA3', // Muted gold border
+    padding: 15,
+    borderRadius: 30,
+    shadowColor: '#000', // Slight shadow for a floating effect
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3, // Android shadow
+    alignSelf: 'center', // Center the button on the screen
+    width: '90%', // Set a width relative to the container (matches chatToggle)
+    maxWidth: 450, // Limit the maximum width to match the chatbot toggle
+  },
   buttonText: {
     color: '#043927', // Sac State green for the text
     fontSize: 16,

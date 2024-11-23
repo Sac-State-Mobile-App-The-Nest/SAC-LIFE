@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
-import FullCalendar from './FullCalendar'; // Import the FullCalendar component
+import { View, Text, FlatList, ScrollView, TouchableOpacity } from 'react-native';
+import CalendarComponent from './CalendarComponent'; // Import the CalendarComponent
 import ServicesList from './ServicesList';
 import WellBeingButton from './WellBeingButton';
 import ChatWidget from './ChatWidget';
@@ -12,7 +12,7 @@ import styles from '../styles/CalendarStyles'; // Use CalendarStyles.js for cale
 const DashboardTab = () => {
   const [userServicesRec, setUserServicesRec] = useState([]);
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toDateString());
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Default to today's date
   const [events, setEvents] = useState([]);
   const [isFullCalendarVisible, setFullCalendarVisible] = useState(false);
 
@@ -25,9 +25,13 @@ const DashboardTab = () => {
     setEvents(currentDayEvents);
 
     const getServices = async () => {
-      const token = await AsyncStorage.getItem('token');
-      const data = await fetchUserServices(token);
-      setUserServicesRec(data);
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const data = await fetchUserServices(token);
+        setUserServicesRec(data);
+      } catch (error) {
+        console.error('Error fetching services recommendations:', error);
+      }
     };
 
     getServices();
@@ -51,27 +55,42 @@ const DashboardTab = () => {
     <ScrollView contentContainerStyle={styles.scrollViewContainer}>
       {/* Current Day Section */}
       <View style={styles.currentDayContainer}>
-        <Ionicons name="school-outline" size={50} color="#fff" />
+        <Ionicons name="school-outline" size={50} color="#E4CFA3" />
         <Text style={styles.currentDayText}>
-          {new Date(selectedDate).toLocaleDateString('en-US', {
-            weekday: 'long',
-            day: 'numeric',
-          })}
+          {/* Display the day and month */}
+          {selectedDate instanceof Date
+            ? `${selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+              })}, ${selectedDate.toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+              })}`
+            : 'Invalid Date'}
         </Text>
-        <TouchableOpacity
-          onPress={() => setFullCalendarVisible(!isFullCalendarVisible)}
-          style={styles.expandButton}
-        >
-          <Text style={styles.expandButtonText}>
-            {isFullCalendarVisible ? 'Collapse Calendar' : 'Expand Calendar'}
+        {selectedDate instanceof Date && (
+          <Text style={styles.centeredYearText}>
+            {/* Display the year in the center */}
+            {selectedDate.getFullYear()}
           </Text>
+        )}
+
+        {/* Replacing Expand/Collapse Text Button with Calendar Icon Button */}
+        <TouchableOpacity
+          style={styles.topRightIcon} // Use the topRightIcon style for positioning
+          onPress={() => setFullCalendarVisible(!isFullCalendarVisible)}
+        >
+          <Ionicons
+            name={isFullCalendarVisible ? 'calendar-outline' : 'calendar-sharp'}
+            size={28} // Adjust icon size
+            color="#E4CFA3" // Subtle muted gold
+          />
         </TouchableOpacity>
       </View>
 
       {/* Full Calendar Section */}
       {isFullCalendarVisible && (
         <View style={styles.fullCalendarContainer}>
-          <FullCalendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+          <CalendarComponent selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
         </View>
       )}
 
@@ -90,8 +109,10 @@ const DashboardTab = () => {
       </View>
 
       {/* Services and Well-being */}
-      <ServicesList services={userServicesRec} />
-      <WellBeingButton prompt={wellBeingPrompt} />
+      <View style={styles.servicesContainer}>
+        <ServicesList services={userServicesRec} />
+        <WellBeingButton prompt={wellBeingPrompt} />
+      </View>
 
       {/* Chat Widget */}
       <ChatWidget />

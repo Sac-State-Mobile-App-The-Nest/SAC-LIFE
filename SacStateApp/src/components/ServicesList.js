@@ -13,9 +13,9 @@ const ServicesList = ({ services }) => {
 
   return (
     <View style={styles.serviceContainer}>
-      <Text style={styles.servicesHeader}>Services Available</Text>
+      <Text style={styles.servicesHeader}>Find Your Support</Text>
       {services.length === 0 ? (
-        <Text style={styles.details}>No services available</Text>
+        <Text style={styles.details}>Want to explore services? Update your preferences anytime!</Text>
       ) : (
         services.map((service, index) => (
           <TouchableOpacity

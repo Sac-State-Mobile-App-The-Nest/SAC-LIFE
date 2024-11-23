@@ -19,6 +19,7 @@ const WeekView = ({ selectedDate, setSelectedDate }) => {
 
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
+    console.log('Selected Date:', day.dateString);
   };
 
   return (
