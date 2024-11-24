@@ -1,7 +1,6 @@
 // screens/Dashboard.js
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import ChatWidget from '../components/ChatWidget';
 
 const Dashboard = ({ navigation }) => {
   return (
@@ -20,9 +19,6 @@ const Dashboard = ({ navigation }) => {
         onPress={() => navigation.navigate('ProfileCreation')}
       />
       
-      <View style={stylesC.chatWidgetContainer}>
-        <ChatWidget />
-      </View>
     </View>
     
     

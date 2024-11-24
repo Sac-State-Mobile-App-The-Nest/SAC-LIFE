@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ImageBackground, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
-import backgroundImage from '../assets/logInBackground.jpg';
 import majorList from '../assets/majorList.json';
 import clubList from '../assets/clubList.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {DEV_BACKEND_SERVER_IP} from "@env";
+import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
-const { height, width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
+
+// Ensure the Sac State logo is stored in your assets directory
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // Replace with the correct path to your logo file
 
 class Question {
     constructor(id, text, inputType, options = [], conditional = null) {
@@ -73,37 +75,32 @@ const ProfileCreation = () => {
     const navigation = useNavigation();
 
     const questions = [
-        new Question(0, "Please enter your name details (First, Middle Initial (optional), Last):", "text"),
-        new Question(1, "What type of student are you?", "checkbox", ["New Student", "Transfer Student", "Re-entry Student"]),
-        new Question(2, "What is your major?", "dropdown", majorList["major"]),
-        new Question(3, "What academic year are you in?", "checkbox", ["Freshman", "Sophomore", "Junior", "Senior+", "Graduate"]),
-        new Question(4, "Which clubs are you a part of or interested in?", "multiDropdown", clubList["club"]),
-        new Question(5, "What type of campus events are you interested in?", "checkbox", ["Academic Workshops", "Social Events", "Sports", "Volunteering"]),
-        new Question(6, "Which areas of support would you find most helpful?", "checkbox", ["Academic Advising", "Career Counseling", "Mental Health Resources", "Financial Aid"]),
-        new Question(7, "What are your academic goals?", "checkbox", ["Achieve high grades", "Get hands-on experience", "Build a professional network", "Plan for further education"])
-    ];
+    new Question(0, "Tell us your name!", "text"),
+    new Question(1, "How would you describe your student journey?", "checkbox", ["New Student", "Transfer student", "Returning student"]),
+    new Question(2, "What’s your major or area of study?", "dropdown", majorList["major"]),
+    new Question(3, "What year are you in your studies?", "checkbox", ["First-year (Freshman)", "Second-year (Sophomore)", "Third-year (Junior)", "Fourth-year (Senior+)", "Graduate/Professional"]),
+    new Question(4, "Which clubs are you a part of or would like to join?", "multiDropdown", clubList["club"]),
+    new Question(5, "What kinds of campus events interest you the most?", "checkbox", ["Workshops to boost your skills", "Fun and social meet-ups", "Sports and fitness activities", "Community service/volunteering"]),
+    new Question(6, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
+    new Question(7, "What’s your top priority for your time at Sac State?", "checkbox", ["Excelling in classes", "Getting hands-on experience", "Building a network for my future", "Preparing for grad school or beyond"])
+];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
     const completeProfileCreation = () => {
         setIsCompleted(true);
         console.log(answers);
-        sendProfileDataToServer();  // send data to server after completion
+        sendProfileDataToServer();
     };
 
-    // Will send the answers to server
-    // will categorize student with tags
     const sendProfileDataToServer = async () => {
         try {
-            // Need a way to send StudentId to backend
-            
             const specificAnswers = {
-                question1: answers["1"].toLowerCase(),  // type of student [new, transfer, reentry]
-                question2: answers["2"],                // major
-                question3: answers["3"].toLowerCase()   // academic year [freshman, sophomore, junior, senior]
-            }
-            token = await AsyncStorage.getItem('token');
-            
+                question1: answers["1"].toLowerCase(),
+                question2: answers["2"],
+                question3: answers["3"].toLowerCase()
+            };
+            const token = await AsyncStorage.getItem('token');
             const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
                 method: 'POST',
                 headers: {
@@ -114,24 +111,12 @@ const ProfileCreation = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Error sending profile data to server');
+                // throw new Error('Error sending profile data to server');
             }
-
         } catch (err) {
-            console.error('Error sending profile answers: ', err);
-            Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+             console.error('Error sending profile answers: ', err);
+             Alert.alert('Error', 'Failed to send profile answers. Please try again.');
         }
-    };
-
-    const restartProfileCreation = () => {
-        setCurrentQuestion(0);
-        setAnswers({});
-        setSelectedMajor("");
-        setSelectedClub("");
-        setFirstName("");
-        setMiddleInitial("");
-        setLastName("");
-        setIsCompleted(false);
     };
 
     const renderQuestion = (question) => {
@@ -217,27 +202,44 @@ const ProfileCreation = () => {
             }
             profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
         }
-        profileCreationManager.goToNext(currentQuestion);
+    
+        if (currentQuestion === questions.length - 1) {
+            setIsCompleted(true);
+        } else {
+            profileCreationManager.goToNext(currentQuestion);
+        }
     };
-
+    
     const renderCompletionScreen = () => (
         <View style={styles.completionContainer}>
             <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-            <TouchableOpacity style={styles.largeButton} onPress={restartProfileCreation}>
-                <Text style={styles.largeButtonText}>Redo</Text>
-            </TouchableOpacity>
             <TouchableOpacity
                 style={styles.largeButton}
-                onPress={() => navigation.navigate("Home")}
+                onPress={async () => {
+                    try {
+                        await sendProfileDataToServer();
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "Dashboard" }],
+                        });
+                    } catch (error) {
+                        console.error("Error submitting profile data:", error);
+                        Alert.alert("Error", "Failed to submit profile data. Please try again.");
+                    }
+                }}
             >
-                <Text style={styles.largeButtonText}>Return to Home</Text>
+                <Text style={styles.largeButtonText}>Create Your Profile!</Text>
             </TouchableOpacity>
         </View>
     );
 
     return (
-        <ImageBackground source={backgroundImage} style={styles.background}>
-            <View style={styles.overlay}>
+        <ImageBackground
+            source={SAC_STATE_LOGO}
+            style={styles.background}
+            imageStyle={styles.logoImage} // Apply specific style for the logo
+        >
+            <View style={styles.logoContainer}>
                 <ScrollView contentContainerStyle={styles.container}>
                     {isCompleted ? (
                         renderCompletionScreen()
@@ -249,11 +251,18 @@ const ProfileCreation = () => {
                                 {renderQuestion(questions[currentQuestion])}
                             </View>
                             <View style={styles.navigationButtons}>
-                                <TouchableOpacity style={styles.button} onPress={() => profileCreationManager.goToPrevious(currentQuestion)} disabled={currentQuestion === 0}>
-                                    <Text style={styles.buttonText}>Previous</Text>
-                                </TouchableOpacity>
+                                {currentQuestion !== 0 ? (
+                                    <TouchableOpacity
+                                        style={[styles.button, styles.previousButton]}
+                                        onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
+                                    >
+                                        <Text style={styles.buttonText}>Previous</Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <View style={styles.placeholderButton} />
+                                )}
                                 <TouchableOpacity
-                                    style={styles.button}
+                                    style={[styles.button, styles.nextButton]}
                                     onPress={() => {
                                         if (currentQuestion === questions.length - 1) {
                                             completeProfileCreation();
@@ -262,7 +271,7 @@ const ProfileCreation = () => {
                                         }
                                     }}
                                 >
-                                    <Text style={styles.buttonText}>{currentQuestion < questions.length - 1 ? "Next" : "Submit"}</Text>
+                                    <Text style={styles.buttonText}>Next</Text>
                                 </TouchableOpacity>
                             </View>
                         </>
@@ -272,41 +281,5 @@ const ProfileCreation = () => {
         </ImageBackground>
     );
 };
-
-const styles = StyleSheet.create({
-    background: { flex: 1, justifyContent: "center", alignItems: "center" },
-    overlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)", width: "100%" },
-    container: { padding: 20, backgroundColor: "transparent", flex: 1 },
-    heading: { fontSize: 26, fontWeight: "bold", color: "white", marginBottom: 15, textAlign: "center" },
-    box: {
-        backgroundColor: "#c4b581",
-        borderRadius: 10,
-        padding: 20,
-        width: "80%",
-        minHeight: height * 0.2,
-        justifyContent: "center",
-        alignItems: "center",
-        alignSelf: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.5,
-        elevation: 5,
-        marginVertical: 10,
-    },
-    questionText: { fontSize: 20, color: "#043927", fontWeight: "500", textAlign: "center", marginBottom: 20 },
-    optionButton: { padding: 14, backgroundColor: "#043927", marginVertical: 5, borderRadius: 8, width: "90%", alignItems: "center" },
-    optionText: { fontSize: 18, color: "#FFFFFF", fontWeight: "500" },
-    input: { padding: 12, borderWidth: 1, borderColor: "gray", borderRadius: 5, backgroundColor: "white", marginBottom: 10, width: "90%" },
-    pickerContainer: { width: "90%", backgroundColor: "white", borderRadius: 8, borderColor: "#043927", borderWidth: 1, paddingHorizontal: 10, paddingVertical: 12 },
-    pickerText: { color: "#043927", fontSize: 18, textAlign: "center" },
-    navigationButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 20, width: "90%", alignSelf: "center" },
-    button: { paddingVertical: 12, paddingHorizontal: 30, backgroundColor: "#043927", borderRadius: 12, width: "45%", alignItems: "center" },
-    buttonText: { color: "white", fontSize: 16, fontWeight: "500", textAlign: "center" },
-    completionContainer: { alignItems: "center", padding: 30 },
-    completionText: { fontSize: 24, fontWeight: "bold", color: "white", marginBottom: 25, textAlign: "center" },
-    largeButton: { paddingVertical: 12, paddingHorizontal: 40, backgroundColor: "#043927", borderRadius: 10, width: "80%", marginVertical: 10, alignItems: "center" },
-    largeButtonText: { color: "white", fontSize: 18, fontWeight: "600", alignItems: "center", textAlign: "center" },
-});
 
 export default ProfileCreation;

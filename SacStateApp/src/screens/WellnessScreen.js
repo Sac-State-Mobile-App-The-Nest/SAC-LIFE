@@ -1,12 +1,10 @@
-// screens/MessengerScreen.js
-
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const SettingsScreen = () => {
+const WellnessScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Messenger Screen</Text>
+      <Text style={styles.text}>Welcome to the Wellness Screen</Text>
     </View>
   );
 };
@@ -16,13 +14,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // Background color
+    backgroundColor: '#FFFFFF', // White background
   },
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#043927', // Sac State Green
+    color: '#043927', // Sac State green
   },
 });
 
-export default SettingsScreen;
+export default WellnessScreen;

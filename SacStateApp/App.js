@@ -5,7 +5,6 @@ import HomeScreen from './src/screens/HomeScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LogInScreen from './src/screens/LogInScreen';
-import { StatusBar } from 'expo-status-bar';
 import ProfileCreationScreen from './src/screens/ProfileCreationScreen';
 
 const Stack = createNativeStackNavigator();
