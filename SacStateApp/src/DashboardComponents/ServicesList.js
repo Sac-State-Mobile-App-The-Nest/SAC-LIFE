@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native';
-import styles from '../styles/ServicesStyles';
+import styles from '../DashboardStyles/ServicesStyles';
 
 const ServicesList = ({ services }) => {
   const handlePress = (link) => {

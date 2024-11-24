@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import styles from '../styles/CalendarStyles';
+import styles from '../DashboardStyles/CalendarStyles';
 
 const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [currentWeek, setCurrentWeek] = useState([]);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import DashboardTab from '../components/DashboardTab';
+import DashboardTab from '../DashboardComponents/DashboardTab';
 import ProfileScreen from './ProfileScreen';
 import WellnessScreen from './WellnessScreen'; // Import WellnessScreen
 import SettingsScreen from './SettingsScreen';

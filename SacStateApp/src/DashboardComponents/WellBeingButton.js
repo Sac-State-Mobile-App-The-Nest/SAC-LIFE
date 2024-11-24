@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, Alert } from 'react-native';
-import styles from '../styles/DashboardStyles';
+import styles from '../DashboardStyles/DashboardStyles';
 
 const WellBeingButton = ({ prompt }) => {
   const handlePress = () => {
