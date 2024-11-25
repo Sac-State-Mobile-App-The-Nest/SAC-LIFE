@@ -1,37 +1,60 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons'; 
 
 const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+    const [isOpen, setIsOpen] = useState(false);
+    const [message, setMessage] = useState('');  
+    const [messages, setMessages] = useState([]);
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-  };
+    // function for opening and closing chat window
+    const toggleChat = () => {
+        setIsOpen(!isOpen);
+    };
 
-  const handleSend = async () => {
-    if (message.trim()) {
-      setMessages([...messages, { text: message, sender: 'You' }]);
-      setMessage('');
+    // function to send message to server and handle response
+    const handleSend = async () => {
+        if (message.trim()) {
+            //add user's message to the chat
+            setMessages([...messages, { text: message, sender: 'You' }]);
+            const userMessage = message;
+            setMessage('');
 
-      // Mocked response for now (replace this with your fetch logic)
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { text: 'Let me help you with that!', sender: 'SacLifeBot' },
-      ]);
-    }
-  };
+            try {
+                //sends fetch to android emulator ip 
+                const response = await fetch('http://10.0.2.2:3000/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: userMessage }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    //add Dialogflow's response to the chat
+                    setMessages((prevMessages) => [
+                        ...prevMessages,
+                        { text: data.response, sender: 'SacLifeBot' },
+                    ]);
+                } else {
+                    console.error('Network response was not ok.');
+                    //server response fail error
+                    setMessages((prevMessages) => [
+                        ...prevMessages,
+                        { text: 'Error: Unable to fetch response from server', sender: 'SacLifeBot' },
+                    ]);
+                }
+            } catch (error) {
+                console.error('Error fetching response:', error);
+                //will display connection error
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    { text: 'Error: Unable to connect to server', sender: 'SacLifeBot' },
+                ]);
+            }
+        }
+    };
 
   return (
     <KeyboardAvoidingView
