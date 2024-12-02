@@ -5,6 +5,8 @@
   ## Table of Contents
 
 - [Synopsis](#Synopsis)
+- [Testing](#Testing)
+- [Deployment](#Deployment)
 
 
 ## Created by The Nest  
