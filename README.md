@@ -195,6 +195,30 @@ Placeholder for now
 ![ERD 2](SacStateApp/src/assets/saclife_erdp2.PNG)
 
 
+## ERD
+![ERD](SacStateApp/src/assets/saclife_erd_backend.png)  
+
+## Roadmap
+### Key Milestones  
+
+| Milestone                  | Start Date  | End Date    | Status       |
+|----------------------------|-------------|-------------|--------------|
+| Initial setup              | 2024-10-07  | 2024-11-17  | Completed    |
+| Personalized Dashbaord     | 2024-10-07  |             | In Progress  |
+| AI Powered Chatbot         | 2024-10-22  |             | In Progress  |
+| Admin Dashbaord            | 2024-10-07  |             | In Progress  |
+| Database Features          | 2024-10-07  |             | In Progress  |
+| Profle Creation Screen     | 2024-10-07  |             | In Progress  |
+| Notification System        |             |             | Not Started  |
+| Wellness Screen            |             |             | Not Started  |
+| Intro Screen               |             |             | Not Started  |
+
+### Visual Timeline
+
+
+
+
+
 
 
 
