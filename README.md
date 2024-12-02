@@ -217,8 +217,7 @@ Placeholder for now
 | Intro Screen               |             |             | Not Started  |
 
 ### Visual Timeline
-
-
+![timeline](SacStateApp/src/assets/jira_roadmap.png)  
 
 
 
