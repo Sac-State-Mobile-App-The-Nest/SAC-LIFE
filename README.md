@@ -6,6 +6,7 @@
 - [Synopsis](#Synopsis)
 - [Testing](#Testing)
 - [Deployment](#Deployment)
+- [App Layout and Flow](#AppLayoutandFlow)
 
 
 ## Created by The Nest  
@@ -188,7 +189,7 @@ We employed a combination of manual testing, unit tests, and integration tests t
 ## Developer Instructions
 Placeholder for now
 
-## App Layout and flow
+## App Layout and Flow
 ![ERD 1](SacStateApp/src/assets/saclife_erdp1.PNG)  
 
 ![ERD 2](SacStateApp/src/assets/saclife_erdp2.PNG)
