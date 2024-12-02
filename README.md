@@ -1,6 +1,12 @@
 
 # SAC-LIFE Mobile Application 
   ![School Logo](SacStateApp/src/assets/Primary_Stacked_1_Color_Green_hires.png)
+
+  ## Table of Contents
+
+- [Synopsis](#Synopsis)
+
+
 ## Created by The Nest  
  #### Nicholas Lewis   
  #### Christian Buco   
