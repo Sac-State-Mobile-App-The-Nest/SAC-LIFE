@@ -1,6 +1,7 @@
 // screens/Dashboard.js
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import styles from '../HomeStyles/HomeStyles'; //new
 
 const Dashboard = ({ navigation }) => {
   return (
@@ -24,23 +25,5 @@ const Dashboard = ({ navigation }) => {
     
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
-const stylesC = StyleSheet.create({
-  chatWidgetContainer: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    zIndex: 1000, // Ensures it stays on top of other elements
-  },
-});
 
 export default Dashboard;
