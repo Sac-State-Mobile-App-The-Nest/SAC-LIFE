@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import * as colors from '../SacStateColors/GeneralColors';
 
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
     },

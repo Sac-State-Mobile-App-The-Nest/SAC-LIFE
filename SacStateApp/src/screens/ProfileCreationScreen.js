@@ -29,7 +29,7 @@ class Question {
         }
     }
 }
-
+// seperate
 class ProfileCreationManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;

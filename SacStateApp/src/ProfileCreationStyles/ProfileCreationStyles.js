@@ -1,11 +1,12 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import * as colors from '../SacStateColors/GeneralColors';
 
 const { height } = Dimensions.get('window') || { height: 800 };
 
 const styles = StyleSheet.create({
     background: {
         flex: 1,
-        backgroundColor: '#F8F9FA', // Neutral background
+        backgroundColor: colors.offWhite, // Neutral background
         position: 'relative', // Required for overlay elements
     },
     logoImage: {
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: '#E4F1E7', // Subtle soft gradient green
+        backgroundColor: colors.subtleGreen,
         opacity: 0.5,
     },
     container: {
@@ -42,12 +43,12 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: 26,
         fontWeight: 'bold',
-        color: '#043927', // Sac State green
+        color: colors.sacGreen,
         marginBottom: 15,
         textAlign: 'center',
     },
     box: {
-        backgroundColor: '#FFFFFF', // Clean white for sections
+        backgroundColor: colors.white,
         borderRadius: 15,
         padding: 20,
         width: '90%', // Matches proportions of other screens
@@ -55,64 +56,64 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'center',
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 5,
         elevation: 3,
         marginVertical: 10,
-        borderColor: '#E4CFA3', // Faded gold border
+        borderColor: colors.mutedGold,
         borderWidth: 1,
     },
     questionText: {
         fontSize: 20,
-        color: '#043927', // Strong green text
+        color: colors.sacGreen,
         fontWeight: '500',
         textAlign: 'center',
         marginBottom: 20,
     },
     optionButton: {
         padding: 15,
-        backgroundColor: '#FBF8EF', // Faded gold background
+        backgroundColor: colors.fadedSacGold,
         borderRadius: 12,
         width: '90%',
         alignItems: 'center',
         marginVertical: 5,
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 2,
-        borderColor: '#E4CFA3', // Muted gold border
+        borderColor: colors.mutedGold,
         borderWidth: 1,
     },
     optionText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#043927', // Sac State green
+        color: colors.sacGreen,
         textAlign: 'center',
     },
     input: {
         padding: 12,
         borderWidth: 1,
-        borderColor: '#043927', // Strong green border
+        borderColor: colors.sacGreen,
         borderRadius: 8,
-        backgroundColor: '#FFFFFF', // Clean white
+        backgroundColor: colors.white,
         marginBottom: 10,
         width: '90%',
         alignSelf: 'center',
     },
     pickerContainer: {
         width: '90%',
-        backgroundColor: '#FBF8EF', // Faded gold for dropdown
+        backgroundColor: colors.fadedSacGold, // Faded gold for dropdown
         borderRadius: 12,
-        borderColor: '#E4CFA3', // Muted gold border
+        borderColor: colors.mutedGold,
         borderWidth: 1,
         paddingHorizontal: 10,
         paddingVertical: 12,
     },
     pickerText: {
-        color: '#043927', // Strong green text
+        color: colors.sacGreen,
         fontSize: 16,
         textAlign: 'center',
     },
@@ -128,18 +129,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 20,
-        backgroundColor: '#FBF8EF', // Faded gold background for buttons
+        backgroundColor: colors.fadedSacGold, // Faded gold background for buttons
         borderRadius: 15,
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 3,
-        borderColor: '#E4CFA3', // Muted gold outline
+        borderColor: colors.mutedGold,
         borderWidth: 1,
     },
     buttonText: {
-        color: '#043927', // Sac State green for text
+        color: colors.sacGreen,
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
@@ -151,27 +152,27 @@ const styles = StyleSheet.create({
     completionText: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#043927', // Strong green text
+        color: colors.sacGreen,
         marginBottom: 25,
         textAlign: 'center',
     },
     largeButton: {
         padding: 15,
-        backgroundColor: '#FBF8EF', // Match multiple-choice button styling
+        backgroundColor: colors.fadedSacGold, // Match multiple-choice button styling
         borderRadius: 12,
         width: '90%',
         alignItems: 'center',
         marginVertical: 10,
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 2,
-        borderColor: '#E4CFA3', // Muted gold border
+        borderColor: colors.mutedGold,
         borderWidth: 1,
     },
     largeButtonText: {
-        color: '#043927', // Sac State green for text
+        color: colors.sacGreen,
         fontSize: 16,
         fontWeight: '600',
         textAlign: 'center',
@@ -181,10 +182,10 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: '100%',
         height: 60,
-        backgroundColor: '#FBF8EF', // Faded gold for footer
+        backgroundColor: colors.fadedSacGold,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        shadowColor: '#000',
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,
         shadowRadius: 3,

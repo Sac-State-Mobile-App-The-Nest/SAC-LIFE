@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import * as colors from '../SacStateColors/GeneralColors';
 
 const { width: screenWidth } = Dimensions.get('window');
 const tileMargin = 4; // Adjusted margin for smaller tiles
@@ -7,22 +8,22 @@ const tileSize = Math.floor((screenWidth - tileMargin * 14) / 7); // Dynamically
 const styles = StyleSheet.create({
   calendarContainer: {
     marginTop: 10,
-    backgroundColor: '#FFFFFF', // Muted light gray for subtle contrast
+    backgroundColor: colors.white,
     borderRadius: 15,
     padding: 15,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
  currentDayContainer: {
-    backgroundColor: '#043927', // Deep Sac State green as a fallback
+    backgroundColor: colors.sacGreen, // Deep Sac State green as a fallback
     borderBottomLeftRadius: 50, // Increased curve for a smoother edge
     borderBottomRightRadius: 50, // Increased curve for a smoother edge
     padding: 25,
     alignItems: 'center',
-    shadowColor: '#000', // Slight shadow for a floating effect
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -41,23 +42,23 @@ const styles = StyleSheet.create({
   currentDayText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#E4CFA3', // Subtle muted gold
+    color: colors.mutedGold,
     marginTop: 10,
   },
   expandButtonWeekly: {
     alignSelf: 'center',
     marginTop: 15,
-    backgroundColor: '#FBF8EF', // Faded Sac State gold
+    backgroundColor: colors.fadedSacGold,
     padding: 10,
     borderRadius: 50, // Circular button for the icon
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   expandButtonTextWeekly: {
-    color: '#043927', // Deep green for text
+    color: colors.sacGreen,
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 10,
-    color: '#043927', // Strong green for header
+    color: colors.sacGreen,
     textAlign: 'center',
   },
   dayBox: {
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E4CFA3', // Subtle outline
+    borderColor: colors.mutedGold,
     backgroundColor: 'transparent', // Remove white backgrounds here
   },
   monthDayBox: {
@@ -93,88 +94,88 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     margin: tileMargin,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E4CFA3',
+    borderColor: colors.mutedGold,
   },
   todayBox: {
-    borderColor: '#E4CFA3', // Muted gold
+    borderColor: colors.mutedGold,
     borderWidth: 2,
-    backgroundColor: '#E9F4EC', // Light green for today
+    backgroundColor: colors.bubbles,
   },
   selectedBox: {
-    backgroundColor: '#E9F4EC', // Sac State green
-    borderColor: '#E4CFA3', // Subtle gold for selected day
+    backgroundColor: colors.bubbles,
+    borderColor: colors.mutedGold,
     borderWidth: 2,
   },
   dayOfWeek: {
     fontSize: 12, // Smaller font size for day names
     fontWeight: '600',
-    color: '#043927', // Green for day names
+    color: colors.sacGreen,
     textAlign: 'center',
   },
   dateText: {
     fontSize: tileSize * 0.3, // Smaller responsive font size
     fontWeight: 'bold',
-    color: '#043927', // Green for numbers
+    color: colors.sacGreen,
     textAlign: 'center',
   },
   toggleButton: {
     alignSelf: 'center',
     marginTop: 15,
-    backgroundColor: '#043927', // Sac State green
+    backgroundColor: colors.sacGreen,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
   toggleButtonText: {
-    color: '#E4CFA3', // Muted gold for text
+    color: colors.mutedGold,
     fontWeight: 'bold',
     fontSize: 16,
   },
   eventsContainer: {
     marginTop: 20,
     paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF', // Clean white for events section
+    backgroundColor: colors.white,
     borderRadius: 15,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
   sectionTitle: {
-    color: '#043927', // Sac State green for the text
+    color: colors.sacGreen,
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'left',
     marginBottom: 10,
   },
   eventCard: {
-    backgroundColor: '#FBF8EF', // Faded Sac State gold
+    backgroundColor: colors.fadedSacGold,
     borderRadius: 12,
     borderWidth: 1, // Subtle border
-    borderColor: '#E4CFA3', // Sac State gold
+    borderColor: colors.mutedGold,
     padding: 15,
     marginVertical: 5,
   },
   eventTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#043927', // Sac State green
+    color: colors.sacGreen,
   },
   eventTime: {
     fontSize: 14,
-    color: '#6C757D', // Neutral gray
+    color: colors.gray,
     marginTop: 3,
   },
   noEventsText: {
-    color: '#6C757D', // Subtle gray
+    color: colors.gray,
     fontStyle: 'italic',
     textAlign: 'center',
     marginVertical: 10,
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
   centeredYearText: {
     fontSize: 28, // Larger font size for the year
     fontWeight: 'bold',
-    color: '#E4CFA3', // Subtle muted gold
+    color: colors.mutedGold,
     textAlign: 'center',
     marginTop: 5, // Add a small gap above the year
   },
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly', // Even spacing between days
     alignItems: 'center',
     paddingVertical: 10,
-    backgroundColor: 'F4F4F4', // Muted light gray for subtle contrast
+    backgroundColor: colors.whiteSmokeLight,
     borderRadius: 15,
     marginBottom: 10,
   },
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   fullCalendarHeader: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#043927', // Strong green for header
+    color: colors.sacGreen,
     textAlign: 'center',
   },
 });
