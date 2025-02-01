@@ -29,7 +29,15 @@ function Users() {
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem('token'); // Get the JWT token
-      const response = await fetch(`http://localhost:5000/api/students/cascade-delete/${deleteUserId}`, {
+
+      if (!token) {
+        alert("You must be logged in to delete a student.");
+        return;
+    }
+
+      console.log("Token being sent:", token); // Log token to check
+
+      const response = await fetch(`http://localhost:5000/api/adminRoutes/students/${deleteUserId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -38,16 +46,22 @@ function Users() {
         body: JSON.stringify({ password }), // Send the password for re-authentication
       });
 
+      const result = await response.json();
+      console.log("🔹 Server Response:", result);
+
       if (response.ok) {
         setUsers(users.filter((user) => user.std_id !== deleteUserId));
         alert('Student deleted successfully');
       } else if (response.status === 401) {
         alert('Invalid password. Deletion not authorized.');
+      } else if (response.status === 403) {
+        alert(result.message || "Invalid role: You do not have permission to delete students.");
       } else {
-        alert('Failed to delete student');
+        alert(`Failed to delete student: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error deleting user:', error);
+      alert('An error occurred while deleting the student.');
     } finally {
       setShowPasswordModal(false); // Close modal
       setPassword(''); // Reset password field
@@ -56,6 +70,20 @@ function Users() {
   };
 
   const openPasswordModal = (id) => {
+    const token = localStorage.getItem('token'); // Get the JWT token
+    if (!token) {
+        alert("You must be logged in to delete a student.");
+        return;
+    }
+
+    // Decode JWT token to check the role
+    const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decodes the payload of the JWT
+
+    if (decodedToken.role !== 'super-admin') {
+        alert("Invalid role: Only super-admins can delete students.");
+        return;
+    }
+
     const confirmDelete = window.confirm('Are you sure you want to delete this student?');
     if (!confirmDelete) return;
 

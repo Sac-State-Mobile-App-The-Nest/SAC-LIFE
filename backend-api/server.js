@@ -4,6 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const port = 5000;
 const config = require('./config'); //server config file
+const { authenticateToken, verifyRole } = require('./middleware/authMiddleware'); // Ensure correct path
+
 
 require('dotenv').config();
 
@@ -28,13 +30,15 @@ const studentsRoute = require('./routes/students')(poolPromise);
 const campus_servicesRoute = require('./routes/campus_services')(poolPromise);
 const tagsRoute = require('./routes/tags');
 const login_infoRoute = require('./routes/login_info');
-const adminLoginRoute = require('./routes/admin_login')(poolPromise);
+const adminLoginRoute = require('./routes/admin_routes/admin_login')(poolPromise);
+const adminRoutes = require('./routes/admin_routes/adminRoutes')(poolPromise);
 
 app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);
 app.use('/api/tags', tagsRoute);
 app.use('/api/login_info', login_infoRoute);
 app.use('/api', adminLoginRoute);
+app.use('/api/adminRoutes', adminRoutes);
 
 
 app.get('/api/helloMessage', (req, res) => {
