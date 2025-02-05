@@ -15,8 +15,8 @@ const authenticateToken = (req, res, next) => {
             return res.status(403).json({ message: 'Invalid Token' });
         }
 
-        console.log("✅ Token successfully verified!");
-        console.log("🔹 Decoded token data:", user);
+        console.log(" Token successfully verified!");
+        console.log(" Decoded token data:", user);
 
         req.user = user; // Stores user data in request
         next();

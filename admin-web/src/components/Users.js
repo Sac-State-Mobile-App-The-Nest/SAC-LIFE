@@ -6,6 +6,8 @@ function Users() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [deleteUserId, setDeleteUserId] = useState(null);
+  const [editUser, setEditUser] = useState(null); // Store user to be edited
+  const [editForm, setEditForm] = useState({ f_name: '', m_name: '', l_name: '', email: '' });
 
   // Fetch users from the backend API when the component mounts
   useEffect(() => {
@@ -91,6 +93,50 @@ function Users() {
     setShowPasswordModal(true); // Open the modal
   };
 
+
+  const openEditModal = (user) => {
+    setEditUser(user);
+    setEditForm({ f_name: user.f_name, m_name: user.m_name, l_name: user.l_name, email: user.email });
+  };
+
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+};
+
+
+  const handleEdit = async () => {
+    try {
+      const token = localStorage.getItem('token'); // Get the JWT token
+
+      if (!token) {
+        alert("You must be logged in to edit a student.");
+        return;
+      }
+
+    const response = await fetch(`http://localhost:5000/api/adminRoutes/students/${editUser.std_id}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editForm),
+    });
+
+    const result = await response.json();
+        if (response.ok) {
+            alert('Student updated successfully');
+            fetchUsers(); // Refresh the user list
+            setEditUser(null); // Close modal
+          } else {
+            alert(`Failed to update student: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Error updating student:', error);
+          alert('An error occurred while updating the student.');
+      }
+
+  }
+
   return (
     <div className="users-container">
       <h2>Users</h2>
@@ -113,6 +159,7 @@ function Users() {
               <td>{user.email}</td>
               <td className="users-buttons">
                 <button>Edit</button>
+                <button onClick={() => openEditModal(user)}>Edit</button>
                 <button onClick={() => openPasswordModal(user.std_id)}>Delete</button>
               </td>
             </tr>
@@ -138,7 +185,51 @@ function Users() {
           </div>
         </div>
       )}
+
+      {editUser && (
+          <div className="edit-modal">
+              <div className="edit-modal-content">
+                  <h3>Edit Student</h3>
+                  <input
+                      type="text"
+                      name="f_name"
+                      placeholder="First Name"
+                      value={editForm.f_name}
+                      onChange={handleEditChange}
+                  />
+                  <input
+                      type="text"
+                      name="m_name"
+                      placeholder="Middle Name"
+                      value={editForm.m_name}
+                      onChange={handleEditChange}
+                  />
+                  <input
+                      type="text"
+                      name="l_name"
+                      placeholder="Last Name"
+                      value={editForm.l_name}
+                      onChange={handleEditChange}
+                  />
+                  <input
+                      type="email"
+                      name="email"
+                      placeholder="Email"
+                      value={editForm.email}
+                      onChange={handleEditChange}
+                  />
+                  <div className="edit-modal-actions">
+                      <button onClick={handleEdit}>Save</button>
+                      <button onClick={() => setEditUser(null)}>Cancel</button>
+                  </div>
+              </div>
+          </div>
+      )}
+
     </div>
+
+    
+    
   );
 }
 

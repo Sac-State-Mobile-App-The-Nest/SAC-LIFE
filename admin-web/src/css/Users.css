@@ -182,3 +182,28 @@ button:last-of-type:hover {
 .password-modal-actions button:last-child:hover {
     background-color: #aaa;
 }
+
+.edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.edit-modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+}
+
+.edit-modal-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+}
