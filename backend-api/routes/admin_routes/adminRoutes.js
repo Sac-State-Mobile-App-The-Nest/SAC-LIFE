@@ -111,6 +111,84 @@ module.exports = function(poolPromise) {
     }
   });
 
+// DELETE an admin by username
+router.delete('/admins/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+  const { adminId } = req.params;
+  const { password } = req.body;
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication token is missing' });
+  }
+
+  let transaction;
+
+  try {
+    // Verify token and fetch admin details
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
+    console.log("Decoded Token:", decoded);
+
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('username', sql.VarChar, decoded.username)
+      .query('SELECT password, role FROM admin_login WHERE username = @username');
+
+    if (result.recordset.length === 0) {
+      return res.status(401).json({ message: 'Admin not found' });
+    }
+
+    const admin = result.recordset[0];
+
+    console.log("Admin Role:", admin.role);
+    console.log("Admin Password (hashed):", admin.password);
+    console.log("Password Sent:", password);
+
+    // Ensure only super-admins can delete admins
+    if (admin.role !== 'super-admin') {
+      return res.status(403).json({ message: "Invalid role: Only super-admins can delete admins." });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+
+    // Delete admin
+    transaction = await pool.transaction();
+    await transaction.begin();
+    console.log("Transaction started");
+
+    const resultDelete = await transaction.request()
+      .input('username', sql.VarChar, username)
+      .query('DELETE FROM admin_login WHERE username = @username');
+    console.log("Deleted from admin_login");
+
+    await transaction.commit();
+    console.log("Transaction committed");
+
+    if (resultDelete.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    res.json({ message: `Admin '${username}' deleted successfully` });
+  } catch (error) {
+    console.error('Error during deletion:', error.message);
+
+    if (transaction) {
+      try {
+        await transaction.rollback();
+        console.log("Transaction rolled back due to error");
+      } catch (rollbackError) {
+        console.error('Error during transaction rollback:', rollbackError.message);
+      }
+    }
+
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
   // Update students info in test_students table
   router.patch('/students/:studentId', authenticateToken, verifyRole(['super-admin', 'content-manager', 'support-admin']), async (req, res) => {
     const { studentId } = req.params;
