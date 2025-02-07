@@ -3,7 +3,7 @@ import '../css/Users.css';
 
 function Users() {
   const [users, setUsers] = useState([]);
-  const [role, setRole] = useState(null); // Add role state
+  const [role, setRole] = useState(null); 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [deleteUserId, setDeleteUserId] = useState(null);
@@ -13,7 +13,7 @@ function Users() {
   
   useEffect(() => {
     fetchUsers();
-    getUserRole();
+    getAdminRole();
   }, []);
 
   // Auto logout function
@@ -22,7 +22,7 @@ const logout = () => {
   localStorage.removeItem('role');
   setRole(null);
   alert("Session expired. Please log in again.");
-  window.location.href = "/login"; // Redirect to login page
+  window.location.href = "/login"; 
 };
 
   // Function to load users from the API
@@ -41,7 +41,7 @@ const logout = () => {
 
       if (response.status === 401) {
         alert("Session expired. Please log in again.");
-        logout(); // Auto logout when the token is expired
+        logout(); 
         return;
       }
   
@@ -57,7 +57,7 @@ const logout = () => {
   };
 
    // Function to get the role from the token
-   const getUserRole = () => {
+   const getAdminRole = () => {
     const token = localStorage.getItem('token');
     if (token) {
       try {

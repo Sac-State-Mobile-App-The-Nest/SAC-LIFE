@@ -8,6 +8,18 @@ const { verifyRole, authenticateToken } = require('../../middleware/authMiddlewa
 
 module.exports = function(poolPromise) {
 
+  // Get all admins
+  router.get('/', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT * FROM admin_login');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
   // DELETE a student by studentId
   router.delete('/students/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { studentId } = req.params;

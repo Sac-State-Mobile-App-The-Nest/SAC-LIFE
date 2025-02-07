@@ -17,6 +17,9 @@ function MainContent() {
         <Link to="/Chatbotlogs" style={{ textDecoration: 'none' }}>
           <Card title="Chatbot Logs" content="Access chatbot interaction logs" />
         </Link>
+        <Link to="/AdminRoles" style={{ textDecoration: 'none' }}>
+          <Card title="Admin Roles" content="Access logs for admin roles" />
+        </Link>
       </div>
     </div>
   );
