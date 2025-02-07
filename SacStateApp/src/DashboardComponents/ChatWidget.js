@@ -33,7 +33,7 @@ const ChatWidget = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    //add Dialogflow's response to the chat
+                    // add Dialogflow's response to the chat
                     setMessages((prevMessages) => [
                         ...prevMessages,
                         { text: data.response, sender: 'SacLifeBot' },

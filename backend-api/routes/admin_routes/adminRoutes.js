@@ -1,9 +1,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt'); // For password hashing
-const sql = require('mssql'); // For database queries
+const bcrypt = require('bcrypt'); 
+const sql = require('mssql'); 
 const router = express.Router();
-const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware'); // Import valid roles
+const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware'); 
 
 
 module.exports = function(poolPromise) {
@@ -11,21 +11,21 @@ module.exports = function(poolPromise) {
   // DELETE a student by studentId
   router.delete('/students/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { studentId } = req.params;
-    const { password } = req.body; // Get the password from the request body
-    const token = req.headers.authorization?.split(' ')[1]; // Extract JWT token
+    const { password } = req.body; 
+    const token = req.headers.authorization?.split(' ')[1]; 
   
     if (!token) {
       return res.status(401).json({ message: 'Authentication token is missing' });
     }
   
-    let transaction; // Declare transaction variable here
+    let transaction; 
   
     try {
-      // Verify the JWT token
+      
       const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
-      console.log("🔹 Decoded Token in DELETE request:", decoded);  // Log this
+      console.log("Decoded Token in DELETE request:", decoded);  // Log this
   
-      // Fetch the admin's hashed password from the database
+      
       const pool = await poolPromise;
       const result = await pool.request()
         .input('username', sql.VarChar, decoded.username)
@@ -37,23 +37,23 @@ module.exports = function(poolPromise) {
   
       const admin = result.recordset[0];
 
-      console.log("🔹 Admin role from DB:", admin.role);
-      console.log("🔹 Admin password from DB:", admin.password);
-      console.log("🔹 Password sent by user:", password);
+      console.log("Admin role from DB:", admin.role);
+      console.log("Admin password from DB:", admin.password);
+      console.log("Password sent by user:", password);
 
-      // Check if the admin has the required role
+      
       if (admin.role !== 'super-admin') {
         console.log("Invalid role detected! Access denied.");
         return res.status(403).json({ message: "Invalid role: Only super-admins can delete students." });
     }
   
-      // Compare the provided password with the stored hashed password
+      
       const isMatch = await bcrypt.compare(password, admin.password);
       if (!isMatch) {
         return res.status(401).json({ message: 'Invalid password' });
       }
   
-      // Initialize and begin transaction
+      
       transaction = await pool.transaction();
       await transaction.begin();
       console.log("Transaction started");
@@ -85,7 +85,7 @@ module.exports = function(poolPromise) {
       console.error('Error during deletion:', error.message);
 
   
-      // Rollback the transaction if initialized
+      
       if (transaction) {
         try {
           await transaction.rollback();
@@ -99,6 +99,7 @@ module.exports = function(poolPromise) {
     }
   });
 
+  // Update students info in test_students table
   router.patch('/students/:studentId', authenticateToken, verifyRole(['super-admin', 'content-manager', 'support-admin']), async (req, res) => {
     const { studentId } = req.params;
     const { f_name, m_name, l_name, email } = req.body; 
@@ -132,8 +133,6 @@ module.exports = function(poolPromise) {
     }
 });
 
-
-  
   return router;
 
 };
