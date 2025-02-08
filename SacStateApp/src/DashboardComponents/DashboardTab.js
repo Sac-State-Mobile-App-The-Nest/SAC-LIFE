@@ -14,7 +14,7 @@ const DashboardTab = () => {
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState([]);
-  const [isFullCalendarVisible, setFullCalendarVisible] = useState(false);
+  const [isFullCalendarVisible, setFullCalendarVisible] = useState(true);
 
   useEffect(() => {
     // Fetch events for the current day
@@ -67,22 +67,10 @@ const DashboardTab = () => {
                   })}, ${selectedDate.toLocaleDateString('en-US', {
                     month: 'long',
                     day: 'numeric',
-                  })}`
+                  })}, ${selectedDate.getFullYear()}`
                 : 'Invalid Date'}
             </Text>
-            {selectedDate instanceof Date && (
-              <Text style={styles.centeredYearText}>{selectedDate.getFullYear()}</Text>
-            )}
-            <TouchableOpacity
-              style={styles.topRightIcon}
-              onPress={() => setFullCalendarVisible(!isFullCalendarVisible)}
-            >
-              <Ionicons
-                name={isFullCalendarVisible ? 'calendar-outline' : 'calendar-sharp'}
-                size={28}
-                color="#E4CFA3"
-              />
-            </TouchableOpacity>
+           
           </View>
 
           {/* Full Calendar Section */}
