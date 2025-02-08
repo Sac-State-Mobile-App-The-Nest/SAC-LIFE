@@ -10,22 +10,18 @@ function Users() {
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ f_name: '', m_name: '', l_name: '', email: '' });
 
-  // Fetches users from the API and sets state
   useEffect(() => {
     fetchUsers();
     getAdminRole();
   }, []);
 
-  // Logs out the user by clearing local storage and redirecting
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    setRole(null);
-    alert("Session expired. Please log in again.");
-    window.location.href = "/login";
+    localStorage.removeItem('token'); // Remove token
+    alert("You have been logged out.");
+    window.location.href = "/login"; // Redirect to login page
   };
 
-  // Fetches users from the API
+  // Fetch users from API
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -34,15 +30,18 @@ function Users() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/students');
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
+      const response = await fetch('http://localhost:5000/api/students', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.status === 401) {
         alert("Session expired. Please log in again.");
         logout();
         return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
       }
 
       const data = await response.json();
@@ -52,7 +51,7 @@ function Users() {
     }
   };
 
-  // Retrieves admin role from stored token
+  // Get admin role from token
   const getAdminRole = () => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -67,7 +66,7 @@ function Users() {
     }
   };
 
-  // Handles user deletion
+  // Handle user deletion
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -85,12 +84,11 @@ function Users() {
         body: JSON.stringify({ password }),
       });
 
-      const result = await response.json();
-
       if (response.ok) {
         setUsers(users.filter((user) => user.std_id !== deleteUserId));
         alert('Student deleted successfully');
       } else {
+        const result = await response.json();
         alert(`Failed to delete student: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
@@ -103,27 +101,55 @@ function Users() {
     }
   };
 
-  // Opens delete confirmation modal
+  // Open delete confirmation modal
   const openPasswordModal = (id) => {
     if (role !== 'super-admin') {
       alert("Invalid role: Only super-admins can delete students.");
       return;
     }
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      setDeleteUserId(id);
-      setShowPasswordModal(true);
-    }
+    setDeleteUserId(id);
+    setShowPasswordModal(true);
   };
 
-  // Opens edit modal with user data
+  // Open edit modal with user data
   const openEditModal = (user) => {
     setEditUser(user);
     setEditForm({ f_name: user.f_name, m_name: user.m_name, l_name: user.l_name, email: user.email });
   };
 
-  // Handles form input changes
+  // Handle form input changes
   const handleEditChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  // Handle saving the edited user
+  const handleSaveEdit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("You must be logged in.");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/students/${editUser.std_id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update student');
+      }
+
+      alert("Student updated successfully!");
+      setEditUser(null); // Close modal
+      fetchUsers(); // Refresh list
+    } catch (error) {
+      console.error('Error updating student:', error);
+    }
   };
 
   return (
@@ -132,7 +158,7 @@ function Users() {
       <table className="users-table">
         <thead>
           <tr>
-            <th>Name</th>
+            <th>First Name</th>
             <th>Middle Name</th>
             <th>Last Name</th>
             <th>Email</th>
@@ -160,6 +186,52 @@ function Users() {
           ))}
         </tbody>
       </table>
+
+      {/* Delete Confirmation Modal */}
+      {showPasswordModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Confirm Delete</h3>
+            <p>Enter your password to confirm deletion:</p>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button type="button" onClick={handleDelete}>Confirm Delete</button>
+            <button type="button" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editUser && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Edit Student</h3>
+            <form>
+              <label>
+                First Name:
+                <input name="f_name" value={editForm.f_name} onChange={handleEditChange} />
+              </label>
+              <label>
+                Middle Name:
+                <input name="m_name" value={editForm.m_name} onChange={handleEditChange} />
+              </label>
+              <label>
+                Last Name:
+                <input name="l_name" value={editForm.l_name} onChange={handleEditChange} />
+              </label>
+              <label>
+                Email:
+                <input name="email" value={editForm.email} onChange={handleEditChange} />
+              </label>
+              <button type="button" onClick={handleSaveEdit}>Save</button>
+              <button type="button" onClick={() => setEditUser(null)}>Cancel</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
