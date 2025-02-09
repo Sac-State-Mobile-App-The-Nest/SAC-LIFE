@@ -72,6 +72,11 @@ function AdminRoles() {
 
   // Opens the edit modal and sets form values for the selected admin
   const openEditModal = (admin) => {
+    if (!admin || !admin.username) {
+      console.error("Admin username is missing:", admin);
+      alert("Error: Admin username is missing.");
+      return;
+    }
     setEditAdmin(admin);
     setEditForm({ username: admin.username, role: admin.role });
   };
@@ -90,24 +95,29 @@ const handleSaveEdit = async () => {
       return;
     }
 
-    const response = await fetch(`http://localhost:5000/api/adminRoutes/${editAdmin.id}`, {
+    const response = await fetch(`http://localhost:5000/api/adminRoutes/${editAdmin.username}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(editForm),
+      body: JSON.stringify({
+        newUsername: editForm.username, 
+        role: editForm.role
+      }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update admin');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update admin');
     }
 
     alert("Admin updated successfully!");
-    setEditAdmin(null); // Close modal
-    fetchAdmins(); // Refresh list
+    await fetchAdmins();
+    setEditAdmin(null); 
   } catch (error) {
     console.error('Error updating admin:', error);
+    alert(`Error: ${error.message}`);
   }
 };
 

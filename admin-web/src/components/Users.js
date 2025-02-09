@@ -141,14 +141,16 @@ function Users() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update student');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update student');
       }
 
       alert("Student updated successfully!");
+      await fetchUsers();
       setEditUser(null); // Close modal
-      fetchUsers(); // Refresh list
     } catch (error) {
       console.error('Error updating student:', error);
+      alert(`Error: ${error.message}`);
     }
   };
 
