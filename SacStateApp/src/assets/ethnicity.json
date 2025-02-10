@@ -1,0 +1,12 @@
+{
+"ethnicity":[
+        {"key": "American Native", "label": "American Indian/Alaska Native"},
+        {"key": "Asian", "label": "Asian"},
+        {"key": "Black/African American", "label": "Black or African American"},
+        {"key": "Caucasian", "label": "Caucasian"},
+        {"key": "Latino", "label": "Hispanic/Latino"},
+        {"key": "Pacific Islander", "label": "Native Hawaiian or Other Pacific Islander" },
+        {"key": "Middle Eastern","label": "Middle Eastern" },
+        {"key": "Other", "label": "Other"}
+    ]
+}

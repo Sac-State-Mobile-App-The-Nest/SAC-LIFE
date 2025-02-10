@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
-import clubList from '../assets/clubList.json';
+import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
@@ -24,8 +24,6 @@ class Question {
     handleCondition(answer, actions) {
         if (this.conditional) {
             this.conditional(answer, actions);
-        } else {
-            actions.goToNext();
         }
     }
 }
@@ -67,7 +65,6 @@ const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [selectedMajor, setSelectedMajor] = useState("");
-    const [selectedClub, setSelectedClub] = useState("");
     const [firstName, setFirstName] = useState("");
     const [middleInitial, setMiddleInitial] = useState("");
     const [lastName, setLastName] = useState("");
@@ -75,14 +72,16 @@ const ProfileCreation = () => {
     const navigation = useNavigation();
 
     const questions = [
-    new Question(0, "Tell us your name!", "text"),
-    new Question(1, "How would you describe your student journey?", "checkbox", ["New Student", "Transfer student", "Returning student"]),
-    new Question(2, "What’s your major or area of study?", "dropdown", majorList["major"]),
-    new Question(3, "What year are you in your studies?", "checkbox", ["First-year (Freshman)", "Second-year (Sophomore)", "Third-year (Junior)", "Fourth-year (Senior+)", "Graduate/Professional"]),
-    new Question(4, "Which clubs are you a part of or would like to join?", "multiDropdown", clubList["club"]),
-    new Question(5, "What kinds of campus events interest you the most?", "checkbox", ["Workshops to boost your skills", "Fun and social meet-ups", "Sports and fitness activities", "Community service/volunteering"]),
-    new Question(6, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
-    new Question(7, "What’s your top priority for your time at Sac State?", "checkbox", ["Excelling in classes", "Getting hands-on experience", "Building a network for my future", "Preparing for grad school or beyond"])
+    new Question(0, "Tell us your name! (Or preferred name)", "text"),
+    new Question(1, "What is your race?", "dropdown", ethnicity["ethnicity"],),
+    new Question(2, "How would you describe your student journey?", "checkbox", ["New Student", "Transfer student", "Returning student"]),
+    new Question(3, "What’s your area of study?", "dropdown", majorList["major"]),
+    new Question(4, "What year are you in your studies?", "checkbox", ["First-year (Freshman)", "Second-year (Sophomore)", "Third-year (Junior)", "Fourth-year (Senior+)", "Graduate/Professional"]),
+    new Question(5, "Expected graduation date?","graduationDate",["Spring", "Fall"]),
+    new Question(6, "What kinds of campus events interest you the most?", "checkbox", ["Workshops to boost your skills", "Fun and social meet-ups", "Sports and fitness activities", "Community service/volunteering"]),
+    new Question(7, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
+    /*new Question(7, "Do you have Disabilities?, "checkbox", ["Yes", "No"]),
+      new Question(8, "Are you a Veteran?", "checkbox", ["Yes, "No"])*/
 ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
@@ -96,9 +95,14 @@ const ProfileCreation = () => {
     const sendProfileDataToServer = async () => {
         try {
             const specificAnswers = {
+                question0: answers["0"],
                 question1: answers["1"].toLowerCase(),
                 question2: answers["2"],
-                question3: answers["3"].toLowerCase()
+                question3: answers["3"].toLowerCase(),
+                question4: answers["4"],
+                question5: answers["5"], // This will now contain { semester: "Spring/Fall", year: "2024" }
+                question6: answers["6"] || [],
+                question7: answers["7"] || [],
             };
             const token = await AsyncStorage.getItem('token');
             const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
@@ -109,13 +113,13 @@ const ProfileCreation = () => {
                 },
                 body: JSON.stringify({ specificAnswers })
             });
-
+    
             if (!response.ok) {
                 // throw new Error('Error sending profile data to server');
             }
         } catch (err) {
-             console.error('Error sending profile answers: ', err);
-             Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+            console.error('Error sending profile answers: ', err);
+            Alert.alert('Error', 'Failed to send profile answers. Please try again.');
         }
     };
 
@@ -146,43 +150,110 @@ const ProfileCreation = () => {
                     </View>
                 );
             case "checkbox":
-                return question.options.map((option) => (
-                    <TouchableOpacity
-                        key={option}
-                        style={styles.optionButton}
-                        onPress={() => profileCreationManager.handleAnswer(question.id, option, currentQuestion)}
-                    >
-                        <Text style={styles.optionText}>{option}</Text>
-                    </TouchableOpacity>
-                ));
+                return question.options.map((option) => {
+                    const isMultiSelect = question.id === 6 || question.id === 7;
+                    let isSelected;
+                    if (isMultiSelect) {
+                        isSelected = (answers[question.id] || []).includes(option);
+                    } else {
+                        isSelected = answers[question.id] === option;
+                    }
+                    return (
+                        <TouchableOpacity
+                            key={option}
+                            style={[
+                                styles.optionButton,
+                                isSelected && styles.selectedOptionButton 
+                            ]}
+                            onPress={() => {
+                                if (isMultiSelect) {
+                                    const currentAnswers = answers[question.id] || [];
+                                    const newAnswers = currentAnswers.includes(option)
+                                        ? currentAnswers.filter(item => item !== option)
+                                        : [...currentAnswers, option];
+                                    profileCreationManager.handleAnswer(question.id, newAnswers, currentQuestion);
+                                } else {
+                                    profileCreationManager.handleAnswer(question.id, option, currentQuestion);
+                                }
+                            }}
+                        >
+                            <Text style={[
+                                styles.optionText,
+                                isSelected && styles.selectedOptionText 
+                            ]}>{option}</Text>
+                        </TouchableOpacity>
+                    );
+                });
             case "dropdown":
                 return (
-                    <ModalSelector
-                        data={question.options}
-                        initValue="Select your major"
-                        onChange={(option) => {
-                            setSelectedMajor(option.label);
-                            profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
-                        }}
-                        style={styles.pickerContainer}
-                        initValueTextStyle={styles.pickerText}
-                        selectTextStyle={styles.pickerText}
-                    />
+                    <View>
+                        <ModalSelector
+                            data={question.options}
+                            initValue="Select your major"
+                            onChange={(option) => {
+                                setSelectedMajor(option.label);
+                                profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
+                            }}
+                            style={styles.pickerContainer}
+                            initValueTextStyle={styles.pickerText}
+                            selectTextStyle={styles.pickerText}
+                        />
+                        {selectedMajor && (
+                            <Text style={styles.selectedDropdownText}>Selected: {selectedMajor}</Text>
+                        )}
+                    </View>
                 );
             case "multiDropdown":
                 return (
-                    <ModalSelector
-                        data={question.options}
-                        initValue="Select the clubs"
-                        onChange={(option) => {
-                            setSelectedClub(option.label);
-                            profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
-                        }}
-                        style={styles.pickerContainer}
-                        initValueTextStyle={styles.pickerText}
-                        selectTextStyle={styles.pickerText}
-                    />
+                    <View>
+                        <ModalSelector
+                            data={question.options}
+                            initValue="Select the clubs"
+                            onChange={(option) => {
+                                setSelectedClub(option.label);
+                                profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
+                            }}
+                            style={styles.pickerContainer}
+                            initValueTextStyle={styles.pickerText}
+                            selectTextStyle={styles.pickerText}
+                        />
+                        {selectedClub && (
+                            <Text style={styles.selectedDropdownText}>Selected: {selectedClub}</Text>
+                        )}
+                    </View>
                 );
+            case "graduationDate":
+                return (
+                    <View>
+                        <ModalSelector
+                            data={question.options.map(option => ({ key: option, label: option }))}
+                            initValue="Select semester"
+                            onChange={(option) => {
+                                profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion);
+                            }}
+                            style={styles.pickerContainer}
+                            initValueTextStyle={styles.pickerText}
+                            selectTextStyle={styles.pickerText}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Graduation year (e.g., 2024)"
+                            keyboardType="numeric"
+                            value={answers[question.id]?.year || ""}
+                            onChangeText={(text) => {
+                                const semester = answers[question.id]?.semester || "";
+                                profileCreationManager.handleAnswer(question.id, { semester, year: text }, currentQuestion);
+                            }}
+                            maxLength={4}
+                        />
+                        {answers[question.id]?.semester && answers[question.id]?.year && (
+                            <Text style={styles.selectedDropdownText}>
+                                Selected: {answers[question.id].semester} {answers[question.id].year}
+                            </Text>
+                        )}
+                    </View>
+                );
+            
             default:
                 return (
                     <TextInput
@@ -201,6 +272,14 @@ const ProfileCreation = () => {
                 return;
             }
             profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
+        }
+    
+        if (currentQuestion === 5) {
+            const graduationDate = answers[5];
+            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4) {
+                Alert.alert("Error", "Please select a semester and enter a valid 4-digit year.");
+                return;
+            }
         }
     
         if (currentQuestion === questions.length - 1) {
@@ -283,3 +362,4 @@ const ProfileCreation = () => {
 };
 
 export default ProfileCreation;
+
