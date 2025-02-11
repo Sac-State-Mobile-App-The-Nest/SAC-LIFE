@@ -13,12 +13,12 @@ const { height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // Replace with the correct path to your logo file
 
 class Question {
-    constructor(id, text, inputType, options = [], conditional = null) {
+    constructor(id, text, inputType, options = [], placeholder = null) {
         this.id = id;
         this.text = text;
         this.inputType = inputType;
         this.options = options;
-        this.conditional = conditional;
+        this.placeholder = placeholder
     }
 
     handleCondition(answer, actions) {
@@ -65,18 +65,16 @@ const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [selectedMajor, setSelectedMajor] = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [middleInitial, setMiddleInitial] = useState("");
-    const [lastName, setLastName] = useState("");
+    const [preferredName, setPreferredName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
 
     const questions = [
     new Question(0, "Tell us your name! (Or preferred name)", "text"),
-    new Question(1, "What is your race?", "dropdown", ethnicity["ethnicity"],),
+    new Question(1, "What is your race?", "dropdown", ethnicity["ethnicity"], "Select Race"),
     new Question(2, "How would you describe your student journey?", "checkbox", ["New Student", "Transfer student", "Returning student"]),
-    new Question(3, "What’s your area of study?", "dropdown", majorList["major"]),
-    new Question(4, "What year are you in your studies?", "checkbox", ["First-year (Freshman)", "Second-year (Sophomore)", "Third-year (Junior)", "Fourth-year (Senior+)", "Graduate/Professional"]),
+    new Question(3, "What’s your area of study?", "dropdown", majorList["major"], "Select College"),
+    new Question(4, "What year are you in your studies?", "checkbox", ["Freshman", "Sophomore", "Junior", "Senior", "Graduate"]),
     new Question(5, "Expected graduation date?","graduationDate",["Spring", "Fall"]),
     new Question(6, "What kinds of campus events interest you the most?", "checkbox", ["Workshops to boost your skills", "Fun and social meet-ups", "Sports and fitness activities", "Community service/volunteering"]),
     new Question(7, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
@@ -88,21 +86,29 @@ const ProfileCreation = () => {
 
     const completeProfileCreation = () => {
         setIsCompleted(true);
-        console.log(answers);
+        // console.log(answers);
+        // console.log(answers["0"]);
+        // console.log(answers["1"]);
+        // console.log(answers["2"] === "Returning student" ? "reentry student" : answers["2"].toLowerCase());
+        // console.log(answers["3"]);
+        // console.log(answers["4"] === "Graduate" ? "graduate student" : answers["4"].toLowerCase());
+        // console.log(answers["5"]["semester"] + " " + answers["5"]["year"]);
+        // console.log(answers["6"]);
+        // console.log(answers["7"]);
         sendProfileDataToServer();
     };
 
     const sendProfileDataToServer = async () => {
         try {
             const specificAnswers = {
-                question0: answers["0"],
-                question1: answers["1"].toLowerCase(),
-                question2: answers["2"],
-                question3: answers["3"].toLowerCase(),
-                question4: answers["4"],
-                question5: answers["5"], // This will now contain { semester: "Spring/Fall", year: "2024" }
-                question6: answers["6"] || [],
-                question7: answers["7"] || [],
+                question0: answers["0"],                                                                            // preferred name
+                question1: answers["1"],                                                                            // race
+                question2: answers["2"] === "Returning student" ? "reentry student" : answers["2"].toLowerCase(),   // type of student (eg. new student, transfer)
+                question3: answers["3"],                                                                            // college
+                question4: answers["4"] === "Graduate" ? "graduate student" : answers["4"].toLowerCase(),            // what year are you? (eg. freshman, sophomore)
+                question5: answers["5"]["semester"] + " " + answers["5"]["year"],                                   // This will now contain { semester: "Spring/Fall", year: "2024" }
+                question6: answers["6"],                                                                            // what events
+                question7: answers["7"],                                                                            // other types of student
             };
             const token = await AsyncStorage.getItem('token');
             const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
@@ -130,22 +136,9 @@ const ProfileCreation = () => {
                     <View>
                         <TextInput
                             style={styles.input}
-                            placeholder="First Name"
-                            value={firstName}
-                            onChangeText={(text) => setFirstName(text)}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Middle Initial (Optional)"
-                            value={middleInitial}
-                            onChangeText={(text) => setMiddleInitial(text)}
-                            maxLength={1}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Last Name"
-                            value={lastName}
-                            onChangeText={(text) => setLastName(text)}
+                            placeholder="Preferred Name"
+                            value={preferredName}
+                            onChangeText={(text) => setPreferredName(text)}
                         />
                     </View>
                 );
@@ -188,19 +181,19 @@ const ProfileCreation = () => {
                 return (
                     <View>
                         <ModalSelector
-                            data={question.options}
-                            initValue="Select your major"
+                            data = {question.options}
+                            initValue = {question.placeholder}
                             onChange={(option) => {
                                 setSelectedMajor(option.label);
-                                profileCreationManager.handleAnswer(question.id, option.label, currentQuestion);
+                                profileCreationManager.handleAnswer(question.id, option.key, currentQuestion);
                             }}
                             style={styles.pickerContainer}
                             initValueTextStyle={styles.pickerText}
                             selectTextStyle={styles.pickerText}
                         />
-                        {selectedMajor && (
+                        {/*selectedMajor && (
                             <Text style={styles.selectedDropdownText}>Selected: {selectedMajor}</Text>
-                        )}
+                        )*/}
                     </View>
                 );
             case "multiDropdown":
@@ -267,11 +260,11 @@ const ProfileCreation = () => {
 
     const handleNextPress = () => {
         if (currentQuestion === 0) {
-            if (firstName.trim() === "" || lastName.trim() === "") {
-                Alert.alert("Error", "Please fill in both First and Last names.");
+            if (preferredName.trim() === "") {
+                Alert.alert("Error", "Please fill in your name.");
                 return;
             }
-            profileCreationManager.handleAnswer(0, { firstName, middleInitial, lastName }, currentQuestion);
+            profileCreationManager.handleAnswer(0, preferredName, currentQuestion);
         }
     
         if (currentQuestion === 5) {

@@ -1,12 +1,11 @@
 {
     "major" :[
-        {"key": "Academic College of Engineering & Computer Science", "label": "Engineering and Computer Science"},
-        {"key": "Academic Colege of Arts & Letters", "label": "Arts & Letter"},
-        {"key": "Academic College of Business", "label": "Business"},
-        {"key": "Academic College of Education", "label": "Education"},
-        {"key": "Academic Colege of Health & Human Services", "label": "Health Science"},
-        {"key":"Academic Colege of Natural Sciences & Mathematics", "label": "Natural Sciences & Mathematics"},
-        {"key": "Academic Colege of Social Sciences & Interdisciplinary Studies", "label": "Social Sciences"}
-    
+        {"key": "college of engineering & computer science", "label": "Engineering & Computer Science"},
+        {"key": "colege of arts & letters", "label": "Arts & Letters"},
+        {"key": "college of business", "label": "Business"},
+        {"key": "college of education", "label": "Education"},
+        {"key": "college of health & human services", "label": "Health & Human Services"},
+        {"key":"college of natural sciences & mathematics", "label": "Natural Science & Mathematics"},
+        {"key": "college of social sciences & interdisciplinary studies", "label": "Social Sciences & Interdisciplinary Studies"}
     ]
 }

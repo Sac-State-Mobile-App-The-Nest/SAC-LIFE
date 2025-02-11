@@ -1,12 +1,11 @@
 {
 "ethnicity":[
-        {"key": "American Native", "label": "American Indian/Alaska Native"},
-        {"key": "Asian", "label": "Asian"},
-        {"key": "Black/African American", "label": "Black or African American"},
-        {"key": "Caucasian", "label": "Caucasian"},
-        {"key": "Latino", "label": "Hispanic/Latino"},
-        {"key": "Pacific Islander", "label": "Native Hawaiian or Other Pacific Islander" },
-        {"key": "Middle Eastern","label": "Middle Eastern" },
-        {"key": "Other", "label": "Other"}
+        {"key": "white", "label": "White or Caucasian"},
+        {"key": "african american student","label": "Black or African American"},
+        {"key": "asian american and pacific islander student","label": "Asian or Pacific Islander"},
+        {"key": "latino student","label": "Hispanic or Latino"},
+        {"key": "native american student","label": "Native American or Alaska Native"},
+        {"key": "Other", "label": "Other"},
+        {"key": "None", "label": "I prefer not to answer"}
     ]
 }
