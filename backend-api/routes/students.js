@@ -65,6 +65,7 @@ module.exports = function(poolPromise) {
   });
 
   //Posting to test_student_tags  and test_students table
+
   router.post('/profile-answers',authenticateToken, async (req, res) => {
     // gets the answers and student id of the user
     const { specificAnswers } = req.body;
@@ -115,84 +116,84 @@ module.exports = function(poolPromise) {
 
   });
 
-  // DELETE a student by studentId
-  router.delete('/:studentId', async (req, res) => {
-    const { studentId } = req.params;
-    const { password } = req.body; // Get the password from the request body
-    const token = req.headers.authorization?.split(' ')[1]; // Extract JWT token
+  // // DELETE a student by studentId
+  // router.delete('/:studentId', async (req, res) => {
+  //   const { studentId } = req.params;
+  //   const { password } = req.body; // Get the password from the request body
+  //   const token = req.headers.authorization?.split(' ')[1]; // Extract JWT token
   
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication token is missing' });
-    }
+  //   if (!token) {
+  //     return res.status(401).json({ message: 'Authentication token is missing' });
+  //   }
   
-    let transaction; // Declare transaction variable here
+  //   let transaction; // Declare transaction variable here
   
-    try {
-      // Verify the JWT token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
+  //   try {
+  //     // Verify the JWT token
+  //     const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
   
-      // Fetch the admin's hashed password from the database
-      const pool = await poolPromise;
-      const result = await pool.request()
-        .input('username', sql.VarChar, decoded.username)
-        .query('SELECT password_hash FROM admin_login WHERE username = @username');
+  //     // Fetch the admin's hashed password from the database
+  //     const pool = await poolPromise;
+  //     const result = await pool.request()
+  //       .input('username', sql.VarChar, decoded.username)
+  //       .query('SELECT password_hash FROM admin_login WHERE username = @username');
   
-      if (result.recordset.length === 0) {
-        return res.status(401).json({ message: 'Admin not found' });
-      }
+  //     if (result.recordset.length === 0) {
+  //       return res.status(401).json({ message: 'Admin not found' });
+  //     }
   
-      const admin = result.recordset[0];
+  //     const admin = result.recordset[0];
   
-      // Compare the provided password with the stored hashed password
-      const isMatch = await bcrypt.compare(password, admin.password_hash);
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid password' });
-      }
+  //     // Compare the provided password with the stored hashed password
+  //     const isMatch = await bcrypt.compare(password, admin.password_hash);
+  //     if (!isMatch) {
+  //       return res.status(401).json({ message: 'Invalid password' });
+  //     }
   
-      // Initialize and begin transaction
-      transaction = pool.transaction();
-      await transaction.begin();
-      console.log("Transaction started");
+  //     // Initialize and begin transaction
+  //     transaction = pool.transaction();
+  //     await transaction.begin();
+  //     console.log("Transaction started");
   
-      await transaction.request()
-        .input('studentId', sql.Int, studentId)
-        .query('DELETE FROM login_info WHERE std_id = @studentId');
-      console.log("Deleted from login_info");
+  //     await transaction.request()
+  //       .input('studentId', sql.Int, studentId)
+  //       .query('DELETE FROM login_info WHERE std_id = @studentId');
+  //     console.log("Deleted from login_info");
   
-      await transaction.request()
-        .input('studentId', sql.Int, studentId)
-        .query('DELETE FROM test_student_tags WHERE std_id = @studentId');
-      console.log("Deleted from test_student_tags");
+  //     await transaction.request()
+  //       .input('studentId', sql.Int, studentId)
+  //       .query('DELETE FROM test_student_tags WHERE std_id = @studentId');
+  //     console.log("Deleted from test_student_tags");
   
-      const resultDelete = await transaction.request()
-        .input('studentId', sql.Int, studentId)
-        .query('DELETE FROM test_students WHERE std_id = @studentId');
-      console.log("Deleted from test_students");
+  //     const resultDelete = await transaction.request()
+  //       .input('studentId', sql.Int, studentId)
+  //       .query('DELETE FROM test_students WHERE std_id = @studentId');
+  //     console.log("Deleted from test_students");
   
-      await transaction.commit();
-      console.log("Transaction committed");
+  //     await transaction.commit();
+  //     console.log("Transaction committed");
   
-      if (resultDelete.rowsAffected[0] === 0) {
-        return res.status(404).json({ message: 'Student not found' });
-      }
+  //     if (resultDelete.rowsAffected[0] === 0) {
+  //       return res.status(404).json({ message: 'Student not found' });
+  //     }
   
-      res.json({ message: 'Student and related records deleted successfully' });
-    } catch (error) {
-      console.error('Error during deletion:', error.message);
+  //     res.json({ message: 'Student and related records deleted successfully' });
+  //   } catch (error) {
+  //     console.error('Error during deletion:', error.message);
   
-      // Rollback the transaction if initialized
-      if (transaction) {
-        try {
-          await transaction.rollback();
-          console.log("Transaction rolled back due to error");
-        } catch (rollbackError) {
-          console.error('Error during transaction rollback:', rollbackError.message);
-        }
-      }
+  //     // Rollback the transaction if initialized
+  //     if (transaction) {
+  //       try {
+  //         await transaction.rollback();
+  //         console.log("Transaction rolled back due to error");
+  //       } catch (rollbackError) {
+  //         console.error('Error during transaction rollback:', rollbackError.message);
+  //       }
+  //     }
   
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  });
+  //     res.status(500).json({ message: 'Server error', error: error.message });
+  //   }
+  // });
   
 return router;
 };

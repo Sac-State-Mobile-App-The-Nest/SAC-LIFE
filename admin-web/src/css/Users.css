@@ -9,22 +9,22 @@
     }
 }
 
-.users-table tr {
+.students-table tr {
     opacity: 0; /* Start hidden */
     animation: fadeIn 0.5s ease forwards; /* Fade in each row */
 }
 
-.users-table tr:nth-child(even) {
+.students-table tr:nth-child(even) {
     animation-delay: 0.1s; /* Staggered delay for even rows */
 }
 
-.users-table tr:nth-child(odd) {
+.students-table tr:nth-child(odd) {
     animation-delay: 0.2s; /* Staggered delay for odd rows */
 }
 
 /* Other styles */
 
-.users-container {
+.students-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -38,7 +38,7 @@
     overflow: hidden;
 }
 
-.users-container h2 {
+.students-container h2 {
     font-family: 'Roboto', sans-serif;
     font-weight: 700;
     color: #2e5339; /* Dark green aligned with Sac State theme */
@@ -47,7 +47,7 @@
     text-align: center;
 }
 
-.users-table {
+.students-table {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
@@ -55,23 +55,23 @@
     overflow: hidden;
 }
 
-.users-table th, .users-table td {
+.students-table th, .users-table td {
     padding: 12px;
     text-align: left;
     color: #3b4f3d; /* Muted Sac State green */
     border-bottom: 1px solid #e5e5e5;
 }
 
-.users-table th {
+.students-table th {
     background-color: #faf9e6; /* Soft, muted pale gold */
     font-weight: bold;
 }
 
-.users-table tr:hover {
+.students-table tr:hover {
     background-color: #d3e0d5; /* Faded Sac State green on row hover */
 }
 
-.users-buttons {
+.students-buttons {
     display: flex;
     gap: 10px;
 }
@@ -181,4 +181,29 @@ button:last-of-type:hover {
 
 .password-modal-actions button:last-child:hover {
     background-color: #aaa;
+}
+
+.edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.edit-modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+}
+
+.edit-modal-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
 }

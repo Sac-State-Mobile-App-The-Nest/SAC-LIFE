@@ -21,6 +21,7 @@ function LogIn() {
         const data = await response.json();
         // Save the JWT token (e.g., in localStorage)
         localStorage.setItem('token', data.token);
+        console.log("🔹 Token saved in localStorage:", localStorage.getItem("token"));
         // Redirect to the main content page for authenticated admins
         window.location.href = '/';
       } else {

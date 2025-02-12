@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const bcrypt = require('bcrypt');
 const sql = require('mssql');
 const config = require('../config'); // Database configuration
@@ -20,7 +21,7 @@ const createAdminUser = async (username, plainPassword) => {
         const hashedPassword = await bcrypt.hash(plainPassword, 10); // Hash password
         const pool = await poolPromise;
         await pool.request().query(`
-            INSERT INTO admin_login (username, password_hash) 
+            INSERT INTO admin_login (username, password) 
             VALUES ('${username}', '${hashedPassword}')
         `);
         console.log('Admin user created successfully!');
@@ -30,4 +31,4 @@ const createAdminUser = async (username, plainPassword) => {
 };
 
 // Call the function with desired credentials
-createAdminUser('admin', 'admin123'); // Replace with your admin credentials
+createAdminUser('admin3', 'admin12345'); // Replace with your admin credentials
