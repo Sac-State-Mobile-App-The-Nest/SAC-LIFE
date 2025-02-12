@@ -64,44 +64,46 @@ module.exports = function(poolPromise) {
     }
   });
 
-  // Posting to test student tags table
-  router.post('/profile-answers',authenticateToken, async (req, res) => {
-    const { specificAnswers } = req.body;
-    // replace with req.studentId
-    const studentId = req.user.std_id;
+  //Posting to test_student_tags  and test_students table
 
-    const { question1, question2, question3 } = specificAnswers;
+  router.post('/profile-answers',authenticateToken, async (req, res) => {
+    // gets the answers and student id of the user
+    const { specificAnswers } = req.body;
+    const studentId = req.user.std_id;
+    // question 0 and 5 are not tags. it will be used for test_students | preferred_name, expected_grad
+    // question 6 and 7 (inprogress)
+    const { question0, question1, question2, question3, question4, question5, question6, question7} = specificAnswers;
+    const allTags = [question1, question2, question3, question4, ...question6, ...question7]
 
     try {
       const pool = await poolPromise;
+      const request = pool.request();
 
-      tags = await pool.request()
-        .input('tagName1', sql.VarChar, question1)
-        .input('tagName2', sql.VarChar, question2)
-        .input('tagName3', sql.VarChar, question3)
-        .query('SELECT tag_id, tag_name FROM test_tags WHERE tag_name IN (@tagName1, @tagName2, @tagName3)');
+      if(allTags.length > 0){
 
-      const tagMap = tags.recordset.reduce((acc, tag) => {
-        acc[tag.tag_name] = tag.tag_id;
-        return acc;
-      }, {});
-
-      // Insert users
+        const tagPlaceholders = allTags.map((_, i) => `@tag${i}`).join(',');
+        
+        allTags.forEach((tag, i) => request.input(`tag${i}`, sql.VarChar, tag));
+        
+        const tagsQuery = `SELECT tag_id, tag_name FROM test_tags WHERE tag_name IN (${tagPlaceholders})`;
+        const tags = await request.query(tagsQuery);
+        
+        const tagIds = tags.recordset.map(tag => tag.tag_id);
+        
+        if (tagIds.length > 0) {
+          const values = tagIds.map(tagId => `(${studentId}, ${tagId})`).join(',');
+          await pool.request().query(`INSERT INTO test_student_tags (std_id, tag_id) VALUES ${values}`);
+        }
+      }
+        
+      // question0 & question5 (test_students | preferred_name, expected_grad)
       await pool.request()
+        .input('preferred_name', sql.VarChar, question0)
+        .input('expected_grad', sql.VarChar, question5)
         .input('std_id', sql.Int, studentId)
-        .input('tagId1', sql.Int, tagMap[question1])
-        .query('INSERT INTO test_student_tags (std_id, tag_id) VALUES (@std_id, @tagId1)');
+        .query('UPDATE test_students SET preferred_name = @preferred_name, expected_grad = @expected_grad WHERE std_id = @std_id');
 
-      await pool.request()
-        .input('std_id', sql.Int, studentId)
-        .input('tagId2', sql.Int, tagMap[question2])
-        .query('INSERT INTO test_student_tags (std_id, tag_id) VALUES (@std_id, @tagId2)');
-
-      await pool.request()
-        .input('std_id', sql.Int, studentId)
-        .input('tagId3', sql.Int, tagMap[question3])
-        .query('INSERT INTO test_student_tags (std_id, tag_id) VALUES (@std_id, @tagId3)');
-      
+      // (login_info | first_login)
       await pool.request()
         .input('std_id', sql.Int, studentId)
         .query('UPDATE login_info SET first_login = 1 WHERE std_id = @std_id');

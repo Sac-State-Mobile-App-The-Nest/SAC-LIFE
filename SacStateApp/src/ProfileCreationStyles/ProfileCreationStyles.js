@@ -190,6 +190,39 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
     },
+    selectedOptionButton: {
+        backgroundColor: '#4CAF50', 
+        borderColor: '#4CAF50', // 
+    },
+    selectedOptionText: {
+        color: '#FFFFFF', 
+    },
+    selectedDropdownText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#4CAF50', 
+        fontWeight: 'bold',
+    },
+    input: {
+        height: 40,
+        borderColor: 'gray',
+        borderWidth: 1,
+        marginBottom: 10,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+    },
+    pickerContainer: {
+        marginBottom: 10,
+    },
+    pickerText: {
+        fontSize: 16,
+        color: 'black',
+    },
+    selectedDropdownText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: 'green',
+    },
 });
 
 export default styles;

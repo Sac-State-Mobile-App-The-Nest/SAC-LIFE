@@ -1,0 +1,11 @@
+{
+"ethnicity":[
+        {"key": "white", "label": "White or Caucasian"},
+        {"key": "african american student","label": "Black or African American"},
+        {"key": "asian american and pacific islander student","label": "Asian or Pacific Islander"},
+        {"key": "latino student","label": "Hispanic or Latino"},
+        {"key": "native american student","label": "Native American or Alaska Native"},
+        {"key": "Other", "label": "Other"},
+        {"key": "None", "label": "I prefer not to answer"}
+    ]
+}
