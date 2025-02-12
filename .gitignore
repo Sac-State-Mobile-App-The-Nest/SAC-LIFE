@@ -9,3 +9,6 @@ node_modules/
 
 # Ignore all files in the temp directory
 temp/
+
+# Ignore all .vs/ files
+.vs/

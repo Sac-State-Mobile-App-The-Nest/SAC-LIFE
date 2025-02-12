@@ -7,7 +7,7 @@ const tileSize = Math.floor((screenWidth - tileMargin * 14) / 7); // Dynamically
 
 const styles = StyleSheet.create({
   calendarContainer: {
-    marginTop: 10,
+    marginTop: 1,
     backgroundColor: colors.white,
     borderRadius: 15,
     padding: 15,
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sacGreen, // Deep Sac State green as a fallback
     borderBottomLeftRadius: 50, // Increased curve for a smoother edge
     borderBottomRightRadius: 50, // Increased curve for a smoother edge
-    padding: 25,
+    padding: 15,
     alignItems: 'center',
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   currentDayText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.mutedGold,
     marginTop: 10,
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   expandButtonTextWeekly: {
     color: colors.sacGreen,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 1,
     textAlign: 'center',
   },
   fullCalendarContainer: {
@@ -191,19 +191,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 }, // No offset
     shadowOpacity: 0, // No opacity
     shadowRadius: 0, // No blur
-  },
-  topRightIcon: {
-    position: 'absolute', // Places the icon absolutely on the screen
-    top: 10, // Distance from the top of the container
-    right: 10, // Distance from the right of the container
-    zIndex: 10, // Ensures it appears above other elements
-  },
-  centeredYearText: {
-    fontSize: 28, // Larger font size for the year
-    fontWeight: 'bold',
-    color: colors.mutedGold,
-    textAlign: 'center',
-    marginTop: 5, // Add a small gap above the year
   },
   weeklyViewContainer: {
     flexDirection: 'row',
