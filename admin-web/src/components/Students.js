@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../css/Users.css';
 
-function Users() {
-  const [users, setUsers] = useState([]);
+function Students() {
+  const [students, setStudents] = useState([]);
   const [role, setRole] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
@@ -11,7 +11,7 @@ function Users() {
   const [editForm, setEditForm] = useState({ f_name: '', m_name: '', l_name: '', email: '' });
 
   useEffect(() => {
-    fetchUsers();
+    fetchStudents();
     getAdminRole();
   }, []);
 
@@ -21,8 +21,8 @@ function Users() {
     window.location.href = "/login"; // Redirect to login page
   };
 
-  // Fetch users from API
-  const fetchUsers = async () => {
+  // Fetch students from API
+  const fetchStudents = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -41,13 +41,13 @@ function Users() {
       }
 
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error('Failed to fetch students');
       }
 
       const data = await response.json();
-      setUsers(data);
+      setStudents(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching students:', error);
     }
   };
 
@@ -85,7 +85,7 @@ function Users() {
       });
 
       if (response.ok) {
-        setUsers(users.filter((user) => user.std_id !== deleteUserId));
+        setStudents(students.filter((user) => user.std_id !== deleteUserId));
         alert('Student deleted successfully');
       } else {
         const result = await response.json();
@@ -146,7 +146,7 @@ function Users() {
       }
 
       alert("Student updated successfully!");
-      await fetchUsers();
+      await fetchStudents();
       setEditUser(null); // Close modal
     } catch (error) {
       console.error('Error updating student:', error);
@@ -155,9 +155,9 @@ function Users() {
   };
 
   return (
-    <div className="users-container">
-      <h2>Users</h2>
-      <table className="users-table">
+    <div className="students-container">
+      <h2>Students</h2>
+      <table className="students-table">
         <thead>
           <tr>
             <th>First Name</th>
@@ -168,14 +168,14 @@ function Users() {
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
+          {students.map((user) => (
             <tr key={user.std_id}>
               <td>{user.f_name}</td>
               <td>{user.m_name}</td>
               <td>{user.l_name}</td>
               <td>{user.email}</td>
               {role !== 'read-only' && (
-                <td className="users-buttons">
+                <td className="students-buttons">
                   {role !== 'support-admin' && (
                     <button onClick={() => openEditModal(user)}>Edit</button>
                   )}
@@ -238,4 +238,4 @@ function Users() {
   );
 }
 
-export default Users;
+export default Students;

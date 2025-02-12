@@ -40,7 +40,7 @@ function AdminRoles() {
       const data = await response.json();
       setAdmins(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching admins:', error);
     }
   }, []);
 
@@ -122,9 +122,9 @@ const handleSaveEdit = async () => {
 };
 
 return (
-  <div className="users-container">
+  <div className="students-container">
     <h2>Admin List</h2>
-    <table className="users-table">
+    <table className="students-table">
       <thead>
         <tr>
           <th>Username</th>

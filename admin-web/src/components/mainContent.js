@@ -8,8 +8,8 @@ function MainContent() {
     <div className="main-content">
       <h1>Admin Dashboard of the Sac State Mobile App</h1>
       <div className="dashboard-cards">
-        <Link to="/Users" style={{ textDecoration: 'none' }}>
-          <Card title="Users" content="Manage and view user data" />
+        <Link to="/Students" style={{ textDecoration: 'none' }}>
+          <Card title="Students" content="Manage and view student data" />
         </Link>
         <Link to="/Analytics" style={{ textDecoration: 'none' }}>
           <Card title="Analytics" content="Monitor analytics and performance" />
