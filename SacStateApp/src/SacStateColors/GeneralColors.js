@@ -1,0 +1,32 @@
+// LIST OF ALL COLORS USED
+export const black = '#000';
+export const bubbles = '#E9F4EC';
+export const brightRed = '#ff4d4d';
+export const darkGray = '#333';
+export const darkOverlay = 'rgba(0, 0, 0, 0.5)';
+export const darkerOverlay = 'rgba(0, 0, 0, 0.6)';
+export const fadedGold = 'rgba(251, 248, 239, 0.8)';
+export const fadedSacGold = '#FBF8EF';
+export const fadedWhiteSmoke = '#F1F1F1';
+export const gray = '#6C757D';
+export const goldenWhite = '#F5F1DF';
+export const mutedDarkGreen = 'rgba(43, 58, 50, 0.8)';
+export const mutedGold = '#E4CFA3';
+export const mutedSacGreen = 'rgba(4, 57, 39, 0.8)';
+export const mutedSacStateGreen = 'rgba(4, 57, 39, 0.9)';
+export const offWhite = '#F8F9FA';
+export const offsetWhite = '#F8F8F8';
+export const opaqueWhite = 'rgba(255, 255, 255, 0.9)';
+export const sacGreen = '#043927';
+export const smokeGray = '#555';
+export const smokeWhite = '#E0E0E0';
+export const softCream = '#FDF6E4';
+export const softOverlay = 'rgba(0, 0, 0, 0.4)';
+export const subtleFadedGold = 'rgba(251, 248, 239, 0.5)';
+export const subtleGreen = '#E4F1E7';
+export const white = "#fff";
+export const whiteGold = '#F7F2E7';
+export const whiteGreen = '#E8F4EA';
+export const whiteSmoke = '#F5F5F5';
+export const whiteSmokeLight = 'F4F4F4';
+

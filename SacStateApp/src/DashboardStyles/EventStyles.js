@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import * as colors from '../SacStateColors/GeneralColors';
 
 const styles = StyleSheet.create({
   eventTab: {
@@ -6,10 +7,10 @@ const styles = StyleSheet.create({
     top: 100,
     left: 20,
     right: 20,
-    backgroundColor: '#FFFFFF', // White for clean content
+    backgroundColor: colors.white,
     padding: 20,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -18,17 +19,17 @@ const styles = StyleSheet.create({
   eventDate: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#043927', // Deep Sac State green
+    color: colors.sacGreen,
     marginBottom: 10,
   },
   eventTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#043927',
+    color: colors.sacGreen,
   },
   eventDescription: {
     fontSize: 16,
-    color: '#6C757D', // Subtle muted tone for descriptions
+    color: colors.gray,
     marginTop: 10,
   },
 });
