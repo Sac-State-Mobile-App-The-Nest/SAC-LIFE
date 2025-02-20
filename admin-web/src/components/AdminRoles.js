@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../css/Users.css';
+import { api, logoutAdmin } from '../api/api';
 
 function AdminRoles() {
   const [admins, setAdmins] = useState([]);
@@ -8,7 +10,9 @@ function AdminRoles() {
   const [password, setPassword] = useState('');
   const [deleteAdmin, setDeleteAdmin] = useState(null);
   const [editAdmin, setEditAdmin] = useState(null);
+  const [prevPAge, setprevPage] = useState(null);
   const [editForm, setEditForm] = useState({ username: '', password: '', role: '' });
+  const navigate = useNavigate();
 
   // Fetches the list of admins from the backend and sets state
   const fetchAdmins = useCallback(async () => {
@@ -16,54 +20,42 @@ function AdminRoles() {
       const token = localStorage.getItem('token');
       if (!token) {
         alert("You must be logged in.");
+        logoutAdmin(navigate);  
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/adminRoutes', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await api.get('/adminRoutes', {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      if (response.status === 401) {
+      
+      console.log("API Response:", response.data);
+      setAdmins(response.data);
+      setRole(response.data.role || ''); // Set role from API response
+      
+    } catch (error) {
+      if (error.response?.status === 401) {
         alert("Session expired. Please log in again.");
-        logout();
+        logoutAdmin(navigate);
         return;
       }
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch admins');
-      }
-
-      const data = await response.json();
-      setAdmins(data);
-    } catch (error) {
       console.error('Error fetching admins:', error);
     }
-  }, []);
+  }, [[navigate]]);
 
   // Calls fetchAdmins on component mount
   useEffect(() => {
     fetchAdmins();
   }, [fetchAdmins]);
 
-  // Logs out the user by clearing local storage and redirecting
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    setRole(null);
-    alert("Session expired. Please log in again.");
-    window.location.href = "/login";
-  };
-
+  
   // Opens the delete confirmation modal for a selected admin
   const openPasswordModal = (username) => {
     if (role !== 'super-admin') {
       alert("Invalid role: Only super-admins can delete admins.");
+      logoutAdmin();
       return;
     }
+
     if (window.confirm('Are you sure you want to delete this admin?')) {
       setDeleteAdmin(username);
       setShowPasswordModal(true);
@@ -92,19 +84,20 @@ const handleSaveEdit = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       alert("You must be logged in.");
+      logoutAdmin();
       return;
     }
 
     const response = await fetch(`http://localhost:5000/api/adminRoutes/${editAdmin.username}`, {
-      method: 'PUT',
+      method: 'PUT', // Explicitly define method
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        newUsername: editForm.username, 
+        newUsername: editForm.username,
         role: editForm.role
-      }),
+      })
     });
 
     if (!response.ok) {
@@ -115,7 +108,15 @@ const handleSaveEdit = async () => {
     alert("Admin updated successfully!");
     await fetchAdmins();
     setEditAdmin(null); 
+
   } catch (error) {
+    if (error.response?.status === 401) {
+      alert("Session expired. Please log in again.");
+      logoutAdmin();
+      return;
+    }
+
+
     console.error('Error updating admin:', error);
     alert(`Error: ${error.message}`);
   }

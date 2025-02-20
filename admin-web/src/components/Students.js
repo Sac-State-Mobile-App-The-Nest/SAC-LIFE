@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../css/Users.css';
+import { useNavigate } from 'react-router-dom';
+import { logoutAdmin } from '../api/api';
 
 function Students() {
   const [students, setStudents] = useState([]);
@@ -9,17 +11,13 @@ function Students() {
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ f_name: '', m_name: '', l_name: '', email: '' });
+    const navigate = useNavigate();
 
   useEffect(() => {
     fetchStudents();
     getAdminRole();
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('token'); // Remove token
-    alert("You have been logged out.");
-    window.location.href = "/login"; // Redirect to login page
-  };
 
   // Fetch students from API
   const fetchStudents = async () => {
@@ -27,6 +25,7 @@ function Students() {
       const token = localStorage.getItem('token');
       if (!token) {
         alert("You must be logged in.");
+        logoutAdmin(navigate);
         return;
       }
 
@@ -36,7 +35,7 @@ function Students() {
 
       if (response.status === 401) {
         alert("Session expired. Please log in again.");
-        logout();
+        logoutAdmin(navigate);
         return;
       }
 
@@ -61,7 +60,7 @@ function Students() {
         setRole(decodedPayload.role);
       } catch (error) {
         console.error("Error decoding token:", error);
-        setRole(null);
+        logoutAdmin(navigate);
       }
     }
   };
@@ -69,9 +68,10 @@ function Students() {
   // Handle user deletion
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('admintoken');
       if (!token) {
         alert("You must be logged in to delete a student.");
+        logoutAdmin(navigate);
         return;
       }
 
@@ -83,6 +83,13 @@ function Students() {
         },
         body: JSON.stringify({ password }),
       });
+
+      if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        logoutAdmin(navigate);  
+        return;
+      }
+  
 
       if (response.ok) {
         setStudents(students.filter((user) => user.std_id !== deleteUserId));
@@ -105,6 +112,7 @@ function Students() {
   const openPasswordModal = (id) => {
     if (role !== 'super-admin') {
       alert("Invalid role: Only super-admins can delete students.");
+      logoutAdmin(navigate);
       return;
     }
     setDeleteUserId(id);
@@ -128,6 +136,7 @@ function Students() {
       const token = localStorage.getItem('token');
       if (!token) {
         alert("You must be logged in.");
+        logoutAdmin(navigate);
         return;
       }
 
@@ -140,6 +149,12 @@ function Students() {
         body: JSON.stringify(editForm),
       });
 
+      if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        logoutAdmin();  
+        return;
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update student');
@@ -147,7 +162,7 @@ function Students() {
 
       alert("Student updated successfully!");
       await fetchStudents();
-      setEditUser(null); // Close modal
+      setEditUser(null); 
     } catch (error) {
       console.error('Error updating student:', error);
       alert(`Error: ${error.message}`);
