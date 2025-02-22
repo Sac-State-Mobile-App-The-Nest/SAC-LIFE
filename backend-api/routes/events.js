@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config'); //server config file
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+// const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = require('node-fetch');
 const { parseStringPromise } = require('xml2js');
 
 module.exports = function(poolPromise) {
 
-    router.get('/events', async (req, res) => {
+    router.post('/events', async (req, res) => {
         try {
             // Fetch the RSS feed
             const rssFeedUrl = 'https://www.trumba.com/calendars/sacramento-state-events.rss';
@@ -20,27 +21,72 @@ module.exports = function(poolPromise) {
 
             const events = items.map(item => {
                 const rawDescription = item.description[0];
-                let cleanDescription = rawDescription.replace(/<\/?[^>]+(>|$)/g, '');
-                cleanDescription = cleanDescription.replace(/&nbsp;|&#8230;|&#8220;|&#8221;/g, ' ')
+                let cleanDescription = rawDescription.replace(/^(.*?<br\/>.*?<br\/>)/g, '');
+                cleanDescription = cleanDescription.replace(/<\/?[^>]+(>|$)/g, '');
+                cleanDescription = cleanDescription.replace(/&nbsp;|&#8230;|&#8220;|&#8221;|&#160;/g, ' ')
+                cleanDescription = cleanDescription.replace(/More.*/g, '')
 
                 const eventTypeMatch = cleanDescription.match(/Event Type:\s*([^\n]+)/);
                 const eventType = eventTypeMatch ? eventTypeMatch[1].trim() : 'Unknown';
                 
+                const parsedDate = new Date(item.pubDate[0]); 
+                const formattedDate = isNaN(parsedDate.getTime()) ? null : parsedDate.toISOString().slice(0, 19).replace('T', ' ');
+
                 return {
                     title: item.title[0],
                     description: cleanDescription.replace(/Event Type:.*/, '').trim(),
                     eventType,
                     link: item.link[0],
-                    date: item.pubDate[0],
+                    date: formattedDate,
                 };
             });
 
-            res.json(events);
+            const pool = await poolPromise;
+
+            for (const event of events) {
+
+                const checkResult = await pool.request()
+                    .input('event_title', sql.NVarChar(255), event.title)
+                    .input('event_date', sql.DateTime, event.date)
+                    .query(`
+                        SELECT COUNT(*) AS count FROM sac_events WHERE event_title = @event_title AND event_date = @event_date
+                    `);
+
+                if (checkResult.recordset[0].count === 0) {
+                    await pool.request()
+                        .input('event_title', sql.NVarChar(255), event.title)
+                        .input('event_description', sql.NVarChar(sql.MAX), event.description)
+                        .input('event_type', sql.NVarChar(255), event.eventType)
+                        .input('event_link', sql.NVarChar(500), event.link)
+                        .input('event_date', sql.DateTime, event.date)
+                        .query(`
+                            INSERT INTO sac_events (event_title, event_description, event_type, event_link, event_date)
+                            VALUES (@event_title, @event_description, @event_type, @event_link, @event_date)
+                        `);
+                } else {
+                    const existingEvent = checkResult.recordset[0];
+                    if (existingEvent.event_date !== event.date) {
+                        await pool.request()
+                            .input('event_id', sql.Int, existingEvent.event_id)
+                            .input('event_date', sql.DateTime, event.date)
+                            .query(`
+                                UPDATE sac_events SET event_date = @event_date WHERE event_id = @event_id
+                            `);
+                    }
+                }
+                
+                
+            }
+
+
+            res.status(200).json({ message: 'Events stored successfully', events});
         } catch (err) {
             console.error('Error fetching events:', err);
             res.status(500).json({ error: 'Failed to fetch events'});
         }
     });
+
+
 
     return router;
 };
