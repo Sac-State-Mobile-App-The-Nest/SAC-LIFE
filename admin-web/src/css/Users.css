@@ -57,7 +57,7 @@
 
 .students-table th, .users-table td {
     padding: 12px;
-    text-align: left;
+    text-align: center;
     color: #3b4f3d; /* Muted Sac State green */
     border-bottom: 1px solid #e5e5e5;
 }
@@ -87,27 +87,49 @@ button {
 }
 
 /* Edit Button Styles */
-button:first-of-type {
+.edit-button {
     background-color: #e2e8d4; /* Soft green-gray for edit */
     color: #2e5339;
     border-color: #c9d4b4; /* Light border for edit button */
 }
 
-button:first-of-type:hover {
+.edit-button:hover {
     background-color: #d5dfc2; /* Slightly darker green-gray on hover */
     border-color: #b8c49e;
 }
 
 /* Delete Button Styles */
-button:last-of-type {
+.delete-button {
     background-color: #e8b4b4; /* Muted soft red for delete */
     color: #5a1e1e; /* Dark red text */
     border-color: #d89a9a; /* Light border for delete button */
 }
-
-button:last-of-type:hover {
+.delete-button:hover {
     background-color: #d89a9a; /* Darker muted red on hover */
     border-color: #c08484;
+}
+.back-button{
+    position: absolute;  /* Fixes button in one place */
+    top: 20px;           /* Moves it down slightly from the top */
+    left: 20px;  
+
+    background-color: #35654d; /* Sac State dark green */
+    color: white;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+.back-button:hover {
+    background-color: #2f5544; /* Darker shade on hover */
+    transform: scale(1.05); /* Slight pop effect */
+}
+.back-button:active {
+    background-color: #274338; /* Even darker when clicked */
+    transform: scale(0.98);
 }
 
 /* Password Modal Styles */

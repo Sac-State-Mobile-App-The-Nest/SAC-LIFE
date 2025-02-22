@@ -10,7 +10,6 @@ function AdminRoles() {
   const [password, setPassword] = useState('');
   const [deleteAdmin, setDeleteAdmin] = useState(null);
   const [editAdmin, setEditAdmin] = useState(null);
-  const [prevPAge, setprevPage] = useState(null);
   const [editForm, setEditForm] = useState({ username: '', password: '', role: '' });
   const navigate = useNavigate();
 
@@ -30,7 +29,13 @@ function AdminRoles() {
       
       console.log("API Response:", response.data);
       setAdmins(response.data);
-      setRole(response.data.role || ''); // Set role from API response
+
+      // If response.data is an array, extract the role from the first item
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      setRole(response.data[0].role);
+    } else {
+      setRole(response.data.role || '');
+    }
       
     } catch (error) {
       if (error.response?.status === 401) {
@@ -45,20 +50,77 @@ function AdminRoles() {
   // Calls fetchAdmins on component mount
   useEffect(() => {
     fetchAdmins();
-  }, [fetchAdmins]);
+    getAdminRole();
+  }, []);
 
+  // Get admin role from token
+  const getAdminRole = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const base64Payload = token.split('.')[1];
+        const decodedPayload = JSON.parse(atob(base64Payload));
+        setRole(decodedPayload.role);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        logoutAdmin(navigate);
+      }
+    }
+  };
   
   // Opens the delete confirmation modal for a selected admin
   const openPasswordModal = (username) => {
     if (role !== 'super-admin') {
       alert("Invalid role: Only super-admins can delete admins.");
-      logoutAdmin();
+      logoutAdmin(navigate);
       return;
     }
 
     if (window.confirm('Are you sure you want to delete this admin?')) {
       setDeleteAdmin(username);
       setShowPasswordModal(true);
+    }
+  };
+
+  // Handles the deletion of an admin
+  const handleDeleteAdmin = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("You must be logged in.");
+        logoutAdmin(navigate);
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/adminRoutes/${deleteAdmin}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        logoutAdmin(navigate);
+        return;
+      }
+
+      if (response.ok) {
+        alert("Admin deleted successfully.");
+        setAdmins(admins.filter(admin => admin.username !== deleteAdmin));
+      } else {
+        const result = await response.json();
+        alert(`Failed to delete admin: ${result.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting admin:', error);
+      alert("An error occurred while deleting the admin.");
+    } finally {
+      setShowPasswordModal(false);
+      setPassword('');
+      setDeleteAdmin(null);
     }
   };
 
@@ -78,6 +140,14 @@ function AdminRoles() {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
+  const goBackPage = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/"); 
+    }
+  };
+
 // Handles saving the edited admin
 const handleSaveEdit = async () => {
   try {
@@ -89,7 +159,7 @@ const handleSaveEdit = async () => {
     }
 
     const response = await fetch(`http://localhost:5000/api/adminRoutes/${editAdmin.username}`, {
-      method: 'PUT', // Explicitly define method
+      method: 'PUT', 
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -124,13 +194,16 @@ const handleSaveEdit = async () => {
 
 return (
   <div className="students-container">
+    {/* Previous Page Button */}   
+    <button className="back-button" onClick={goBackPage}>Go Back</button>
+
     <h2>Admin List</h2>
     <table className="students-table">
       <thead>
         <tr>
           <th>Username</th>
           <th>Role</th>
-          {role === 'super-admin' && <th>Actions</th>}
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -140,9 +213,9 @@ return (
             <td>{admin.role}</td>
             {role !== 'read-only' && (
               <td>
-                <button onClick={() => openEditModal(admin)}>Edit</button>
+                <button className="edit-button" onClick={() => openEditModal(admin)}>Edit</button>
                 {role === 'super-admin' && (
-                  <button onClick={() => alert("Delete functionality not yet implemented")}>Delete</button>
+                  <button className="delete-button" onClick={() => openPasswordModal(admin.username)}>Delete</button>
                 )}
               </td>
             )}
@@ -150,6 +223,23 @@ return (
         ))}
       </tbody>
     </table>
+
+     {/* Delete Confirmation Modal */}
+     {showPasswordModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Confirm Delete</h3>
+            <p>Enter your password to confirm deletion:</p>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button type="button" onClick={handleDeleteAdmin}>Confirm Delete</button>
+            <button type="button" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
 
     {/* Edit Admin Modal */}
     {editAdmin && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import '../css/Users.css';
 import { useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../api/api';
@@ -11,16 +11,11 @@ function Students() {
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ f_name: '', m_name: '', l_name: '', email: '' });
-    const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchStudents();
-    getAdminRole();
-  }, []);
+  const navigate = useNavigate();
 
 
   // Fetch students from API
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -48,7 +43,7 @@ function Students() {
     } catch (error) {
       console.error('Error fetching students:', error);
     }
-  };
+  }, [navigate]);
 
   // Get admin role from token
   const getAdminRole = () => {
@@ -64,6 +59,11 @@ function Students() {
       }
     }
   };
+
+  useEffect(() => {
+    fetchStudents();
+    getAdminRole();
+  }, [fetchStudents, getAdminRole]);
 
   // Handle user deletion
   const handleDelete = async () => {
@@ -178,7 +178,6 @@ function Students() {
             <th>First Name</th>
             <th>Middle Name</th>
             <th>Last Name</th>
-            <th>Email</th>
             {role === 'super-admin' && <th>Actions</th>}
           </tr>
         </thead>
@@ -188,14 +187,13 @@ function Students() {
               <td>{user.f_name}</td>
               <td>{user.m_name}</td>
               <td>{user.l_name}</td>
-              <td>{user.email}</td>
               {role !== 'read-only' && (
-                <td className="students-buttons">
+                <td>
                   {role !== 'support-admin' && (
-                    <button onClick={() => openEditModal(user)}>Edit</button>
+                    <button className="edit-button" onClick={() => openEditModal(user)}>Edit</button>
                   )}
                   {role === 'super-admin' && (
-                    <button onClick={() => openPasswordModal(user.std_id)}>Delete</button>
+                    <button className="delete-button" onClick={() => openPasswordModal(user.std_id)}>Delete</button>
                   )}
                 </td>
               )}
