@@ -84,7 +84,7 @@ module.exports = function (poolPromise) {
   });
 
   // Updates admins table value with a new put request
-  router.put('/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+  router.put('/admin/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { username } = req.params;
     const { newUsername, role } = req.body;
   
@@ -108,23 +108,22 @@ module.exports = function (poolPromise) {
   });
 
   // Updates students table value with a new put request
-  router.put('/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+  router.put('/student/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { studentId } = req.params;
-    const { f_name, m_name, l_name, email } = req.body;
+    const { preferred_name, expected_grad } = req.body;
   
     try {
       const pool = await poolPromise;
       const result = await pool.request()
-        .input('studentId', sql.Int, studentId)
-        .input('f_name', sql.VarChar, f_name)
-        .input('m_name', sql.VarChar, m_name)
-        .input('l_name', sql.VarChar, l_name)
-        .input('email', sql.VarChar, email)
-        .query(
-          `UPDATE test_students 
-           SET f_name = @f_name, m_name = @m_name, l_name = @l_name, email = @email 
-           WHERE std_id = @studentId`
-        );
+      .input('studentId', sql.Int, studentId)
+      .input('preferred_name', sql.VarChar, preferred_name)
+      .input('expected_grad', sql.VarChar, expected_grad)
+      .query(
+        `UPDATE test_students 
+         SET preferred_name = @preferred_name, 
+             expected_grad = @expected_grad 
+         WHERE std_id = @studentId`
+      );
   
       if (result.rowsAffected[0] === 0) {
         return res.status(404).json({ message: 'Student not found' });

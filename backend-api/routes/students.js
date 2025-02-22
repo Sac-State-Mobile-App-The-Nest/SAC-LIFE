@@ -23,6 +23,18 @@ module.exports = function(poolPromise) {
     }
   });
 
+  // Get std_id, preferred_name, abd expected_grad
+  router.get('/preferredInfo', async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT std_id, preferred_name, expected_grad FROM test_students');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
   // Get a specific student by ID
   router.get('/student/:studentId', async (req, res) => {
     const { studentId } = req.params;
@@ -64,8 +76,7 @@ module.exports = function(poolPromise) {
     }
   });
 
-  //Posting to test_student_tags  and test_students table
-
+  // Posting to test_student_tags and test_students table
   router.post('/profile-answers',authenticateToken, async (req, res) => {
     // gets the answers and student id of the user
     const { specificAnswers } = req.body;

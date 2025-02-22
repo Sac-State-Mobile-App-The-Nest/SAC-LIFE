@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '../utils/NavigationUtils';
 import '../css/Users.css';
 import { api, logoutAdmin } from '../api/api';
 
@@ -45,16 +46,9 @@ function AdminRoles() {
       }
       console.error('Error fetching admins:', error);
     }
-  }, [[navigate]]);
+  }, [navigate]);
 
-  // Calls fetchAdmins on component mount
-  useEffect(() => {
-    fetchAdmins();
-    getAdminRole();
-  }, []);
-
-  // Get admin role from token
-  const getAdminRole = () => {
+  const getAdminRole = useCallback(() => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -66,7 +60,13 @@ function AdminRoles() {
         logoutAdmin(navigate);
       }
     }
-  };
+  }, [navigate]);
+
+  // Calls fetchAdmins on component mount
+  useEffect(() => {
+    fetchAdmins();
+    getAdminRole();
+  }, [fetchAdmins, getAdminRole]);
   
   // Opens the delete confirmation modal for a selected admin
   const openPasswordModal = (username) => {
@@ -140,14 +140,6 @@ function AdminRoles() {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
-  const goBackPage = () => {
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate("/"); 
-    }
-  };
-
 // Handles saving the edited admin
 const handleSaveEdit = async () => {
   try {
@@ -194,9 +186,7 @@ const handleSaveEdit = async () => {
 
 return (
   <div className="students-container">
-    {/* Previous Page Button */}   
-    <button className="back-button" onClick={goBackPage}>Go Back</button>
-
+    <BackButton />
     <h2>Admin List</h2>
     <table className="students-table">
       <thead>

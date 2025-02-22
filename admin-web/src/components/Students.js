@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../css/Users.css';
+import BackButton from '../utils/NavigationUtils';
 import { useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../api/api';
 
 function Students() {
   const [students, setStudents] = useState([]);
   const [role, setRole] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [editUser, setEditUser] = useState(null);
-  const [editForm, setEditForm] = useState({ f_name: '', m_name: '', l_name: '', email: '' });
+  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '' });
   const navigate = useNavigate();
 
 
@@ -24,7 +26,7 @@ function Students() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/students', {
+      const response = await fetch('http://localhost:5000/api/students/preferredInfo', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -46,7 +48,7 @@ function Students() {
   }, [navigate]);
 
   // Get admin role from token
-  const getAdminRole = () => {
+  const getAdminRole = useCallback(() => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -58,7 +60,7 @@ function Students() {
         logoutAdmin(navigate);
       }
     }
-  };
+  },[navigate]);
 
   useEffect(() => {
     fetchStudents();
@@ -68,7 +70,7 @@ function Students() {
   // Handle user deletion
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('admintoken');
+      const token = localStorage.getItem('token');
       if (!token) {
         alert("You must be logged in to delete a student.");
         logoutAdmin(navigate);
@@ -119,10 +121,21 @@ function Students() {
     setShowPasswordModal(true);
   };
 
+  // Open the initial confirmation modal (Yes/Cancel)
+  const openConfirmModal = (id) => {
+    if (role !== 'super-admin') {
+      alert("Invalid role: Only super-admins can delete students.");
+      logoutAdmin(navigate);
+      return;
+    }
+    setDeleteUserId(id);
+    setShowConfirmModal(true);
+  };
+
   // Open edit modal with user data
   const openEditModal = (user) => {
     setEditUser(user);
-    setEditForm({ f_name: user.f_name, m_name: user.m_name, l_name: user.l_name, email: user.email });
+    setEditForm({ preferred_name: user.preferred_name, expected_grad: user.expected_grad });
   };
 
   // Handle form input changes
@@ -140,7 +153,7 @@ function Students() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/students/${editUser.std_id}`, {
+      const response = await fetch(`http://localhost:5000/api/adminRoutes/student/${editUser.std_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -171,29 +184,30 @@ function Students() {
 
   return (
     <div className="students-container">
+      <BackButton />
       <h2>Students</h2>
       <table className="students-table">
         <thead>
           <tr>
-            <th>First Name</th>
-            <th>Middle Name</th>
-            <th>Last Name</th>
+            <th>Student ID</th>
+            <th>Preferred Name</th>
+            <th>Expected Graduation</th>
             {role === 'super-admin' && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
           {students.map((user) => (
             <tr key={user.std_id}>
-              <td>{user.f_name}</td>
-              <td>{user.m_name}</td>
-              <td>{user.l_name}</td>
+              <td>{user.std_id}</td>
+              <td>{user.preferred_name}</td>
+              <td>{user.expected_grad}</td>
               {role !== 'read-only' && (
                 <td>
                   {role !== 'support-admin' && (
                     <button className="edit-button" onClick={() => openEditModal(user)}>Edit</button>
                   )}
                   {role === 'super-admin' && (
-                    <button className="delete-button" onClick={() => openPasswordModal(user.std_id)}>Delete</button>
+                    <button className="delete-button" onClick={() => openConfirmModal(user.std_id)}>Delete</button>
                   )}
                 </td>
               )}
@@ -202,7 +216,25 @@ function Students() {
         </tbody>
       </table>
 
-      {/* Delete Confirmation Modal */}
+      {/* Confirmation Modal: Ask if user is sure */}
+      {showConfirmModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this student?</p>
+            <button type="button" onClick={() => {
+              setShowConfirmModal(false);
+              setShowPasswordModal(true); // Proceed to password prompt
+            }}>Yes</button>
+            <button type="button" onClick={() => {
+              setShowConfirmModal(false);
+              setDeleteUserId(null);
+            }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Password Modal: Enter password to confirm deletion */}
       {showPasswordModal && (
         <div className="modal">
           <div className="modal-content">
@@ -226,20 +258,12 @@ function Students() {
             <h3>Edit Student</h3>
             <form>
               <label>
-                First Name:
-                <input name="f_name" value={editForm.f_name} onChange={handleEditChange} />
+                Preferred Name:
+                <input name="preferred_name" value={editForm.m_name} onChange={handleEditChange} />
               </label>
               <label>
-                Middle Name:
-                <input name="m_name" value={editForm.m_name} onChange={handleEditChange} />
-              </label>
-              <label>
-                Last Name:
-                <input name="l_name" value={editForm.l_name} onChange={handleEditChange} />
-              </label>
-              <label>
-                Email:
-                <input name="email" value={editForm.email} onChange={handleEditChange} />
+                Expected Graduation:
+                <input name="expected_grad" value={editForm.l_name} onChange={handleEditChange} />
               </label>
               <button type="button" onClick={handleSaveEdit}>Save</button>
               <button type="button" onClick={() => setEditUser(null)}>Cancel</button>

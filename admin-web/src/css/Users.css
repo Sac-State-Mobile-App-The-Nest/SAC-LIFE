@@ -110,8 +110,8 @@ button {
 }
 .back-button{
     position: absolute;  /* Fixes button in one place */
-    top: 20px;           /* Moves it down slightly from the top */
-    left: 20px;  
+    top: 5px;           /* Moves it down slightly from the top */
+    left: 5px;  
 
     background-color: #35654d; /* Sac State dark green */
     color: white;
