@@ -136,5 +136,34 @@ module.exports = function (poolPromise) {
     }
   });
 
+  // GET all available tags
+  router.get('/tags', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      // Assuming test_tags holds tag_id and tag_name
+      const result = await pool.request().query('SELECT tag_id, tag_name FROM test_tags');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error (fetching tags):', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  // GET tags for a specific student
+  router.get('/studentTags/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    const { studentId } = req.params;
+    try {
+      const pool = await poolPromise;
+      // Adjust the query based on your table structure. Here we assume test_tag_service has columns std_id and tag_id.
+      const result = await pool.request()
+        .input('studentId', sql.Int, studentId)
+        .query('SELECT tag_id FROM test_tag_service WHERE std_id = @studentId');
+      res.json(result.recordset);  // e.g., [{ tag_id: 1 }, { tag_id: 3 }]
+    } catch (err) {
+      console.error('SQL error (fetching student tags):', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
   return router;
 };

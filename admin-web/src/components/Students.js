@@ -12,9 +12,9 @@ function Students() {
   const [showBulkPasswordModal, setShowBulkPasswordModal] = useState(false); 
   const [searchTerm, setSearchTerm] = useState("");
   const [password, setPassword] = useState('');
-  const [deleteUserId, setDeleteUserId] = useState(null);
   const [editUser, setEditUser] = useState(null);
-  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '' });
+  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '', tags: [] });
+  const [availableTags, setAvailableTags] = useState([]);
   const navigate = useNavigate();
 
 
@@ -49,6 +49,34 @@ function Students() {
     }
   }, [navigate]);
 
+  const fetchTags = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("You must be logged in.");
+        logoutAdmin(navigate);
+        return;
+      }
+      const response = await fetch('http://localhost:5000/api/campus_services', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch campus services');
+      
+      const data = await response.json();
+      const formattedTags = data.map(service => ({
+        tag_id: service.service_id,
+        tag_name: service.serv_name
+      }));
+      setAvailableTags(data);
+    } catch (error) {
+      console.error('Error fetching campus services:', error);
+    }
+  }, [navigate]);
+  
+  useEffect(() => {
+    fetchTags();
+  }, [fetchTags]);
+
   // Get admin role from token
   const getAdminRole = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -63,6 +91,7 @@ function Students() {
       }
     }
   },[navigate]);
+
 
   useEffect(() => {
     fetchStudents();
@@ -127,9 +156,36 @@ function Students() {
   };
 
   // Open edit modal with user data
-  const openEditModal = (user) => {
+  const openEditModal = async (user) => {
     setEditUser(user);
-    setEditForm({ preferred_name: user.preferred_name, expected_grad: user.expected_grad });
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("You must be logged in.");
+        logoutAdmin(navigate);
+        return;
+      }
+      const response = await fetch(`http://localhost:5000/api/campus_services/studentTags/${user.std_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch student tags');
+      }
+      const tagData = await response.json();
+      // Assume tagData is an array of objects with a tag_id property
+      setEditForm({
+        preferred_name: user.preferred_name,
+        expected_grad: user.expected_grad,
+        tags: tagData.map(tag => tag.tag_id)
+      });
+    } catch (error) {
+      console.error("Error fetching student's tags:", error);
+      setEditForm({
+        preferred_name: user.preferred_name,
+        expected_grad: user.expected_grad,
+        tags: []
+      });
+    }
   };
 
   // Handle form input changes
@@ -147,7 +203,7 @@ function Students() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/adminRoutes/student/${editUser.std_id}`, {
+      const response = await fetch(`http://localhost:5000/api/campus_services/studentTags/${editUser.std_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -249,15 +305,6 @@ function Students() {
                   {role !== 'support-admin' && (
                     <button className="edit-button" onClick={() => openEditModal(user)}>Edit</button>
                   )}
-                  {role === 'super-admin' && (
-                    <button className="delete-button" onClick={() => {
-                      // Optionally you can also support individual deletion.
-                      // For bulk deletion, use checkboxes and the "Delete Selected" button.
-                      alert("For bulk deletion, please select the checkbox and use the bulk delete button.");
-                    }}>
-                      Delete
-                    </button>
-                  )}
                 </td>
               )}
             </tr>
@@ -325,11 +372,35 @@ function Students() {
             <form>
               <label>
                 Preferred Name:
-                <input name="preferred_name" value={editForm.preferred_name} onChange={handleEditChange} />
+                <input  
+                  name="preferred_name" 
+                  value={editForm.preferred_name} 
+                  onChange={handleEditChange} />
               </label>
               <label>
                 Expected Graduation:
-                <input name="expected_grad" value={editForm.expected_grad} onChange={handleEditChange} />
+                <input 
+                  name="expected_grad" 
+                  value={editForm.expected_grad} 
+                  onChange={handleEditChange} />
+              </label>
+              <label>
+                Service Tags:
+                <select
+                  name="tags"
+                  multiple
+                  value={editForm.tags}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, option => option.value);
+                    setEditForm(prev => ({ ...prev, tags: selected }));
+                  }}
+                >
+                  {availableTags.map(tag => (
+                    <option key={tag.tag_id} value={tag.tag_id}>
+                      {tag.tag_name}
+                    </option>
+                  ))}
+                </select>
               </label>
               <button type="button" onClick={handleSaveEdit}>Save</button>
               <button type="button" onClick={() => setEditUser(null)}>Cancel</button>

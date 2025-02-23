@@ -3,6 +3,7 @@ const router = express.Router();
 const sql = require('mssql');
 const config = require('../config'); //server config file
 const { authenticateToken } = require('../authMiddleware');
+const { verifyRole,  authenticateToken: adminAuthToken } = require('../middleware/authMiddleware');
 
 module.exports = function(poolPromise) {
 
@@ -16,6 +17,67 @@ module.exports = function(poolPromise) {
             res.status(500).send('Server Error');
         }
     });
+
+    //Get campus services but only the service_id and service name
+    router.get('/getServIDAndName', adminAuthToken, async (req, res) => {
+        try {
+          const pool = await poolPromise;
+          const result = await pool.request().query('SELECT service_id, serv_name FROM test_campus_services');
+          res.json(result.recordset);
+        } catch (err) {
+          console.error('SQL error (fetching campus services):', err.message);
+          res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+      });
+        // GET campus service tags for a specific student for admin website
+       router.get('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+        const { studentId } = req.params;
+        try {
+        const pool = await poolPromise;
+        // This query should return rows with tag_id values
+        const result = await pool.request()
+            .input('studentId', sql.Int, studentId)
+            .query('SELECT tag_id FROM test_tag_service WHERE std_id = @studentId');
+        res.json(result.recordset); // e.g., [ { tag_id: 1 }, { tag_id: 3 } ]
+        } catch (err) {
+        console.error('SQL error (fetching student tags):', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+       });
+
+    // PUT update a student's campus service tags for admin website
+    router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+        const { studentId } = req.params;
+        const { tags } = req.body; // expecting an array of service IDs
+        try {
+        const pool = await poolPromise;
+        const transaction = await pool.transaction();
+        await transaction.begin();
+        
+        // Remove existing associations
+        await transaction.request()
+            .input('studentId', sql.Int, studentId)
+            .query('DELETE FROM test_tag_service WHERE std_id = @studentId');
+        
+        // Insert new associations if any tags are provided
+        if (tags && tags.length > 0) {
+            const insertValues = tags.map((tagId, index) => `(@studentId, @tag${index})`).join(', ');
+            const request = transaction.request();
+            request.input('studentId', sql.Int, studentId);
+            tags.forEach((tagId, index) => {
+            request.input(`tag${index}`, sql.Int, tagId);
+            });
+            await request.query(`INSERT INTO test_tag_service (std_id, tag_id) VALUES ${insertValues}`);
+        }
+        
+        await transaction.commit();
+        res.json({ message: 'Student tags updated successfully' });
+        } catch (err) {
+        console.error('SQL error (updating student tags):', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+    });
+  
 
     //Get campus services that relates to student
     router.get('/student/:studentId', async (req, res) => {
