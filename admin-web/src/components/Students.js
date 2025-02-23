@@ -7,8 +7,10 @@ import { logoutAdmin } from '../api/api';
 function Students() {
   const [students, setStudents] = useState([]);
   const [role, setRole] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState([]); 
+  const [showBulkConfirmModal, setShowBulkConfirmModal] = useState(false); 
+  const [showBulkPasswordModal, setShowBulkPasswordModal] = useState(false); 
+  const [searchTerm, setSearchTerm] = useState("");
   const [password, setPassword] = useState('');
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [editUser, setEditUser] = useState(null);
@@ -67,69 +69,61 @@ function Students() {
     getAdminRole();
   }, [fetchStudents, getAdminRole]);
 
-  // Handle user deletion
-  const handleDelete = async () => {
+  // Toggle checkbox for a single student
+  const handleCheckboxChange = (id) => {
+    setSelectedStudents(prevSelected =>
+      prevSelected.includes(id)
+        ? prevSelected.filter(item => item !== id)
+        : [...prevSelected, id]
+    );
+  };
+
+  // Toggle "Select All" checkbox
+  const handleSelectAllChange = (e) => {
+    if (e.target.checked) {
+      setSelectedStudents(students.map(student => student.std_id));
+    } else {
+      setSelectedStudents([]);
+    }
+  };
+
+  // Handle bulk deletion by sending DELETE requests for each selected student
+  const handleBulkDelete = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("You must be logged in.");
+      logoutAdmin(navigate);
+      return;
+    }
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert("You must be logged in to delete a student.");
-        logoutAdmin(navigate);
-        return;
-      }
-
-      const response = await fetch(`http://localhost:5000/api/adminRoutes/students/${deleteUserId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ password }),
+      // Map over selected student IDs and send a DELETE request for each.
+      const deletionPromises = selectedStudents.map(async (stdId) => {
+        const response = await fetch(`http://localhost:5000/api/adminRoutes/students/${stdId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ password }),
+        });
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(`Failed to delete student ${stdId}: ${result.message || 'Unknown error'}`);
+        }
       });
-
-      if (response.status === 401) {
-        alert("Session expired. Please log in again.");
-        logoutAdmin(navigate);  
-        return;
-      }
-  
-
-      if (response.ok) {
-        setStudents(students.filter((user) => user.std_id !== deleteUserId));
-        alert('Student deleted successfully');
-      } else {
-        const result = await response.json();
-        alert(`Failed to delete student: ${result.message || 'Unknown error'}`);
-      }
+      await Promise.all(deletionPromises);
+      alert("Selected students deleted successfully.");
+      // Remove deleted students from the list.
+      setStudents(prev => prev.filter(student => !selectedStudents.includes(student.std_id)));
+      setSelectedStudents([]);
     } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('An error occurred while deleting the student.');
+      console.error('Bulk deletion error:', error);
+      alert(`Error deleting students: ${error.message}`);
     } finally {
-      setShowPasswordModal(false);
+      setShowBulkPasswordModal(false);
+      setShowBulkConfirmModal(false);
       setPassword('');
-      setDeleteUserId(null);
     }
-  };
-
-  // Open delete confirmation modal
-  const openPasswordModal = (id) => {
-    if (role !== 'super-admin') {
-      alert("Invalid role: Only super-admins can delete students.");
-      logoutAdmin(navigate);
-      return;
-    }
-    setDeleteUserId(id);
-    setShowPasswordModal(true);
-  };
-
-  // Open the initial confirmation modal (Yes/Cancel)
-  const openConfirmModal = (id) => {
-    if (role !== 'super-admin') {
-      alert("Invalid role: Only super-admins can delete students.");
-      logoutAdmin(navigate);
-      return;
-    }
-    setDeleteUserId(id);
-    setShowConfirmModal(true);
   };
 
   // Open edit modal with user data
@@ -164,7 +158,7 @@ function Students() {
 
       if (response.status === 401) {
         alert("Session expired. Please log in again.");
-        logoutAdmin();  
+        logoutAdmin(navigate);  
         return;
       }
 
@@ -182,13 +176,55 @@ function Students() {
     }
   };
 
+  const filteredStudents = students.filter((student) => {
+    const term = searchTerm.toLowerCase();
+  
+    return (
+      (student.preferred_name ? student.preferred_name.toLowerCase() : "").includes(term) ||
+      (student.std_id && student.std_id.toString().includes(term))
+    );
+  });
+
   return (
     <div className="students-container">
       <BackButton />
       <h2>Students</h2>
+
+       {/* Search Bar */}
+      <input
+        type="text"
+        placeholder="Search students..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="search-bar"
+      />
+
+      {role === 'super-admin' && (
+        <div className="students-buttons">
+          <button
+            className="delete-selected-button"
+            onClick={() => {
+              if (selectedStudents.length === 0) {
+                alert("No students selected.");
+              } else {
+                setShowBulkConfirmModal(true);
+              }
+            }}
+          >
+            Delete Selected
+          </button>
+        </div>
+      )}
       <table className="students-table">
         <thead>
           <tr>
+            <th>
+              <input
+                type="checkbox"
+                onChange={handleSelectAllChange}
+                checked={students.length > 0 && selectedStudents.length === students.length}
+              />
+            </th>
             <th>Student ID</th>
             <th>Preferred Name</th>
             <th>Expected Graduation</th>
@@ -196,8 +232,15 @@ function Students() {
           </tr>
         </thead>
         <tbody>
-          {students.map((user) => (
+          {filteredStudents.map((user) => (
             <tr key={user.std_id}>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={selectedStudents.includes(user.std_id)}
+                  onChange={() => handleCheckboxChange(user.std_id)}
+                />
+              </td>
               <td>{user.std_id}</td>
               <td>{user.preferred_name}</td>
               <td>{user.expected_grad}</td>
@@ -207,7 +250,13 @@ function Students() {
                     <button className="edit-button" onClick={() => openEditModal(user)}>Edit</button>
                   )}
                   {role === 'super-admin' && (
-                    <button className="delete-button" onClick={() => openConfirmModal(user.std_id)}>Delete</button>
+                    <button className="delete-button" onClick={() => {
+                      // Optionally you can also support individual deletion.
+                      // For bulk deletion, use checkboxes and the "Delete Selected" button.
+                      alert("For bulk deletion, please select the checkbox and use the bulk delete button.");
+                    }}>
+                      Delete
+                    </button>
                   )}
                 </td>
               )}
@@ -216,37 +265,54 @@ function Students() {
         </tbody>
       </table>
 
-      {/* Confirmation Modal: Ask if user is sure */}
-      {showConfirmModal && (
+       {/* Bulk Confirmation Modal: Ask if user is sure */}
+       {showBulkConfirmModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Confirm Deletion</h3>
-            <p>Are you sure you want to delete this student?</p>
-            <button type="button" onClick={() => {
-              setShowConfirmModal(false);
-              setShowPasswordModal(true); // Proceed to password prompt
-            }}>Yes</button>
-            <button type="button" onClick={() => {
-              setShowConfirmModal(false);
-              setDeleteUserId(null);
-            }}>Cancel</button>
+            <h3>Confirm Bulk Deletion</h3>
+            <p>Are you sure you want to delete the selected students?</p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowBulkConfirmModal(false);
+                setShowBulkPasswordModal(true); // Proceed to password prompt
+              }}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowBulkConfirmModal(false);
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
-      {/* Password Modal: Enter password to confirm deletion */}
-      {showPasswordModal && (
+     {/* Bulk Password Modal: Enter password to confirm deletion */}
+     {showBulkPasswordModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Confirm Delete</h3>
-            <p>Enter your password to confirm deletion:</p>
+            <h3>Confirm Bulk Delete</h3>
+            <p>Enter your password to confirm deletion of the selected students:</p>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <button type="button" onClick={handleDelete}>Confirm Delete</button>
-            <button type="button" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+            <button type="button" onClick={handleBulkDelete}>Confirm Delete</button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowBulkPasswordModal(false);
+                setPassword('');
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -259,11 +325,11 @@ function Students() {
             <form>
               <label>
                 Preferred Name:
-                <input name="preferred_name" value={editForm.m_name} onChange={handleEditChange} />
+                <input name="preferred_name" value={editForm.preferred_name} onChange={handleEditChange} />
               </label>
               <label>
                 Expected Graduation:
-                <input name="expected_grad" value={editForm.l_name} onChange={handleEditChange} />
+                <input name="expected_grad" value={editForm.expected_grad} onChange={handleEditChange} />
               </label>
               <button type="button" onClick={handleSaveEdit}>Save</button>
               <button type="button" onClick={() => setEditUser(null)}>Cancel</button>
