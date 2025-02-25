@@ -73,10 +73,16 @@ const WellnessCreation = () => {
   const navigation = useNavigation();
 
   const questions = [
-  new Question(0, "How are you feeling overall?", "checkbox", ["Bad", "Decent", "Good", "Great"]),
-  new Question(1, "How many units are you taking?", "dropdown", ["3-9", "10-15", "16+"]),
-  new Question(2, "What year are you in your studies?", "checkbox", ["First-year (Freshman)", "Second-year (Sophomore)", "Third-year (Junior)", "Fourth-year (Senior+)", "Graduate/Professional"]),
-  new Question(3, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
+    //new Question(0, "How many units are you taking?", "checkbox", ["1-2", "3-9", "10-15", "16+"]),
+    new Question(0, "Do you feel that you need academic assistance?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
+    //new Question(2, "Are you looking for help with a resume?", "checkbox", ["Not at the moment", "Yes I am"]),
+    new Question(1, "I feel safe on campus.", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
+    //new Question(4, "How has your overall health been this semester?", "checkbox", ["Very Poor", "Poor", "Fair", "Good", "Very Good"]),
+    new Question(2, "Over the last few weeks, have you been feeling nervious, easily irritable, tired, worried and/or restless?", "checkbox", ["Not at all", "Some days", "Nearly every day"]),
+    new Question(3, "Are you happy with how your school life is going?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
+    new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial  situations?", "checkbox", ["Often True", "Sometimes True", "Never True", "Don't Know/Refuse to Answer"]),
+    //new Question(8, "I know where I can get help on campus for health and psychological needs.", "checkbox", ["Strongly Disagree", "Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree", "Strongly Agree"]),
+    new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"),
 ];
 
   const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
