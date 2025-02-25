@@ -36,7 +36,9 @@ const styles = StyleSheet.create({
         opacity: 0.5,
     },
     container: {
-        flex: 1,
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 20,
         backgroundColor: 'transparent', // Maintain transparency over gradient
     },
@@ -92,6 +94,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: colors.sacGreen,
         textAlign: 'center',
+    },
+    inputContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginVertical: 10,
     },
     input: {
         padding: 12,
@@ -192,7 +199,7 @@ const styles = StyleSheet.create({
     },
     selectedOptionButton: {
         backgroundColor: '#4CAF50', 
-        borderColor: '#4CAF50', // 
+        borderColor: '#4CAF50', 
     },
     selectedOptionText: {
         color: '#FFFFFF', 
@@ -203,25 +210,10 @@ const styles = StyleSheet.create({
         color: '#4CAF50', 
         fontWeight: 'bold',
     },
-    input: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        marginBottom: 10,
-        paddingHorizontal: 10,
-        borderRadius: 5,
-    },
-    pickerContainer: {
-        marginBottom: 10,
-    },
-    pickerText: {
-        fontSize: 16,
-        color: 'black',
-    },
-    selectedDropdownText: {
-        marginTop: 10,
-        fontSize: 16,
-        color: 'green',
+    checkboxContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginVertical: 10,
     },
 });
 
