@@ -1,0 +1,22 @@
+<!--
+*Metadata for SSOCircle to register app as a Service Provider (SP)*
+
+Every time the app is started (backend must be running first), the command "ngrok http 5000" must rerun
+    to generate a new URL (replace FQDN of Service Provider on SSOCircle).
+
+    The entityID property in the 'EntityDescriptor' must be replaced with the new URL.
+        Format: [URL]/saml/metadata
+
+    The Location property in the 'AssertionConsumerService' tag must also be replaced.
+        Format: [URL]/auth/callback
+
+Copy and paste the XML metadata below into SSOCircle
+-->
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://ff43-45-22-139-127.ngrok-free.app/saml/metadata">
+    <SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <AssertionConsumerService 
+            Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" 
+            Location="https://ff43-45-22-139-127.ngrok-free.app/auth/callback" 
+            index="1"/>
+    </SPSSODescriptor>
+</EntityDescriptor>
