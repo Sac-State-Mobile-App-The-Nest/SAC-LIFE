@@ -8,6 +8,28 @@ const ChatbotScreen = () => {
     const [message, setMessage] = useState('');  
     const [messages, setMessages] = useState([]);
     const scrollViewRef = useRef(null); 
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            setKeyboardVisible(true);
+        });
+
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardVisible(false);
+        });
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: true });
+        }
+    }, [messages]);
     
     const handleSend = async () => {
             if (message.trim()) {
@@ -59,7 +81,7 @@ const ChatbotScreen = () => {
     return(
         
         // Lifts the input to the the of the keyboard, 100 for ios, 80 for android.
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100:80}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container} keyboardVerticalOffset={keyboardVisible ? (Platform.OS === 'ios' ? 100 : 130) : 0}>
             <View style={styles.chatContainer}>
                 {/* Scrollable chat log */}
                 <ScrollView
@@ -89,9 +111,10 @@ const ChatbotScreen = () => {
                         value={message}
                         onChangeText={setMessage}
                         placeholder="Ask me a question..."
+                        onBlur={() => setKeyboardVisible(false)}
                     />
                     <TouchableOpacity onPress={handleSend}>
-                        <MaterialIcons name="arrow-circle-up" size={30} color="#9E9E9E" style={styles.sendIcon} />
+                        <MaterialIcons name="arrow-circle-up" size={30} color="#9E9E9E" style={[styles.sendIcon, { left: -10 }]} />
                     </TouchableOpacity>
                 </View>
             </View>
