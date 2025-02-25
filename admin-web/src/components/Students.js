@@ -13,8 +13,8 @@ function Students() {
   const [searchTerm, setSearchTerm] = useState("");
   const [password, setPassword] = useState('');
   const [editUser, setEditUser] = useState(null);
-  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '', tags: [] });
-  const [availableTags, setAvailableTags] = useState([]);
+  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '', service_ids: [] });
+  const [availableServices, setAvailableServices] = useState([]);
   const navigate = useNavigate();
 
 
@@ -56,17 +56,13 @@ function Students() {
                         }
                     );
 
-                    console.log(`🔍 Fetching Services for Student ${student.std_id}:`, serviceResponse.status);
-
                     if (serviceResponse.status === 401) {
-                        console.warn(`❌ Unauthorized request for student ${student.std_id}`);
                         return { ...student, service_ids: [] };
                     }
 
                     const services = serviceResponse.ok ? await serviceResponse.json() : [];
                     return { ...student, service_ids: services.map(service => service.service_id) };
                 } catch (error) {
-                    console.error(`Error fetching services for student ${student.std_id}:`, error);
                     return { ...student, service_ids: [] };
                 }
             })
@@ -77,6 +73,24 @@ function Students() {
         console.error('Error fetching students:', error);
     }
 }, [navigate]);
+
+// Fetch all available services for dropdown
+const fetchAvailableServices = useCallback(async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch('http://localhost:5000/api/campus_services/getServIDAndName', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch services');
+    const services = await response.json();
+    setAvailableServices(services);
+  } catch (error) {
+    console.error('Error fetching services:', error);
+  }
+}, []);
 
   // Get admin role from token
   const getAdminRole = useCallback(() => {
@@ -97,7 +111,8 @@ function Students() {
   useEffect(() => {
     fetchStudents();
     getAdminRole();
-  }, [fetchStudents, getAdminRole]);
+    fetchAvailableServices();
+  }, [fetchStudents, getAdminRole, fetchAvailableServices]);
 
   // Toggle checkbox for a single student
   const handleCheckboxChange = (id) => {
@@ -166,26 +181,25 @@ function Students() {
         logoutAdmin(navigate);
         return;
       }
-      const response = await fetch(`http://localhost:5000/api/campus_services/studentTags/${user.std_id}`, {
+      const response = await fetch(`http://localhost:5000/api/campus_services/studentServices/${user.std_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
         throw new Error('Failed to fetch student tags');
       }
-      const tagData = await response.json();
-      console.log("Tag Data:", tagData);  // DEBUGGING
-      // Assume tagData is an array of objects with a tag_id property
+      const serviceData = await response.json();
+      // Assume serviceData is an array of objects with a tag_id property
       setEditForm({
         preferred_name: user.preferred_name,
         expected_grad: user.expected_grad,
-        tags: tagData.map(tag => tag.service_id)
+        service_ids: serviceData.map(service => service.service_id)
       });
     } catch (error) {
       console.error("Error fetching student's tags:", error);
       setEditForm({
         preferred_name: user.preferred_name,
         expected_grad: user.expected_grad,
-        tags: []
+        service_ids: []
       });
     }
   };
@@ -193,6 +207,12 @@ function Students() {
   // Handle form input changes
   const handleEditChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  // Handle service selection change
+  const handleServiceChange = (e) => {
+    const selectedServiceIds = Array.from(e.target.selectedOptions, option => parseInt(option.value));
+    setEditForm({ ...editForm, service_ids: selectedServiceIds });
   };
 
   // Handle saving the edited user
@@ -245,7 +265,7 @@ function Students() {
 
   return (
     <div className="students-container">
-      <BackButton />
+      <BackButton/>
       <h2>Students</h2>
 
        {/* Search Bar */}
@@ -273,6 +293,8 @@ function Students() {
           </button>
         </div>
       )}
+  {/* NEW WRAPPER FOR SCROLLABLE TABLE */}
+  <div style={{ maxHeight: "400px", overflowY: "auto", width: "100%" }}>
       <table className="students-table">
         <thead>
           <tr>
@@ -315,6 +337,7 @@ function Students() {
           ))}
         </tbody>
       </table>
+    </div>
 
        {/* Bulk Confirmation Modal: Ask if user is sure */}
        {showBulkConfirmModal && (
@@ -387,6 +410,16 @@ function Students() {
                   name="expected_grad" 
                   value={editForm.expected_grad} 
                   onChange={handleEditChange} />
+              </label>
+              <label>
+                Service IDs:
+                <select multiple value={editForm.service_ids} onChange={handleServiceChange}>
+                  {availableServices.map(service => (
+                    <option key={service.service_id} value={service.service_id}>
+                      {service.serv_name}
+                    </option>
+                  ))}
+                </select>
               </label>
               <button type="button" onClick={handleSaveEdit}>Save</button>
               <button type="button" onClick={() => setEditUser(null)}>Cancel</button>

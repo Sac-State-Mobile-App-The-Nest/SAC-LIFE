@@ -69,52 +69,53 @@ module.exports = function(poolPromise) {
         }
        });
 
-    // PUT update a student's campus service tags for admin website
-router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
-    const { studentId } = req.params;
-    const { tags } = req.body; // Expecting an array of service IDs
-
-    try {
-        const pool = await poolPromise;
-        const transaction = pool.transaction();
-        await transaction.begin();
-        
-        // Remove existing associations for this student's tags
-        await transaction.request()
-            .input('studentId', sql.Int, studentId)
-            .query(`
-                SELECT ts.service_id, cs.serv_name
-                FROM test_tag_service ts
-                JOIN test_campus_services cs ON ts.service_id = cs.service_id
-                WHERE ts.tag_id IN (SELECT tag_id FROM test_student_tags WHERE std_id = @studentId)
-            `);
-
-        // Insert new associations if any tags are provided
-        if (tags && tags.length > 0) {
-            const request = transaction.request();
-            request.input('studentId', sql.Int, studentId);
-
-            const insertValues = tags.map((tagId, index) => `(@studentId, @tag${index})`).join(', ');
-            tags.forEach((tagId, index) => {
-                request.input(`tag${index}`, sql.Int, tagId);
-            });
-
-            await request.query(`
-                INSERT INTO test_tag_service (tag_id, service_id)
-                SELECT t.tag_id, s.service_id
-                FROM test_student_tags t
-                JOIN test_campus_services s ON t.tag_id = s.service_id
-                WHERE t.std_id = @studentId AND t.tag_id IN (${tags.join(', ')})
-            `);
+    router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+        const { studentId } = req.params;
+        const { service_ids } = req.body; // Expecting an array of service IDs
+    
+        try {
+            const pool = await poolPromise;
+            const transaction = pool.transaction();
+            await transaction.begin();
+    
+            // Delete old service mappings for the student
+            await transaction.request()
+                .input('studentId', sql.Int, studentId)
+                .query(`
+                    DELETE FROM test_student_tags
+                    WHERE std_id = @studentId
+                `);
+    
+            // Insert new service mappings if any service_ids are provided
+            if (service_ids && service_ids.length > 0) {
+                const request = transaction.request();
+                request.input('studentId', sql.Int, studentId);
+    
+                // Generate `INSERT` values dynamically
+                const insertValues = service_ids.map((serviceId, index) => `(@studentId, @service${index})`).join(', ');
+                
+                // Bind values to the request
+                service_ids.forEach((serviceId, index) => {
+                    request.input(`service${index}`, sql.Int, serviceId);
+                });
+    
+                await request.query(`
+                    INSERT INTO test_student_tags (std_id, tag_id)
+                    SELECT @studentId, tag_id
+                    FROM test_tag_service
+                    WHERE service_id IN (${service_ids.join(', ')})
+                `);
+            }
+    
+            // 3Commit the transaction
+            await transaction.commit();
+            res.json({ message: 'Student services updated successfully!' });
+    
+        } catch (err) {
+            console.error('SQL error (updating student services):', err.message);
+            res.status(500).json({ message: 'Internal Server Error', error: err.message });
         }
-
-        await transaction.commit();
-        res.json({ message: 'Student tags updated successfully' });
-    } catch (err) {
-        console.error('SQL error (updating student tags):', err.message);
-        res.status(500).json({ message: 'Internal Server Error', error: err.message });
-    }
-});
+    });
 
   
 

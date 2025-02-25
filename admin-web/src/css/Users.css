@@ -25,20 +25,23 @@
 /* Other styles */
 
 .students-container {
+    max-height: 90vh;  /* Prevents exceeding the viewport */
+    overflow-y: auto;  /* Enables vertical scrolling */
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    background-color: #f7f8f5; /* Very light gray-green for a soft background */
+    background-color: #f7f8f5; /* Background color */
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 51, 17, 0.1); /* Subtle green shadow */
+    box-shadow: 0 4px 8px rgba(0, 51, 17, 0.1); /* Subtle shadow */
     margin: 20px;
     max-width: 1000px;
     width: 95%;
-    overflow: hidden;
 }
 
 .students-container h2 {
+    max-height: 90vh;  /* Prevents exceeding the viewport */
+    overflow-y: auto;  /* Enables vertical scrolling */
     font-family: 'Roboto', sans-serif;
     font-weight: 700;
     color: #2e5339; /* Dark green aligned with Sac State theme */
@@ -52,6 +55,8 @@
     border-collapse: collapse;
     background-color: white;
     border-radius: 8px;
+    overflow-x: auto; /* Horizontal scrolling if needed */
+    max-height: 500px; /* Adjust based on your layout */
     overflow: hidden;
 }
 
@@ -231,6 +236,8 @@ button {
 }
 
 .edit-modal-content {
+    max-height: 80vh; 
+    overflow-y: auto; 
     background: white;
     padding: 20px;
     border-radius: 10px;
