@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../css/Users.css';
-import BackButton from '../utils/NavigationUtils';
+import BackButton from '../utils/navigationUtils';
 import { useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../api/api';
 
@@ -18,64 +18,65 @@ function Students() {
   const navigate = useNavigate();
 
 
-  // Fetch students from API
   const fetchStudents = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert("You must be logged in.");
-        logoutAdmin(navigate);
-        return;
-      }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("You must be logged in.");
+            logoutAdmin(navigate);
+            return;
+        }
 
-      const response = await fetch('http://localhost:5000/api/students/preferredInfo', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        console.log("🔍 Using Token:", token);  //  DEBUGGING: Print token
 
-      if (response.status === 401) {
-        alert("Session expired. Please log in again.");
-        logoutAdmin(navigate);
-        return;
-      }
+        const response = await fetch('http://localhost:5000/api/students/preferredInfo', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch students');
-      }
+        if (response.status === 401) {
+            alert("Session expired. Please log in again.");
+            logoutAdmin(navigate);
+            return;
+        }
 
-      const data = await response.json();
-      setStudents(data);
+        if (!response.ok) {
+            throw new Error('Failed to fetch students');
+        }
+
+        let studentsData = await response.json();
+
+        // Fetch service IDs for each student
+        const studentsWithServices = await Promise.all(
+            studentsData.map(async (student) => {
+                try {
+                    const serviceResponse = await fetch(
+                        `http://localhost:5000/api/campus_services/studentServices/${student.std_id}`,
+                        {
+                            headers: { Authorization: `Bearer ${token}` }, // Ensure token is sent
+                        }
+                    );
+
+                    console.log(`🔍 Fetching Services for Student ${student.std_id}:`, serviceResponse.status);
+
+                    if (serviceResponse.status === 401) {
+                        console.warn(`❌ Unauthorized request for student ${student.std_id}`);
+                        return { ...student, service_ids: [] };
+                    }
+
+                    const services = serviceResponse.ok ? await serviceResponse.json() : [];
+                    return { ...student, service_ids: services.map(service => service.service_id) };
+                } catch (error) {
+                    console.error(`Error fetching services for student ${student.std_id}:`, error);
+                    return { ...student, service_ids: [] };
+                }
+            })
+        );
+
+        setStudents(studentsWithServices);
     } catch (error) {
-      console.error('Error fetching students:', error);
+        console.error('Error fetching students:', error);
     }
-  }, [navigate]);
-
-  const fetchTags = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert("You must be logged in.");
-        logoutAdmin(navigate);
-        return;
-      }
-      const response = await fetch('http://localhost:5000/api/campus_services', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch campus services');
-      
-      const data = await response.json();
-      const formattedTags = data.map(service => ({
-        tag_id: service.service_id,
-        tag_name: service.serv_name
-      }));
-      setAvailableTags(data);
-    } catch (error) {
-      console.error('Error fetching campus services:', error);
-    }
-  }, [navigate]);
-  
-  useEffect(() => {
-    fetchTags();
-  }, [fetchTags]);
+}, [navigate]);
 
   // Get admin role from token
   const getAdminRole = useCallback(() => {
@@ -172,11 +173,12 @@ function Students() {
         throw new Error('Failed to fetch student tags');
       }
       const tagData = await response.json();
+      console.log("Tag Data:", tagData);  // DEBUGGING
       // Assume tagData is an array of objects with a tag_id property
       setEditForm({
         preferred_name: user.preferred_name,
         expected_grad: user.expected_grad,
-        tags: tagData.map(tag => tag.tag_id)
+        tags: tagData.map(tag => tag.service_id)
       });
     } catch (error) {
       console.error("Error fetching student's tags:", error);
@@ -284,6 +286,7 @@ function Students() {
             <th>Student ID</th>
             <th>Preferred Name</th>
             <th>Expected Graduation</th>
+            <th>Service IDs</th>
             {role === 'super-admin' && <th>Actions</th>}
           </tr>
         </thead>
@@ -300,6 +303,7 @@ function Students() {
               <td>{user.std_id}</td>
               <td>{user.preferred_name}</td>
               <td>{user.expected_grad}</td>
+              <td>{user.service_ids.length > 0 ? user.service_ids.join(', ') : <i>No services</i>}</td>
               {role !== 'read-only' && (
                 <td>
                   {role !== 'support-admin' && (
@@ -383,24 +387,6 @@ function Students() {
                   name="expected_grad" 
                   value={editForm.expected_grad} 
                   onChange={handleEditChange} />
-              </label>
-              <label>
-                Service Tags:
-                <select
-                  name="tags"
-                  multiple
-                  value={editForm.tags}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, option => option.value);
-                    setEditForm(prev => ({ ...prev, tags: selected }));
-                  }}
-                >
-                  {availableTags.map(tag => (
-                    <option key={tag.tag_id} value={tag.tag_id}>
-                      {tag.tag_name}
-                    </option>
-                  ))}
-                </select>
               </label>
               <button type="button" onClick={handleSaveEdit}>Save</button>
               <button type="button" onClick={() => setEditUser(null)}>Cancel</button>

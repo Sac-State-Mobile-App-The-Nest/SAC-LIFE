@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BackButton from '../utils/NavigationUtils';
+import BackButton from '../utils/navigationUtils';
 import '../css/Users.css';
 import { api, logoutAdmin } from '../api/api';
 

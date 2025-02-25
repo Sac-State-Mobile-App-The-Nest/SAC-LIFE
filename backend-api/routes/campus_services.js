@@ -18,6 +18,25 @@ module.exports = function(poolPromise) {
         }
     });
 
+    router.get('/studentServices/:studentId', adminAuthToken, async (req, res) => {
+        const { studentId } = req.params;
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input('studentId', sql.Int, studentId)
+                .query(`
+                    SELECT ts.service_id
+                    FROM test_tag_service ts
+                    JOIN test_student_tags st ON ts.tag_id = st.tag_id
+                    WHERE st.std_id = @studentId
+                `);
+            res.json(result.recordset);  // Returns only service IDs
+        } catch (err) {
+            console.error('SQL error (fetching student services):', err.message);
+            res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+    });
+    
     //Get campus services but only the service_id and service name
     router.get('/getServIDAndName', adminAuthToken, async (req, res) => {
         try {
@@ -37,7 +56,12 @@ module.exports = function(poolPromise) {
         // This query should return rows with tag_id values
         const result = await pool.request()
             .input('studentId', sql.Int, studentId)
-            .query('SELECT tag_id FROM test_tag_service WHERE std_id = @studentId');
+            .query(`
+                SELECT ts.service_id 
+                FROM test_tag_service ts
+                JOIN test_student_tags st ON ts.tag_id = st.tag_id
+                WHERE st.std_id = @studentId
+            `);
         res.json(result.recordset); // e.g., [ { tag_id: 1 }, { tag_id: 3 } ]
         } catch (err) {
         console.error('SQL error (fetching student tags):', err.message);
@@ -46,37 +70,52 @@ module.exports = function(poolPromise) {
        });
 
     // PUT update a student's campus service tags for admin website
-    router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
-        const { studentId } = req.params;
-        const { tags } = req.body; // expecting an array of service IDs
-        try {
+router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+    const { studentId } = req.params;
+    const { tags } = req.body; // Expecting an array of service IDs
+
+    try {
         const pool = await poolPromise;
-        const transaction = await pool.transaction();
+        const transaction = pool.transaction();
         await transaction.begin();
         
-        // Remove existing associations
+        // Remove existing associations for this student's tags
         await transaction.request()
             .input('studentId', sql.Int, studentId)
-            .query('DELETE FROM test_tag_service WHERE std_id = @studentId');
-        
+            .query(`
+                SELECT ts.service_id, cs.serv_name
+                FROM test_tag_service ts
+                JOIN test_campus_services cs ON ts.service_id = cs.service_id
+                WHERE ts.tag_id IN (SELECT tag_id FROM test_student_tags WHERE std_id = @studentId)
+            `);
+
         // Insert new associations if any tags are provided
         if (tags && tags.length > 0) {
-            const insertValues = tags.map((tagId, index) => `(@studentId, @tag${index})`).join(', ');
             const request = transaction.request();
             request.input('studentId', sql.Int, studentId);
+
+            const insertValues = tags.map((tagId, index) => `(@studentId, @tag${index})`).join(', ');
             tags.forEach((tagId, index) => {
-            request.input(`tag${index}`, sql.Int, tagId);
+                request.input(`tag${index}`, sql.Int, tagId);
             });
-            await request.query(`INSERT INTO test_tag_service (std_id, tag_id) VALUES ${insertValues}`);
+
+            await request.query(`
+                INSERT INTO test_tag_service (tag_id, service_id)
+                SELECT t.tag_id, s.service_id
+                FROM test_student_tags t
+                JOIN test_campus_services s ON t.tag_id = s.service_id
+                WHERE t.std_id = @studentId AND t.tag_id IN (${tags.join(', ')})
+            `);
         }
-        
+
         await transaction.commit();
         res.json({ message: 'Student tags updated successfully' });
-        } catch (err) {
+    } catch (err) {
         console.error('SQL error (updating student tags):', err.message);
         res.status(500).json({ message: 'Internal Server Error', error: err.message });
-        }
-    });
+    }
+});
+
   
 
     //Get campus services that relates to student
