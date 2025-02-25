@@ -65,7 +65,6 @@ class ProfileCreationManager {
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
-    const [selectedMajor, setSelectedMajor] = useState("");
     const [preferredName, setPreferredName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
@@ -209,7 +208,6 @@ const ProfileCreation = () => {
                             data={question.options}
                             initValue={question.placeholder}
                             onChange={(option) => {
-                                setSelectedMajor(option.label);
                                 profileCreationManager.handleAnswer(question.id, option.key, currentQuestion);
                             }}
                             style={styles.pickerContainer}
@@ -302,7 +300,7 @@ const ProfileCreation = () => {
         }
 
         if (currentQuestion === questions.length - 1) {
-            setIsCompleted(true);
+            completeProfileCreation();
         } else {
             profileCreationManager.goToNext(currentQuestion);
         }
@@ -310,26 +308,12 @@ const ProfileCreation = () => {
 
     // Function to render the completion screen after all questions are answered
     const renderCompletionScreen = () => {
-        const navigation = useNavigation(); // Use the navigation hook
-
         return (
             <View style={styles.completionContainer}>
                 <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
                 <TouchableOpacity
                     style={styles.largeButton}
-                    onPress={async () => {
-                        try {
-                            await sendProfileDataToServer();
-                            // Navigate to the DashboardScreen after successful submission
-                            navigation.reset({
-                                index: 0,
-                                routes: [{ name: "Dashboard" }], // Ensure "Dashboard" matches the name used in your navigation setup
-                            });
-                        } catch (error) {
-                            console.error("Error submitting profile data:", error);
-                            Alert.alert("Error", "Failed to submit profile data. Please try again.");
-                        }
-                    }}
+                    onPress={sendProfileDataToServer}
                 >
                     <Text style={styles.largeButtonText}>Create Your Profile!</Text>
                 </TouchableOpacity>
@@ -367,13 +351,7 @@ const ProfileCreation = () => {
                                 )}
                                 <TouchableOpacity
                                     style={[styles.button, styles.nextButton]}
-                                    onPress={() => {
-                                        if (currentQuestion === questions.length - 1) {
-                                            completeProfileCreation();
-                                        } else {
-                                            handleNextPress();
-                                        }
-                                    }}
+                                    onPress={handleNextPress}
                                 >
                                     <Text style={styles.buttonText}>Next</Text>
                                 </TouchableOpacity>
