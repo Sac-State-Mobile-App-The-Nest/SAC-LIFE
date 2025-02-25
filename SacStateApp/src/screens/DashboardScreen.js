@@ -18,7 +18,7 @@ const DashboardScreen = () => {
           if (route.name === 'Dashboard') iconName = 'home';
           else if (route.name === 'Profile') iconName = 'person';
           else if (route.name === 'Wellness') iconName = 'heart';
-          else if (route.name === 'SacLifeBot') iconName = 'chatbox-ellipses-outline';
+          else if (route.name === 'HerkyBot') iconName = 'chatbox-ellipses-outline';
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -39,7 +39,7 @@ const DashboardScreen = () => {
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardTab} options={{ headerShown: false }} />
-      <Tab.Screen name="SacLifeBot" component={ChatbotScreen} />
+      <Tab.Screen name="HerkyBot" component={ChatbotScreen} />
       <Tab.Screen name="Wellness" component={WellnessScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

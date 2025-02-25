@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     chatContainer: {
         flex: 1,
         justifyContent: 'space-between',
-        padding: 0,
+        padding: -5, //was 0 before 2nd commit.
     },
     messagesContainer: {
         flex: 1,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     },
       sendIcon: {
         marginLeft: 10,
-        marginRight: -7,
+        marginRight: -4,
         color: colors.sacGreen,
     },
 

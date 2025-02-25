@@ -58,8 +58,8 @@ const ChatbotScreen = () => {
 
     return(
         
-        // Lifts the input to the the of the keyboard, 100 for ios, 20 for android.
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100:20}>
+        // Lifts the input to the the of the keyboard, 100 for ios, 80 for android.
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container} keyboardVerticalOffset={Platform.OS === 'ios' ? 100:80}>
             <View style={styles.chatContainer}>
                 {/* Scrollable chat log */}
                 <ScrollView
