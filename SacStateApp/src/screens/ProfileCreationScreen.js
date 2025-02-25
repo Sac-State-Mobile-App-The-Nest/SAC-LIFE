@@ -145,6 +145,11 @@ const ProfileCreation = () => {
         } catch (err) {
             console.error('Error sending profile answers: ', err);
             Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+            // Allow navigation to Dashboard even if there's an error
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "Dashboard" }],
+            });
         }
     };
 
@@ -165,6 +170,9 @@ const ProfileCreation = () => {
             case "checkbox":
                 return (
                     <View style={styles.checkboxContainer}>
+                        {(question.id === 6 || question.id === 7) && (
+                            <Text style={styles.selectAllText}>(Select all that may apply)</Text>
+                        )}
                         {question.options.map((option) => {
                             const isMultiSelect = question.id === 6 || question.id === 7;
                             let isSelected;

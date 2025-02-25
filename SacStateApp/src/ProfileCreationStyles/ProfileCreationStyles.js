@@ -215,6 +215,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 10,
     },
+    selectAllText: {
+        fontStyle: 'italic',
+        fontSize: 14, // Smaller font size
+        color: '#666', // Optional: Use a lighter color for the text
+        marginBottom: 10, // Add some spacing below the text
+    },
 });
 
 export default styles;
