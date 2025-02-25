@@ -81,6 +81,8 @@ const ProfileCreation = () => {
         new Question(5, "Expected graduation date?", "graduationDate", ["Spring", "Fall"]),
         new Question(6, "What kinds of campus events interest you the most?", "checkbox", ["Workshops to boost your skills", "Fun and social meet-ups", "Sports and fitness activities", "Community service/volunteering"]),
         new Question(7, "What type of support could help you succeed?", "checkbox", ["Guidance for classes and grades", "Career advice and planning", "Wellness and mental health support", "Help with financial aid or scholarships"]),
+        new Question(8, "Do you have any disabilities?", "checkbox", ["Yes", "No", "Prefer Not to Say"]),
+        new Question(9, "Are you a Veteran?", "checkbox", ["Yes", "No", "Prefer Not to Say"])
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
@@ -103,6 +105,8 @@ const ProfileCreation = () => {
                 question5: answers["5"]["semester"] + " " + answers["5"]["year"], // This will now contain { semester: "Spring/Fall", year: "2024" }
                 question6: answers["6"], // what events
                 question7: answers["7"], // other types of student
+                question8: answer["8"], //Disability
+                question9: answer[9]    //Veteran
             };
             const token = await AsyncStorage.getItem('token');
             const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
