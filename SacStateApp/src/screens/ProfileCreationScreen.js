@@ -86,6 +86,23 @@ const ProfileCreation = () => {
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
+    // Function to calculate the minimum graduation year based on the selected year in studies
+    const getMinimumGraduationYear = (selectedYear) => {
+        const currentYear = new Date().getFullYear();
+        switch (selectedYear) {
+            case "Freshman":
+                return currentYear + 3; // Freshman: 3 years from now
+            case "Sophomore":
+                return currentYear + 2; // Sophomore: 2 years from now
+            case "Junior":
+                return currentYear + 1; // Junior: 1 year from now
+            case "Senior":
+                return currentYear; // Senior: current year or later
+            default:
+                return currentYear; // Default: current year or later
+        }
+    };
+
     // Function to mark profile creation as complete and send data to the server
     const completeProfileCreation = () => {
         setIsCompleted(true);
@@ -104,8 +121,8 @@ const ProfileCreation = () => {
                 question5: answers["5"]["semester"] + " " + answers["5"]["year"], // This will now contain { semester: "Spring/Fall", year: "2024" }
                 question6: answers["6"], // what events
                 question7: answers["7"], // other types of student
-                question8: answer["8"], //Disability
-                question9: answer[9]    //Veteran
+                question8: answers["8"], //Disability
+                question9: answers["9"]    //Veteran
             };
             const token = await AsyncStorage.getItem('token');
             const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
@@ -124,7 +141,7 @@ const ProfileCreation = () => {
             // Navigate to the Dashboard after successful submission
             navigation.reset({
                 index: 0,
-                routes: [{ name: "DashboardScreen" }],
+                routes: [{ name: "Dashboard" }],
             });
         } catch (err) {
             console.error('Error sending profile answers: ', err);
@@ -205,14 +222,14 @@ const ProfileCreation = () => {
                 return (
                     <View style={styles.inputContainer}>
                         <ModalSelector
-                             data={question.options.map(option => ({ key: option, label: option }))}
-                             initValue="Select semester"
-                             onChange={(option) => {
-                                    profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion);
-                              }}
-                                style={styles.pickerContainer}
-                                initValueTextStyle={styles.pickerText}
-                                selectTextStyle={styles.pickerText}
+                            data={question.options.map(option => ({ key: option, label: option }))}
+                            initValue="Select semester"
+                            onChange={(option) => {
+                                profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion);
+                            }}
+                            style={styles.pickerContainer}
+                            initValueTextStyle={styles.pickerText}
+                            selectTextStyle={styles.pickerText}
                         />
                         <TextInput
                             style={styles.input}
@@ -221,11 +238,22 @@ const ProfileCreation = () => {
                             value={answers[question.id]?.year || ""}
                             onChangeText={(text) => {
                                 const currentYear = new Date().getFullYear();
-                                // Allow 2024 and any year after the current year
-                                if (text.length === 4 && (parseInt(text) < currentYear || isNaN(parseInt(text)))) {
-                                    Alert.alert("Error", "Please enter a valid graduation year (current year or later).");
-                                    return;
+                                const selectedYear = answers[4]; // Get the user's selected year in their studies (e.g., Freshman, Sophomore, etc.)
+                                const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+
+                                // Validate the input
+                                if (text.length === 4) {
+                                    const inputYear = parseInt(text);
+                                    if (isNaN(inputYear)) {
+                                        Alert.alert("Error", "Please enter a valid 4-digit year.");
+                                        return;
+                                    }
+                                    if (inputYear < minimumGraduationYear) {
+                                        Alert.alert("Error", `Graduation year must be ${minimumGraduationYear} or later for a ${selectedYear}.`);
+                                        return;
+                                    }
                                 }
+
                                 const semester = answers[question.id]?.semester || "";
                                 profileCreationManager.handleAnswer(question.id, { semester, year: text }, currentQuestion);
                             }}
@@ -264,8 +292,11 @@ const ProfileCreation = () => {
         if (currentQuestion === 5) {
             const graduationDate = answers[5];
             const currentYear = new Date().getFullYear();
-            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < currentYear) {
-                Alert.alert("Error", "Please select a semester and enter a valid 4-digit year (current year or later).");
+            const selectedYear = answers[4]; // Get the user's selected year in their studies (e.g., Freshman, Sophomore, etc.)
+            const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+
+            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < minimumGraduationYear) {
+                Alert.alert("Error", `Please select a semester and enter a valid 4-digit year (${minimumGraduationYear} or later).`);
                 return;
             }
         }
@@ -277,34 +308,34 @@ const ProfileCreation = () => {
         }
     };
 
-// Function to render the completion screen after all questions are answered
-const renderCompletionScreen = () => {
-    const navigation = useNavigation(); // Use the navigation hook
+    // Function to render the completion screen after all questions are answered
+    const renderCompletionScreen = () => {
+        const navigation = useNavigation(); // Use the navigation hook
 
-    return (
-        <View style={styles.completionContainer}>
-            <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-            <TouchableOpacity
-                style={styles.largeButton}
-                onPress={async () => {
-                    try {
-                        await sendProfileDataToServer();
-                        // Navigate to the DashboardScreen after successful submission
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: "Dashboard" }], // Ensure "Dashboard" matches the name used in your navigation setup
-                        });
-                    } catch (error) {
-                        console.error("Error submitting profile data:", error);
-                        Alert.alert("Error", "Failed to submit profile data. Please try again.");
-                    }
-                }}
-            >
-                <Text style={styles.largeButtonText}>Create Your Profile!</Text>
-            </TouchableOpacity>
-        </View>
-    );
-};
+        return (
+            <View style={styles.completionContainer}>
+                <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
+                <TouchableOpacity
+                    style={styles.largeButton}
+                    onPress={async () => {
+                        try {
+                            await sendProfileDataToServer();
+                            // Navigate to the DashboardScreen after successful submission
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: "Dashboard" }], // Ensure "Dashboard" matches the name used in your navigation setup
+                            });
+                        } catch (error) {
+                            console.error("Error submitting profile data:", error);
+                            Alert.alert("Error", "Failed to submit profile data. Please try again.");
+                        }
+                    }}
+                >
+                    <Text style={styles.largeButtonText}>Create Your Profile!</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
 
     return (
         <ImageBackground
@@ -356,4 +387,3 @@ const renderCompletionScreen = () => {
 };
 
 export default ProfileCreation;
-
