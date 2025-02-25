@@ -6,7 +6,6 @@ import majorList from '../assets/majorList.json';
 import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
-
 const { height } = Dimensions.get('window');
 
 // Ensure the Sac State logo is stored in your assets directory
@@ -125,7 +124,7 @@ const ProfileCreation = () => {
             // Navigate to the Dashboard after successful submission
             navigation.reset({
                 index: 0,
-                routes: [{ name: "Dashboard" }],
+                routes: [{ name: "DashboardScreen" }],
             });
         } catch (err) {
             console.error('Error sending profile answers: ', err);
@@ -206,14 +205,14 @@ const ProfileCreation = () => {
                 return (
                     <View style={styles.inputContainer}>
                         <ModalSelector
-                            data={question.options.map(option => ({ key: option, label: option }))}
-                            initValue="Select semester"
-                            onChange={(option) => {
-                                profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion);
-                            }}
-                            style={styles.pickerContainer}
-                            initValueTextStyle={styles.pickerText}
-                            selectTextStyle={styles.pickerText}
+                             data={question.options.map(option => ({ key: option, label: option }))}
+                             initValue="Select semester"
+                             onChange={(option) => {
+                                    profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion);
+                              }}
+                                style={styles.pickerContainer}
+                                initValueTextStyle={styles.pickerText}
+                                selectTextStyle={styles.pickerText}
                         />
                         <TextInput
                             style={styles.input}
@@ -223,7 +222,7 @@ const ProfileCreation = () => {
                             onChangeText={(text) => {
                                 const currentYear = new Date().getFullYear();
                                 // Allow 2024 and any year after the current year
-                                if (text.length === 4 && (parseInt(text) <= currentYear || isNaN(parseInt(text)))) {
+                                if (text.length === 4 && (parseInt(text) < currentYear || isNaN(parseInt(text)))) {
                                     Alert.alert("Error", "Please enter a valid graduation year (current year or later).");
                                     return;
                                 }
@@ -278,8 +277,11 @@ const ProfileCreation = () => {
         }
     };
 
-    // Function to render the completion screen after all questions are answered
-    const renderCompletionScreen = () => (
+// Function to render the completion screen after all questions are answered
+const renderCompletionScreen = () => {
+    const navigation = useNavigation(); // Use the navigation hook
+
+    return (
         <View style={styles.completionContainer}>
             <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
             <TouchableOpacity
@@ -287,6 +289,11 @@ const ProfileCreation = () => {
                 onPress={async () => {
                     try {
                         await sendProfileDataToServer();
+                        // Navigate to the DashboardScreen after successful submission
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: "Dashboard" }], // Ensure "Dashboard" matches the name used in your navigation setup
+                        });
                     } catch (error) {
                         console.error("Error submitting profile data:", error);
                         Alert.alert("Error", "Failed to submit profile data. Please try again.");
@@ -297,6 +304,7 @@ const ProfileCreation = () => {
             </TouchableOpacity>
         </View>
     );
+};
 
     return (
         <ImageBackground
