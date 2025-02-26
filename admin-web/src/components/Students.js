@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../api/api';
 
 function Students() {
+  // State variables
   const [students, setStudents] = useState([]);
   const [role, setRole] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]); 
@@ -17,7 +18,7 @@ function Students() {
   const [availableServices, setAvailableServices] = useState([]);
   const navigate = useNavigate();
 
-
+  // Fetches students from the backend, including their associated services
   const fetchStudents = useCallback(async () => {
     try {
         const token = localStorage.getItem('token');
@@ -26,9 +27,7 @@ function Students() {
             logoutAdmin(navigate);
             return;
         }
-
-        console.log("🔍 Using Token:", token);  //  DEBUGGING: Print token
-
+        // Fetch basic student info
         const response = await fetch('http://localhost:5000/api/students/preferredInfo', {
             headers: { Authorization: `Bearer ${token}` },
         });
@@ -52,7 +51,7 @@ function Students() {
                     const serviceResponse = await fetch(
                         `http://localhost:5000/api/campus_services/studentServices/${student.std_id}`,
                         {
-                            headers: { Authorization: `Bearer ${token}` }, // Ensure token is sent
+                            headers: { Authorization: `Bearer ${token}` }, 
                         }
                     );
 
@@ -67,30 +66,29 @@ function Students() {
                 }
             })
         );
-
         setStudents(studentsWithServices);
     } catch (error) {
         console.error('Error fetching students:', error);
     }
-}, [navigate]);
+  }, [navigate]);
 
-// Fetch all available services for dropdown
-const fetchAvailableServices = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+  // Fetch all available services for dropdown
+  const fetchAvailableServices = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
 
-    const response = await fetch('http://localhost:5000/api/campus_services/getServIDAndName', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const response = await fetch('http://localhost:5000/api/campus_services/getServIDAndName', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (!response.ok) throw new Error('Failed to fetch services');
-    const services = await response.json();
-    setAvailableServices(services);
-  } catch (error) {
-    console.error('Error fetching services:', error);
-  }
-}, []);
+      if (!response.ok) throw new Error('Failed to fetch services');
+      const services = await response.json();
+      setAvailableServices(services);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  }, []);
 
   // Get admin role from token
   const getAdminRole = useCallback(() => {
@@ -107,7 +105,7 @@ const fetchAvailableServices = useCallback(async () => {
     }
   },[navigate]);
 
-
+  // Fetch students, admin role, and available services from the backend on component mount
   useEffect(() => {
     fetchStudents();
     getAdminRole();
@@ -254,6 +252,7 @@ const fetchAvailableServices = useCallback(async () => {
     }
   };
 
+  // Filters the students list based on the search term entered by the user
   const filteredStudents = students.filter((student) => {
     const term = searchTerm.toLowerCase();
   
@@ -265,10 +264,10 @@ const fetchAvailableServices = useCallback(async () => {
 
   return (
     <div className="students-container">
-      <BackButton/>
+      <BackButton />
       <h2>Students</h2>
-
-       {/* Search Bar */}
+  
+      {/* Search Bar for filtering students */}
       <input
         type="text"
         placeholder="Search students..."
@@ -276,7 +275,8 @@ const fetchAvailableServices = useCallback(async () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="search-bar"
       />
-
+  
+      {/* Only Super Admins can delete students */}
       {role === 'super-admin' && (
         <div className="students-buttons">
           <button
@@ -293,54 +293,59 @@ const fetchAvailableServices = useCallback(async () => {
           </button>
         </div>
       )}
-  {/* NEW WRAPPER FOR SCROLLABLE TABLE */}
-  <div style={{ maxHeight: "400px", overflowY: "auto", width: "100%" }}>
-      <table className="students-table">
-        <thead>
-          <tr>
-            <th>
-              <input
-                type="checkbox"
-                onChange={handleSelectAllChange}
-                checked={students.length > 0 && selectedStudents.length === students.length}
-              />
-            </th>
-            <th>Student ID</th>
-            <th>Preferred Name</th>
-            <th>Expected Graduation</th>
-            <th>Service IDs</th>
-            {role === 'super-admin' && <th>Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {filteredStudents.map((user) => (
-            <tr key={user.std_id}>
-              <td>
+  
+      {/* Table Container with Scroll for Large Lists */}
+      <div style={{ maxHeight: "400px", overflowY: "auto", width: "100%" }}>
+        <table className="students-table">
+          <thead>
+            <tr>
+              <th>
                 <input
                   type="checkbox"
-                  checked={selectedStudents.includes(user.std_id)}
-                  onChange={() => handleCheckboxChange(user.std_id)}
+                  onChange={handleSelectAllChange}
+                  checked={students.length > 0 && selectedStudents.length === students.length}
                 />
-              </td>
-              <td>{user.std_id}</td>
-              <td>{user.preferred_name}</td>
-              <td>{user.expected_grad}</td>
-              <td>{user.service_ids.length > 0 ? user.service_ids.join(', ') : <i>No services</i>}</td>
-              {role !== 'read-only' && (
-                <td>
-                  {role !== 'support-admin' && (
-                    <button className="edit-button" onClick={() => openEditModal(user)}>Edit</button>
-                  )}
-                </td>
-              )}
+              </th>
+              <th>Student ID</th>
+              <th>Preferred Name</th>
+              <th>Expected Graduation</th>
+              <th>Service IDs</th>
+              {role === 'super-admin' && <th>Actions</th>}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-       {/* Bulk Confirmation Modal: Ask if user is sure */}
-       {showBulkConfirmModal && (
+          </thead>
+          <tbody>
+            {filteredStudents.map((user) => (
+              <tr key={user.std_id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedStudents.includes(user.std_id)}
+                    onChange={() => handleCheckboxChange(user.std_id)}
+                  />
+                </td>
+                <td>{user.std_id}</td>
+                <td>{user.preferred_name}</td>
+                <td>{user.expected_grad}</td>
+                <td>
+                  {user.service_ids.length > 0 ? user.service_ids.join(', ') : <i>No services</i>}
+                </td>
+                {role !== 'read-only' && (
+                  <td>
+                    {role !== 'support-admin' && (
+                      <button className="edit-button" onClick={() => openEditModal(user)}>
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+  
+      {/* Bulk Confirmation Modal - Ask if the user is sure */}
+      {showBulkConfirmModal && (
         <div className="modal">
           <div className="modal-content">
             <h3>Confirm Bulk Deletion</h3>
@@ -365,9 +370,9 @@ const fetchAvailableServices = useCallback(async () => {
           </div>
         </div>
       )}
-
-     {/* Bulk Password Modal: Enter password to confirm deletion */}
-     {showBulkPasswordModal && (
+  
+      {/* Bulk Password Modal - Enter password to confirm deletion */}
+      {showBulkPasswordModal && (
         <div className="modal">
           <div className="modal-content">
             <h3>Confirm Bulk Delete</h3>
@@ -390,8 +395,8 @@ const fetchAvailableServices = useCallback(async () => {
           </div>
         </div>
       )}
-
-      {/* Edit User Modal */}
+  
+      {/* Edit Student Modal */}
       {editUser && (
         <div className="modal">
           <div className="modal-content">
@@ -399,17 +404,19 @@ const fetchAvailableServices = useCallback(async () => {
             <form>
               <label>
                 Preferred Name:
-                <input  
-                  name="preferred_name" 
-                  value={editForm.preferred_name} 
-                  onChange={handleEditChange} />
+                <input
+                  name="preferred_name"
+                  value={editForm.preferred_name}
+                  onChange={handleEditChange}
+                />
               </label>
               <label>
                 Expected Graduation:
-                <input 
-                  name="expected_grad" 
-                  value={editForm.expected_grad} 
-                  onChange={handleEditChange} />
+                <input
+                  name="expected_grad"
+                  value={editForm.expected_grad}
+                  onChange={handleEditChange}
+                />
               </label>
               <label>
                 Service IDs:

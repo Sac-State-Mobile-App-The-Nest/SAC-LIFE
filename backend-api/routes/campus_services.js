@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const config = require('../config'); //server config file
+const config = require('../config'); // server config file
 const { authenticateToken } = require('../authMiddleware');
 const { verifyRole,  authenticateToken: adminAuthToken } = require('../middleware/authMiddleware');
 
 module.exports = function(poolPromise) {
 
-    //Get all campus services
+    // Get all campus services
     router.get('/getAllServices/', async (req, res) => {
         try {
             const result = await sql.query('SELECT serv_name, service_link FROM test_campus_services')
@@ -17,7 +17,8 @@ module.exports = function(poolPromise) {
             res.status(500).send('Server Error');
         }
     });
-
+    // GET: Retrieves services associated with a student based on tag IDs
+    // This allows the admin website to get students linked to their services
     router.get('/studentServices/:studentId', adminAuthToken, async (req, res) => {
         const { studentId } = req.params;
         try {
@@ -37,7 +38,7 @@ module.exports = function(poolPromise) {
         }
     });
     
-    //Get campus services but only the service_id and service name
+    // GET: Retrieves all campus services but only the service_id and service name
     router.get('/getServIDAndName', adminAuthToken, async (req, res) => {
         try {
           const pool = await poolPromise;
@@ -48,8 +49,10 @@ module.exports = function(poolPromise) {
           res.status(500).json({ message: 'Internal Server Error', error: err.message });
         }
       });
-        // GET campus service tags for a specific student for admin website
-       router.get('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+
+    // GET: Retrieves all service tags for a specific student (for admin website)
+    // This provides the list of service IDs linked to a student's tags
+    router.get('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
         const { studentId } = req.params;
         try {
         const pool = await poolPromise;
@@ -62,13 +65,17 @@ module.exports = function(poolPromise) {
                 JOIN test_student_tags st ON ts.tag_id = st.tag_id
                 WHERE st.std_id = @studentId
             `);
-        res.json(result.recordset); // e.g., [ { tag_id: 1 }, { tag_id: 3 } ]
-        } catch (err) {
-        console.error('SQL error (fetching student tags):', err.message);
-        res.status(500).json({ message: 'Internal Server Error', error: err.message });
-        }
-       });
 
+        res.json(result.recordset); // Returns an array of service IDs
+
+        } catch (err) {
+            console.error('SQL error (fetching student tags):', err.message);
+            res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+    });
+
+    // PUT: Updates service tags for a student
+    // Allows modifying which services a student is linked to
     router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
         const { studentId } = req.params;
         const { service_ids } = req.body; // Expecting an array of service IDs
@@ -91,8 +98,6 @@ module.exports = function(poolPromise) {
                 const request = transaction.request();
                 request.input('studentId', sql.Int, studentId);
     
-                // Generate `INSERT` values dynamically
-                const insertValues = service_ids.map((serviceId, index) => `(@studentId, @service${index})`).join(', ');
                 
                 // Bind values to the request
                 service_ids.forEach((serviceId, index) => {
@@ -107,7 +112,7 @@ module.exports = function(poolPromise) {
                 `);
             }
     
-            // 3Commit the transaction
+            // Commit the transaction after successful execution
             await transaction.commit();
             res.json({ message: 'Student services updated successfully!' });
     
@@ -116,8 +121,6 @@ module.exports = function(poolPromise) {
             res.status(500).json({ message: 'Internal Server Error', error: err.message });
         }
     });
-
-  
 
     //Get campus services that relates to student
     router.get('/student/:studentId', async (req, res) => {

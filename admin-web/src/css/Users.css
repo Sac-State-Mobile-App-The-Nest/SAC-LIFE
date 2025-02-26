@@ -1,3 +1,7 @@
+/* 
+   Fade-in animation for table rows. 
+   Starts with opacity 0 and slightly slides up. 
+*/
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -9,11 +13,13 @@
     }
 }
 
+/* Apply fade-in animation to each row in the table */
 .students-table tr {
     opacity: 0; /* Start hidden */
     animation: fadeIn 0.5s ease forwards; /* Fade in each row */
 }
 
+/* Add a slight delay for even and odd rows to create a staggered effect */
 .students-table tr:nth-child(even) {
     animation-delay: 0.1s; /* Staggered delay for even rows */
 }
@@ -22,8 +28,7 @@
     animation-delay: 0.2s; /* Staggered delay for odd rows */
 }
 
-/* Other styles */
-
+/* === Container Styles === */
 .students-container {
     max-height: 90vh;  /* Prevents exceeding the viewport */
     overflow-y: auto;  /* Enables vertical scrolling */
@@ -39,6 +44,7 @@
     width: 95%;
 }
 
+/* Heading styles */
 .students-container h2 {
     max-height: 90vh;  /* Prevents exceeding the viewport */
     overflow-y: auto;  /* Enables vertical scrolling */
@@ -50,6 +56,7 @@
     text-align: center;
 }
 
+/* === Table Styles === */
 .students-table {
     width: 100%;
     border-collapse: collapse;
@@ -60,6 +67,7 @@
     overflow: hidden;
 }
 
+/* Table header and cell styling */
 .students-table th, .users-table td {
     padding: 12px;
     text-align: center;
@@ -67,20 +75,24 @@
     border-bottom: 1px solid #e5e5e5;
 }
 
+/* Table header background color */
 .students-table th {
     background-color: #faf9e6; /* Soft, muted pale gold */
     font-weight: bold;
 }
 
+/* Highlight row on hover */
 .students-table tr:hover {
     background-color: #d3e0d5; /* Faded Sac State green on row hover */
 }
 
+/* === Buttons Container === */
 .students-buttons {
     display: flex;
     gap: 10px;
 }
 
+/* === General Button Styles === */
 button {
     padding: 8px 5px;
     font-size: 12px;
@@ -91,7 +103,7 @@ button {
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Edit Button Styles */
+/* === Edit Button Styles === */
 .edit-button {
     background-color: #e2e8d4; /* Soft green-gray for edit */
     color: #2e5339;
@@ -103,27 +115,43 @@ button {
     border-color: #b8c49e;
 }
 
-/* Delete Button Styles */
+/* === Delete Button Styles === */
 .delete-button {
     background-color: #e8b4b4; /* Muted soft red for delete */
     color: #5a1e1e; /* Dark red text */
     border-color: #d89a9a; /* Light border for delete button */
+    
+    
 }
 .delete-button:hover {
     background-color: #d89a9a; /* Darker muted red on hover */
     border-color: #c08484;
+    left: 5px; 
 }
 
+/* === Delete Selected Button (Fixed Position in Top-Left) === */
 .delete-selected-button{
+    position: absolute; /* Fixes button in the top-left */
+    top: 115px; /* Distance from the top */
+    left: 430px; /* Distance from the left */
     background-color: #e8b4b4; /* Muted soft red for delete */
     color: #5a1e1e; /* Dark red text */
     border-color: #d89a9a; /* Light border for delete button */
-    margin-left: -330px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+    z-index: 10; /* Ensures it stays above other elements */
 }
 
+/* === Back Button (Fixed at Top-Left) === */
 .delete-selected-button:hover {
     background-color: #d89a9a; /* Darker muted red on hover */
     border-color: #c08484;
+    transform: scale(1.05); /* Slight pop effect */
 }
 
 .back-button{
@@ -150,7 +178,7 @@ button {
     transform: scale(0.98);
 }
 
-/* Password Modal Styles */
+/* === Password Modal (Full-Screen Overlay) === */
 .password-modal {
     position: fixed;
     top: 0;
@@ -164,6 +192,7 @@ button {
     z-index: 1000;
 }
 
+/* Modal content styling */
 .password-modal-content {
     background: #f7f8f5; /* Very light gray-green */
     padding: 20px;
@@ -173,11 +202,13 @@ button {
     box-shadow: 0px 4px 8px rgba(0, 51, 17, 0.2); /* Subtle green shadow */
 }
 
+/* Modal heading */
 .password-modal-content h3 {
     margin-bottom: 10px;
     color: #2e5339; /* Dark green */
 }
 
+/* Input field inside modal */
 .password-modal-content input {
     width: 100%;
     padding: 10px;
@@ -190,12 +221,14 @@ button {
     box-sizing: border-box;
 }
 
+/* Modal button container */
 .password-modal-actions {
     display: flex;
     justify-content: space-between;
     gap: 10px;
 }
 
+/* Confirm delete button */
 .password-modal-actions button {
     padding: 10px 20px;
     border: none;
@@ -214,6 +247,7 @@ button {
     background-color: #2f5544; /* Darker green */
 }
 
+/* Cancel button */
 .password-modal-actions button:last-child {
     background-color: #ccc;
     color: black;
@@ -223,6 +257,7 @@ button {
     background-color: #aaa;
 }
 
+/* === Edit Modal (Full-Screen Overlay) === */
 .edit-modal {
     position: fixed;
     top: 0;
@@ -235,6 +270,7 @@ button {
     align-items: center;
 }
 
+/* Edit modal content */
 .edit-modal-content {
     max-height: 80vh; 
     overflow-y: auto; 
@@ -244,6 +280,7 @@ button {
     width: 300px;
 }
 
+/* Edit modal buttons container */
 .edit-modal-actions {
     margin-top: 10px;
     display: flex;

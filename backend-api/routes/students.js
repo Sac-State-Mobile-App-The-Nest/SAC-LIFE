@@ -2,9 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-
 
 const { authenticateToken } = require('../authMiddleware');
 
