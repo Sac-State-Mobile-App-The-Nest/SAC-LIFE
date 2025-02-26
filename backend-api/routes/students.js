@@ -2,9 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-
 
 const { authenticateToken } = require('../authMiddleware');
 
@@ -16,6 +13,18 @@ module.exports = function(poolPromise) {
     try {
       const pool = await poolPromise;
       const result = await pool.request().query('SELECT * FROM test_students');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  // Get std_id, preferred_name, abd expected_grad
+  router.get('/preferredInfo', async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT std_id, preferred_name, expected_grad FROM test_students');
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
@@ -64,8 +73,7 @@ module.exports = function(poolPromise) {
     }
   });
 
-  //Posting to test_student_tags  and test_students table
-
+  // Posting to test_student_tags and test_students table
   router.post('/profile-answers',authenticateToken, async (req, res) => {
     // gets the answers and student id of the user
     const { specificAnswers } = req.body;
@@ -114,6 +122,138 @@ module.exports = function(poolPromise) {
       res.status(500).send('Server Error');
     }
 
+  });
+
+  //Get the the student's college to display on profile page (ex: college of business, college of engineering & computer science)
+  router.get('/studentAreaOfStudy', authenticateToken, async (req, res) => {
+    try {
+        const std_id = req.user.std_id; //data that was sent in from front end is std_id
+        const pool = await poolPromise;
+        const servicesList = await pool.request()
+          .input('std_id', sql.Int, std_id)
+          .query(`SELECT test_tags.tag_name FROM
+                  test_tags JOIN test_student_tags ON
+                  test_tags.tag_id = test_student_tags.tag_id WHERE
+                  test_student_tags.std_id = @std_id AND
+                  test_tags.tag_id BETWEEN 22 AND 28`); //22-28 is where the colleges are listed in test_tags table
+        if (servicesList.recordset.length === 0){
+            return res.status(404).json({ message: "Student does not have a college assigned to them" });
+        }
+        res.json(servicesList.recordset);
+    } catch (err){
+        console.error('SQL error', err);
+        res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //get the user's year of study to display on profile(ex: freshman, sophomore, junior, senior, graduate)
+  router.get('/studentYearOfStudy', authenticateToken, async (req, res) => {
+    try {
+        const std_id = req.user.std_id; //data that was sent in from front end is std_id
+        const pool = await poolPromise;
+        const servicesList = await pool.request()
+          .input('std_id', sql.Int, std_id)
+          .query(`SELECT test_tags.tag_name FROM
+                  test_tags JOIN test_student_tags ON
+                  test_tags.tag_id = test_student_tags.tag_id WHERE
+                  test_student_tags.std_id = @std_id AND
+                  test_tags.tag_id BETWEEN 1 AND 5`); //1-5 is where the year of duty are listed in test_tags table
+        if (servicesList.recordset.length === 0){
+            return res.status(404).json({ message: "Student does not have a year assigned to them" });
+        }
+        res.json(servicesList.recordset);
+    } catch (err){
+        console.error('SQL error', err);
+        res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //update the student area of study (college of business -> college of engineering & computer science)
+  router.put('/updateUserAreaOfStudy', authenticateToken, async (req, res) => {
+    try{
+      const std_id = req.user.std_id;
+      const { areaOfStudy } = req.body //the college they attend at Sac State(College of Business)
+      if(!areaOfStudy){
+        return res.status(400).json({ messsage: "Area of study not found" })
+      }
+      const pool = await poolPromise;
+      //get the tag_id from the tag name from the test_tags table
+      const tagQuery = await pool.request()
+        .input('areaOfStudy', sql.VarChar, areaOfStudy)
+        .query('SELECT tag_id FROM test_tags WHERE tag_name = @areaOfStudy');
+      if(tagQuery.recordset.length == 0) {
+        return res.status(404).json({ message: "Area of study invalid" })
+      }
+      const tag_id = tagQuery.recordset[0].tag_id; //the tag_id retrieved
+      //make sure the sql requests go in order
+      const transaction = new sql.Transaction(pool);
+      await transaction.begin();
+      try{
+        // Remove any existing area of study for the student (remove tags between 22 and 28) in test_student_tags table
+        await transaction.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`DELETE FROM test_student_tags WHERE std_id = @std_id AND tag_id BETWEEN 22 AND 28`);
+  
+        // Insert the new area of study in the test_student_tags table
+        await transaction.request()
+          .input('std_id', sql.Int, std_id)
+          .input('tag_id', sql.Int, tag_id)
+          .query(`INSERT INTO test_student_tags (std_id, tag_id) VALUES (@std_id, @tag_id)`);
+  
+        await transaction.commit();
+        res.json({ success: true, message: 'Area of study updated successfully' });
+      } catch (err) {
+        await transaction.rollback(); //if query fails, revert any changes made
+        throw err;
+      }
+    } catch (err) {
+      console.error('SQL error', err);
+      res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //Update the student year of study (freshman -> sophomore)
+  router.put('/updateUserYearOfStudy', authenticateToken, async (req, res) => {
+    try{
+      const std_id = req.user.std_id;
+      const { yearOfStudy } = req.body //the college they attend at Sac State(College of Business)
+      if(!yearOfStudy){
+        return res.status(400).json({ messsage: "year of study not found" })
+      }
+      const pool = await poolPromise;
+      //get the tag_id from the tag name from the test_tags table
+      const tagQuery = await pool.request()
+        .input('yearOfStudy', sql.VarChar, yearOfStudy)
+        .query('SELECT tag_id FROM test_tags WHERE tag_name = @yearOfStudy');
+      if(tagQuery.recordset.length == 0) {
+        return res.status(404).json({ message: "year of study invalid" })
+      }
+      const tag_id = tagQuery.recordset[0].tag_id; //the tag_id retrieved
+      //make sure the sql requests go in order
+      const transaction = new sql.Transaction(pool);
+      await transaction.begin();
+      try{
+        // Remove any existing year of study for the student (remove tags between 1 and 5 - where (freshman, sopho... is located)) in test_student_tags table
+        await transaction.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`DELETE FROM test_student_tags WHERE std_id = @std_id AND tag_id BETWEEN 1 AND 5`);
+  
+        // Insert the new year of study in the test_student_tags table
+        await transaction.request()
+          .input('std_id', sql.Int, std_id)
+          .input('tag_id', sql.Int, tag_id)
+          .query(`INSERT INTO test_student_tags (std_id, tag_id) VALUES (@std_id, @tag_id)`);
+  
+        await transaction.commit();
+        res.json({ success: true, message: 'year of study updated successfully' });
+      } catch (err) {
+        await transaction.rollback(); //if query fails, revert any changes made
+        throw err;
+      }
+    } catch (err) {
+      console.error('SQL error', err);
+      res.status(500).json({ message: 'Backend server error' });
+    }
   });
 
   // // DELETE a student by studentId

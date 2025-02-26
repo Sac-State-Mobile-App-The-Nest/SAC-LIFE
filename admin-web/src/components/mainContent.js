@@ -6,7 +6,7 @@ import '../css/MainContent.css';
 function MainContent() {
   return (
     <div className="main-content">
-      <h1>Admin Dashboard of the Sac State Mobile App</h1>
+      <h1>Admin Dashboard of the Sac LIFE Mobile App</h1>
       <div className="dashboard-cards">
         <Link to="/Students" style={{ textDecoration: 'none' }}>
           <Card title="Students" content="Manage and view student data" />
