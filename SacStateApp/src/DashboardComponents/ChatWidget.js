@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Linking  } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
+import ParsedText from 'react-native-parsed-text';
 import styles from '../DashboardStyles/WidgetStyles';
 
 const ChatWidget = () => {
@@ -63,6 +64,10 @@ const ChatWidget = () => {
         }
     }, [messages]);
 
+    const handleUrlPress = (url) => {
+        Linking.openURL(url);
+    };
+
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.chatWidgetContainer}>
             <TouchableOpacity onPress={toggleChat} style={styles.chatToggle}>
@@ -83,7 +88,18 @@ const ChatWidget = () => {
                         {messages.map((msg, index) => (
                             <View key={index} style={styles.messageContainer}>
                                 <Text style={styles.senderLabel}>{msg.sender}</Text>
-                                <Text style={styles.message}>{msg.text}</Text>
+                                <ParsedText
+                                    style={styles.message}
+                                    parse={[
+                                        {
+                                            type: 'url',
+                                            style: { color: 'blue', textDecorationLine: 'underline' },
+                                            onPress: handleUrlPress,
+                                        },
+                                    ]}
+                                >
+                                    {msg.text}
+                                </ParsedText>
                             </View>
                         ))}
                     </ScrollView>
