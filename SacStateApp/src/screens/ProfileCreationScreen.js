@@ -6,12 +6,11 @@ import majorList from '../assets/majorList.json';
 import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
+
 const { height } = Dimensions.get('window');
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
-// Ensure the Sac State logo is stored in your assets directory
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // Replace with the correct path to your logo file
-
-// Class to represent a question in the profile creation process
+// Question class to represent a question in the profile creation process
 class Question {
     constructor(id, text, inputType, options = [], placeholder = null) {
         this.id = id;
@@ -20,15 +19,9 @@ class Question {
         this.options = options;
         this.placeholder = placeholder;
     }
-
-    handleCondition(answer, actions) {
-        if (this.conditional) {
-            this.conditional(answer, actions);
-        }
-    }
 }
 
-// Class to manage the profile creation process, including navigation and answer handling
+// ProfileCreationManager class to manage the profile creation process
 class ProfileCreationManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;
@@ -44,24 +37,202 @@ class ProfileCreationManager {
         this.setCurrentQuestion(Math.max(currentQuestion - 1, 0));
     }
 
-    skipQuestion(currentQuestion) {
-        this.setCurrentQuestion(Math.min(currentQuestion + 2, this.questions.length - 1));
-    }
-
     handleAnswer(questionId, answer, currentQuestion) {
         this.setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-        this.questions[questionId].handleCondition(answer, this.getActions(currentQuestion));
-    }
-
-    getActions(currentQuestion) {
-        return {
-            goToNext: () => this.goToNext(currentQuestion),
-            goToPrevious: () => this.goToPrevious(currentQuestion),
-            skipQuestion: () => this.skipQuestion(currentQuestion)
-        };
     }
 }
 
+// Function to validate the graduation year input
+const validateGraduationYear = (text, selectedYear) => {
+    const currentYear = new Date().getFullYear();
+    const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+
+    if (text.length === 4) {
+        const inputYear = parseInt(text);
+        if (isNaN(inputYear)) {
+            return { isValid: false, message: "Please enter a valid 4-digit year." };
+        }
+        if (inputYear < currentYear) {
+            return { isValid: false, message: "Invalid Year: Graduation year cannot be before the current year." };
+        }
+        if (inputYear < minimumGraduationYear) {
+            return { isValid: false, message: `Invalid Year: Graduation year must be ${minimumGraduationYear} or later for a ${selectedYear}.` };
+        }
+        return { isValid: true, message: "" };
+    } else if (text.length > 4) {
+        return { isValid: false, message: "Invalid Year: Please enter a valid 4-digit year." };
+    }
+    return { isValid: true, message: "" };
+};
+
+// Function to calculate the minimum graduation year based on the selected year in studies
+const getMinimumGraduationYear = (selectedYear) => {
+    const currentYear = new Date().getFullYear();
+    switch (selectedYear) {
+        case "Freshman":
+            return currentYear + 3;
+        case "Sophomore":
+            return currentYear + 2;
+        case "Junior":
+            return currentYear + 1;
+        case "Senior":
+            return currentYear;
+        default:
+            return currentYear;
+    }
+};
+
+// Function to send profile data to the server
+const sendProfileDataToServer = async (answers, navigation) => {
+    try {
+        const specificAnswers = {
+            question0: answers["0"],    //name
+            question1: answers["1"],    //race
+            question2: answers["2"] === "Returning student" ? "reentry student" : answers["2"].toLowerCase(), //student status
+            question3: answers["3"],    //area of study
+            question4: answers["4"] === "Graduate" ? "graduate student" : answers["4"].toLowerCase(), //student year
+            question5: answers["5"]["semester"] + " " + answers["5"]["year"],   //student graduation 
+            question6: answers["6"],    //campus interest
+            question7: answers["7"],    //campus support
+            question8: answers["8"],    //disability check
+            question9: answers["9"]     //veteran check
+        };
+        const token = await AsyncStorage.getItem('token');
+        const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ specificAnswers })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error sending profile data to server');
+        }
+
+        navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+        });
+    } catch (err) {
+        console.error('Error sending profile answers: ', err);
+        Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+        navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+        });
+    }
+};
+
+// Component to render the completion screen
+const CompletionScreen = ({ onPress }) => (
+    <View style={styles.completionContainer}>
+        <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
+        <TouchableOpacity style={styles.largeButton} onPress={onPress}>
+            <Text style={styles.largeButtonText}>Create Your Profile!</Text>
+        </TouchableOpacity>
+    </View>
+);
+
+// Component to render a single question
+const QuestionRenderer = ({ question, answers, profileCreationManager, currentQuestion, preferredName, setPreferredName }) => {
+    switch (question.inputType) {
+        case "text":
+            return (
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Preferred Name"
+                        value={preferredName}
+                        onChangeText={setPreferredName}
+                    />
+                </View>
+            );
+        case "checkbox":
+            return (
+                <View style={styles.checkboxContainer}>
+                    {(question.id === 6 || question.id === 7) && (
+                        <Text style={styles.selectAllText}>(Select all that may apply)</Text>
+                    )}
+                    {question.options.map((option) => {
+                        const isMultiSelect = question.id === 6 || question.id === 7;
+                        const isSelected = isMultiSelect ? (answers[question.id] || []).includes(option) : answers[question.id] === option;
+                        return (
+                            <TouchableOpacity
+                                key={option}
+                                style={[styles.optionButton, isSelected && styles.selectedOptionButton]}
+                                onPress={() => {
+                                    if (isMultiSelect) {
+                                        const currentAnswers = answers[question.id] || [];
+                                        const newAnswers = currentAnswers.includes(option)
+                                            ? currentAnswers.filter(item => item !== option)
+                                            : [...currentAnswers, option];
+                                        profileCreationManager.handleAnswer(question.id, newAnswers, currentQuestion);
+                                    } else {
+                                        profileCreationManager.handleAnswer(question.id, option, currentQuestion);
+                                    }
+                                }}
+                            >
+                                <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>{option}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            );
+        case "dropdown":
+            return (
+                <View style={styles.inputContainer}>
+                    <ModalSelector
+                        data={question.options}
+                        initValue={question.placeholder}
+                        onChange={(option) => profileCreationManager.handleAnswer(question.id, option.key, currentQuestion)}
+                        style={styles.pickerContainer}
+                        initValueTextStyle={styles.pickerText}
+                        selectTextStyle={styles.pickerText}
+                    />
+                </View>
+            );
+        case "graduationDate":
+            return (
+                <View style={styles.inputContainer}>
+                    <ModalSelector
+                        data={question.options.map(option => ({ key: option, label: option }))}
+                        initValue="Select semester"
+                        onChange={(option) => profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion)}
+                        style={styles.pickerContainer}
+                        initValueTextStyle={styles.pickerText}
+                        selectTextStyle={styles.pickerText}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Graduation year (e.g., 2024)"
+                        keyboardType="numeric"
+                        value={answers[question.id]?.year || ""}
+                        onChangeText={(text) => {
+                            const validation = validateGraduationYear(text, answers[4]);
+                            if (!validation.isValid) {
+                                Alert.alert("Error", validation.message);
+                                return;
+                            }
+                            const semester = answers[question.id]?.semester || "";
+                            profileCreationManager.handleAnswer(question.id, { semester, year: text }, currentQuestion);
+                        }}
+                        maxLength={4}
+                    />
+                    {answers[question.id]?.semester && answers[question.id]?.year && (
+                        <Text style={styles.selectedDropdownText}>
+                            Selected: {answers[question.id].semester} {answers[question.id].year}
+                        </Text>
+                    )}
+                </View>
+            );
+        default:
+            return null;
+    }
+};
+
+// Main ProfileCreation component
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -69,7 +240,6 @@ const ProfileCreation = () => {
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
 
-    // List of questions for the profile creation process
     const questions = [
         new Question(0, "Tell us your name! (Or preferred name)", "text"),
         new Question(1, "What is your race?", "dropdown", ethnicity["ethnicity"], "Select Race"),
@@ -85,220 +255,16 @@ const ProfileCreation = () => {
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
-    // Function to calculate the minimum graduation year based on the selected year in studies
-    const getMinimumGraduationYear = (selectedYear) => {
-        const currentYear = new Date().getFullYear();
-        switch (selectedYear) {
-            case "Freshman":
-                return currentYear + 3; // Freshman: 3 years from now
-            case "Sophomore":
-                return currentYear + 2; // Sophomore: 2 years from now
-            case "Junior":
-                return currentYear + 1; // Junior: 1 year from now
-            case "Senior":
-                return currentYear; // Senior: current year or later
-            default:
-                return currentYear; // Default: current year or later
-        }
-    };
-
-    // Function to mark profile creation as complete and send data to the server
-    const completeProfileCreation = () => {
-        setIsCompleted(true);
-        sendProfileDataToServer();
-    };
-
-    // Function to send profile data to the server
-    const sendProfileDataToServer = async () => {
-        try {
-            const specificAnswers = {
-                question0: answers["0"], // preferred name
-                question1: answers["1"], // race
-                question2: answers["2"] === "Returning student" ? "reentry student" : answers["2"].toLowerCase(), // type of student (eg. new student, transfer)
-                question3: answers["3"], // college
-                question4: answers["4"] === "Graduate" ? "graduate student" : answers["4"].toLowerCase(), // what year are you? (eg. freshman, sophomore)
-                question5: answers["5"]["semester"] + " " + answers["5"]["year"], // This will now contain { semester: "Spring/Fall", year: "2024" }
-                question6: answers["6"], // what events
-                question7: answers["7"], // other types of student
-                question8: answers["8"], //Disability
-                question9: answers["9"]    //Veteran
-            };
-            const token = await AsyncStorage.getItem('token');
-            const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ specificAnswers })
-            });
-
-            if (!response.ok) {
-                throw new Error('Error sending profile data to server');
-            }
-
-            // Navigate to the Dashboard after successful submission
-            navigation.reset({
-                index: 0,
-                routes: [{ name: "Dashboard" }],
-            });
-        } catch (err) {
-            console.error('Error sending profile answers: ', err);
-            Alert.alert('Error', 'Failed to send profile answers. Please try again.');
-            // Allow navigation to Dashboard even if there's an error
-            navigation.reset({
-                index: 0,
-                routes: [{ name: "Dashboard" }],
-            });
-        }
-    };
-
-    // Function to render the current question based on its input type
-    const renderQuestion = (question) => {
-        switch (question.inputType) {
-            case "text":
-                return (
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Preferred Name"
-                            value={preferredName}
-                            onChangeText={(text) => setPreferredName(text)}
-                        />
-                    </View>
-                );
-            case "checkbox":
-                return (
-                    <View style={styles.checkboxContainer}>
-                        {(question.id === 6 || question.id === 7) && (
-                            <Text style={styles.selectAllText}>(Select all that may apply)</Text>
-                        )}
-                        {question.options.map((option) => {
-                            const isMultiSelect = question.id === 6 || question.id === 7;
-                            let isSelected;
-                            if (isMultiSelect) {
-                                isSelected = (answers[question.id] || []).includes(option);
-                            } else {
-                                isSelected = answers[question.id] === option;
-                            }
-                            return (
-                                <TouchableOpacity
-                                    key={option}
-                                    style={[
-                                        styles.optionButton,
-                                        isSelected && styles.selectedOptionButton
-                                    ]}
-                                    onPress={() => {
-                                        if (isMultiSelect) {
-                                            const currentAnswers = answers[question.id] || [];
-                                            const newAnswers = currentAnswers.includes(option)
-                                                ? currentAnswers.filter(item => item !== option)
-                                                : [...currentAnswers, option];
-                                            profileCreationManager.handleAnswer(question.id, newAnswers, currentQuestion);
-                                        } else {
-                                            profileCreationManager.handleAnswer(question.id, option, currentQuestion);
-                                        }
-                                    }}
-                                >
-                                    <Text style={[
-                                        styles.optionText,
-                                        isSelected && styles.selectedOptionText
-                                    ]}>{option}</Text>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                );
-            case "dropdown":
-                return (
-                    <View style={styles.inputContainer}>
-                        <ModalSelector
-                            data={question.options}
-                            initValue={question.placeholder}
-                            onChange={(option) => {
-                                profileCreationManager.handleAnswer(question.id, option.key, currentQuestion);
-                            }}
-                            style={styles.pickerContainer}
-                            initValueTextStyle={styles.pickerText}
-                            selectTextStyle={styles.pickerText}
-                        />
-                    </View>
-                );
-            case "graduationDate":
-                return (
-                    <View style={styles.inputContainer}>
-                        <ModalSelector
-                            data={question.options.map(option => ({ key: option, label: option }))}
-                            initValue="Select semester"
-                            onChange={(option) => {
-                                profileCreationManager.handleAnswer(question.id, { semester: option.label, year: answers[question.id]?.year || "" }, currentQuestion);
-                            }}
-                            style={styles.pickerContainer}
-                            initValueTextStyle={styles.pickerText}
-                            selectTextStyle={styles.pickerText}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Graduation year (e.g., 2024)"
-                            keyboardType="numeric"
-                            value={answers[question.id]?.year || ""}
-                            onChangeText={(text) => {
-                                const currentYear = new Date().getFullYear();
-                                const selectedYear = answers[4]; // Get the user's selected year in their studies (e.g., Freshman, Sophomore, etc.)
-                                const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
-
-                                // Validate the input
-                                if (text.length === 4) {
-                                    const inputYear = parseInt(text);
-                                    if (isNaN(inputYear)) {
-                                        Alert.alert("Error", "Please enter a valid 4-digit year.");
-                                        return;
-                                    }
-                                    if (inputYear < minimumGraduationYear) {
-                                        Alert.alert("Error", `Graduation year must be ${minimumGraduationYear} or later for a ${selectedYear}.`);
-                                        return;
-                                    }
-                                }
-
-                                const semester = answers[question.id]?.semester || "";
-                                profileCreationManager.handleAnswer(question.id, { semester, year: text }, currentQuestion);
-                            }}
-                            maxLength={4}
-                        />
-                        {answers[question.id]?.semester && answers[question.id]?.year && (
-                            <Text style={styles.selectedDropdownText}>
-                                Selected: {answers[question.id].semester} {answers[question.id].year}
-                            </Text>
-                        )}
-                    </View>
-                );
-            default:
-                return (
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Your answer"
-                            onChangeText={(text) => profileCreationManager.handleAnswer(question.id, text, currentQuestion)}
-                        />
-                    </View>
-                );
-        }
-    };
-
-    // Function to handle the "Next" button press
     const handleNextPress = () => {
-        if (currentQuestion === 0) {
-            if (preferredName.trim() === "") {
-                Alert.alert("Error", "Please fill in your name.");
-                return;
-            }
-            profileCreationManager.handleAnswer(0, preferredName, currentQuestion);
+        if (currentQuestion === 0 && preferredName.trim() === "") {
+            Alert.alert("Error", "Please fill in your name.");
+            return;
         }
 
         if (currentQuestion === 5) {
             const graduationDate = answers[5];
             const currentYear = new Date().getFullYear();
-            const selectedYear = answers[4]; // Get the user's selected year in their studies (e.g., Freshman, Sophomore, etc.)
+            const selectedYear = answers[4];
             const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
 
             if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < minimumGraduationYear) {
@@ -308,54 +274,40 @@ const ProfileCreation = () => {
         }
 
         if (currentQuestion === questions.length - 1) {
-            completeProfileCreation();
+            setIsCompleted(true);
         } else {
             profileCreationManager.goToNext(currentQuestion);
         }
     };
 
-    // Function to render the completion screen after all questions are answered
-    const renderCompletionScreen = () => {
-        return (
-            <View style={styles.completionContainer}>
-                <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-                <TouchableOpacity
-                    style={styles.largeButton}
-                    onPress={sendProfileDataToServer}
-                >
-                    <Text style={styles.largeButtonText}>Create Your Profile!</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    };
-
     return (
-        <ImageBackground
-            source={SAC_STATE_LOGO}
-            style={styles.background}
-            imageStyle={styles.logoImage} // Apply specific style for the logo
-        >
+        <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
             <View style={styles.logoContainer}>
                 <ScrollView contentContainerStyle={styles.container}>
                     {isCompleted ? (
-                        renderCompletionScreen()
+                        <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
                     ) : (
                         <>
                             <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
                             <View style={styles.box}>
                                 <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                                {renderQuestion(questions[currentQuestion])}
+                                <QuestionRenderer
+                                    question={questions[currentQuestion]}
+                                    answers={answers}
+                                    profileCreationManager={profileCreationManager}
+                                    currentQuestion={currentQuestion}
+                                    preferredName={preferredName}
+                                    setPreferredName={setPreferredName}
+                                />
                             </View>
                             <View style={styles.navigationButtons}>
-                                {currentQuestion !== 0 ? (
+                                {currentQuestion !== 0 && (
                                     <TouchableOpacity
                                         style={[styles.button, styles.previousButton]}
                                         onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
                                     >
                                         <Text style={styles.buttonText}>Previous</Text>
                                     </TouchableOpacity>
-                                ) : (
-                                    <View style={styles.placeholderButton} />
                                 )}
                                 <TouchableOpacity
                                     style={[styles.button, styles.nextButton]}
