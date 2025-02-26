@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import LogInScreen from './src/screens/LogInScreen';
 import ProfileCreationScreen from './src/screens/ProfileCreationScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // Your welcome screen
@@ -54,7 +54,7 @@ export default function App() {
         )}
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="LogIn" component={LogInScreen} />
         <Stack.Screen name="ProfileCreation" component={ProfileCreationScreen} />
         <Stack.Screen name="AllServices" component={AllServicesScreen} />
