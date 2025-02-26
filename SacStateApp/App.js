@@ -10,6 +10,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import LogInScreen from './src/screens/LogInScreen';
 import ProfileCreationScreen from './src/screens/ProfileCreationScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // Your welcome screen
+import AllServicesScreen from './src/screens/AllServicesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +57,7 @@ export default function App() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="LogIn" component={LogInScreen} />
         <Stack.Screen name="ProfileCreation" component={ProfileCreationScreen} />
+        <Stack.Screen name="AllServices" component={AllServicesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

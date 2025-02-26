@@ -2,9 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-
 
 const { authenticateToken } = require('../authMiddleware');
 
@@ -16,6 +13,18 @@ module.exports = function(poolPromise) {
     try {
       const pool = await poolPromise;
       const result = await pool.request().query('SELECT * FROM test_students');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  // Get std_id, preferred_name, abd expected_grad
+  router.get('/preferredInfo', async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT std_id, preferred_name, expected_grad FROM test_students');
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
@@ -64,8 +73,7 @@ module.exports = function(poolPromise) {
     }
   });
 
-  //Posting to test_student_tags  and test_students table
-
+  // Posting to test_student_tags and test_students table
   router.post('/profile-answers',authenticateToken, async (req, res) => {
     // gets the answers and student id of the user
     const { specificAnswers } = req.body;

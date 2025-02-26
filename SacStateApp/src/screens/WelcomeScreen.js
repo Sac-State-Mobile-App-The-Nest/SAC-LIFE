@@ -1,8 +1,9 @@
+// WelcomeScreen.js
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Animated, Image, Dimensions } from 'react-native';
 import styles from '../WelcomeStyles/WelcomeStyles';
 
-const WelcomeScreen = () => {
+const WelcomeScreen = ({ navigation }) => {  // <-- Destructure navigation here
   const { width } = Dimensions.get('window');
   const containerWidth = width * 0.8;
 
@@ -71,12 +72,15 @@ const WelcomeScreen = () => {
                 duration: 250,
                 useNativeDriver: true,
               }).start(() => {
-                // 7. Then animate the loading bar's width from 0 to containerWidth over 1500ms.
+                // 7. Animate the loading bar's width from 0 to containerWidth over 1500ms.
                 Animated.timing(loadingBarAnim, {
                   toValue: containerWidth,
                   duration: 1500,
                   useNativeDriver: false, // Width animations require useNativeDriver: false.
-                }).start();
+                }).start(() => {
+                  // Navigation callback after the final animation completes.
+                  navigation.navigate('LogIn'); // Or use navigation.replace('LogIn') if you don't want to allow going back.
+                });
               });
             });
           });
@@ -91,6 +95,7 @@ const WelcomeScreen = () => {
     loadingBarAnim,
     loadingBarContainerOpacity,
     containerWidth,
+    navigation, // Include navigation in the dependency array.
   ]);
 
   return (
@@ -118,7 +123,7 @@ const WelcomeScreen = () => {
           </Animated.Text>
         )}
       </View>
-      {/* Loading bar container is wrapped in Animated.View to control its opacity */}
+      {/* Loading bar container */}
       <Animated.View style={[styles.loadingBarContainer, { opacity: loadingBarContainerOpacity }]}>
         <Animated.View style={[styles.loadingBar, { width: loadingBarAnim }]} />
       </Animated.View>

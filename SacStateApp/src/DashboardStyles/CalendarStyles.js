@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
   },
   fullCalendarContainer: {
     marginTop: 20,
-    borderRadius: 15,
-    maxHeight: 500, // Prevent overflowing on smaller screens
+    borderRadius: 2,
+    maxHeight: 1000, // Prevent overflowing on smaller screens
     overflow: 'hidden', // Clip content within bounds
   },
   fullCalendarHeader: {
@@ -217,6 +217,108 @@ const styles = StyleSheet.create({
     color: colors.sacGreen,
     textAlign: 'center',
   },
+  // Add these styles to your styles file
+
+modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+},
+modalContent: {
+  width: '80%',
+  padding: 20,
+  backgroundColor: 'white',
+  borderRadius: 10,
+  alignItems: 'center', // Centers content horizontally
+},
+modalTitle: {
+  fontSize: 24,
+  marginBottom: 20,
+  color: 'black', // Keeping title text color black
+  textAlign: 'center', // Ensure the title is centered
+},
+inputField: {
+  width: '100%',
+  padding: 10,
+  color: 'black',
+  marginVertical: 10,
+  borderColor: '#ccc',
+  borderWidth: 1,
+  borderRadius: 5,
+  textAlign: 'left', // Keep text aligned to the left inside the input field
+},
+button: {
+  marginTop: 20,
+  padding: 10,
+  backgroundColor: '#043927', // Button background color (green for example)
+  borderRadius: 5,
+  width: '100%',
+  alignItems: 'center', // Center the button text
+},
+buttonText: {
+  color: 'white',
+  fontWeight: 'bold',
+  fontSize: 16,
+},
+// Event list container style
+eventListContainer: {
+  padding: 15,
+  backgroundColor: '#f9f9f9',
+  borderRadius: 10,
+  marginTop: 10,
+},
+
+// Title of the event list section
+eventListTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#043927',
+  marginBottom: 10,
+},
+
+// Individual event styling
+eventItem: {
+  backgroundColor: '#fff',
+  marginBottom: 10,
+  padding: 15,
+  borderRadius: 8,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  elevation: 2,
+  borderLeftWidth: 4,
+  borderLeftColor: '#043927', // Highlight with a left border
+},
+
+// Event item content container
+eventItemContent: {
+  paddingLeft: 10,
+  paddingRight: 10,
+},
+
+// Event title styling
+eventItemTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#043927',
+  marginBottom: 5,
+},
+
+// Event description styling
+eventItemDescription: {
+  fontSize: 14,
+  color: '#555',
+  marginBottom: 5,
+},
+
+// Event date styling
+eventItemDate: {
+  fontSize: 12,
+  color: '#777',
+  fontStyle: 'italic',
+}
 });
 
 

@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const config = require('../config'); //server config file
+const config = require('../config'); // server config file
 const { authenticateToken } = require('../authMiddleware');
+const { verifyRole,  authenticateToken: adminAuthToken } = require('../middleware/authMiddleware');
 
 module.exports = function(poolPromise) {
 
-    //Get all campus services
+    // Get all campus services
     router.get('/getAllServices/', async (req, res) => {
         try {
             const result = await sql.query('SELECT serv_name, service_link FROM test_campus_services')
@@ -14,6 +15,110 @@ module.exports = function(poolPromise) {
         } catch (err) {
             console.error('SQL error', err);
             res.status(500).send('Server Error');
+        }
+    });
+    // GET: Retrieves services associated with a student based on tag IDs
+    // This allows the admin website to get students linked to their services
+    router.get('/studentServices/:studentId', adminAuthToken, async (req, res) => {
+        const { studentId } = req.params;
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input('studentId', sql.Int, studentId)
+                .query(`
+                    SELECT ts.service_id
+                    FROM test_tag_service ts
+                    JOIN test_student_tags st ON ts.tag_id = st.tag_id
+                    WHERE st.std_id = @studentId
+                `);
+            res.json(result.recordset);  // Returns only service IDs
+        } catch (err) {
+            console.error('SQL error (fetching student services):', err.message);
+            res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+    });
+    
+    // GET: Retrieves all campus services but only the service_id and service name
+    router.get('/getServIDAndName', adminAuthToken, async (req, res) => {
+        try {
+          const pool = await poolPromise;
+          const result = await pool.request().query('SELECT service_id, serv_name FROM test_campus_services');
+          res.json(result.recordset);
+        } catch (err) {
+          console.error('SQL error (fetching campus services):', err.message);
+          res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+      });
+
+    // GET: Retrieves all service tags for a specific student (for admin website)
+    // This provides the list of service IDs linked to a student's tags
+    router.get('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+        const { studentId } = req.params;
+        try {
+        const pool = await poolPromise;
+        // This query should return rows with tag_id values
+        const result = await pool.request()
+            .input('studentId', sql.Int, studentId)
+            .query(`
+                SELECT ts.service_id 
+                FROM test_tag_service ts
+                JOIN test_student_tags st ON ts.tag_id = st.tag_id
+                WHERE st.std_id = @studentId
+            `);
+
+        res.json(result.recordset); // Returns an array of service IDs
+
+        } catch (err) {
+            console.error('SQL error (fetching student tags):', err.message);
+            res.status(500).json({ message: 'Internal Server Error', error: err.message });
+        }
+    });
+
+    // PUT: Updates service tags for a student
+    // Allows modifying which services a student is linked to
+    router.put('/studentTags/:studentId', adminAuthToken, verifyRole(['super-admin']), async (req, res) => {
+        const { studentId } = req.params;
+        const { service_ids } = req.body; // Expecting an array of service IDs
+    
+        try {
+            const pool = await poolPromise;
+            const transaction = pool.transaction();
+            await transaction.begin();
+    
+            // Delete old service mappings for the student
+            await transaction.request()
+                .input('studentId', sql.Int, studentId)
+                .query(`
+                    DELETE FROM test_student_tags
+                    WHERE std_id = @studentId
+                `);
+    
+            // Insert new service mappings if any service_ids are provided
+            if (service_ids && service_ids.length > 0) {
+                const request = transaction.request();
+                request.input('studentId', sql.Int, studentId);
+    
+                
+                // Bind values to the request
+                service_ids.forEach((serviceId, index) => {
+                    request.input(`service${index}`, sql.Int, serviceId);
+                });
+    
+                await request.query(`
+                    INSERT INTO test_student_tags (std_id, tag_id)
+                    SELECT @studentId, tag_id
+                    FROM test_tag_service
+                    WHERE service_id IN (${service_ids.join(', ')})
+                `);
+            }
+    
+            // Commit the transaction after successful execution
+            await transaction.commit();
+            res.json({ message: 'Student services updated successfully!' });
+    
+        } catch (err) {
+            console.error('SQL error (updating student services):', err.message);
+            res.status(500).json({ message: 'Internal Server Error', error: err.message });
         }
     });
 

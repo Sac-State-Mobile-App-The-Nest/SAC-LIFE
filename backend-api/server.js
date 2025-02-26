@@ -32,6 +32,7 @@ const tagsRoute = require('./routes/tags');
 const login_infoRoute = require('./routes/login_info');
 const adminLoginRoute = require('./routes/admin_routes/admin_login')(poolPromise);
 const adminRoutes = require('./routes/admin_routes/adminRoutes')(poolPromise);
+const eventRoute = require('./routes/events')(poolPromise);
 
 app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);
@@ -39,6 +40,7 @@ app.use('/api/tags', tagsRoute);
 app.use('/api/login_info', login_infoRoute);
 app.use('/api', adminLoginRoute);
 app.use('/api/adminRoutes', adminRoutes);
+app.use('/api/events', eventRoute);
 
 
 app.get('/api/helloMessage', (req, res) => {
