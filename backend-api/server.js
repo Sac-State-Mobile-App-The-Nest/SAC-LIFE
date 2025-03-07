@@ -32,8 +32,11 @@ app.use(passport.session()); // Ensure Passport can store SAML session data
 const authRoutes = require('./auth/authRoutes');
 const authMiddleware = require('./authMiddleware'); // Middleware for JWT authentication
 
-console.log("✅ Registering authRoutes at /auth");
-app.use('/auth', authRoutes);
+console.log("Registering authRoutes at /auth");
+app.use('/auth', (req, res, next) => {
+  console.log("🔹 Incoming request to /auth:", req.method, req.url);
+  next();
+}, authRoutes);
 
 // Initialize SQL connection pool once
 const poolPromise = sql.connect(config)
@@ -73,7 +76,18 @@ app.get('/api/helloMessage', (req, res) => {
 
 // Console debugs to see if all our login routes are mounting correctly
 console.log("✅ Registered Routes:");
-console.log(app._router.stack.filter(r => r.route).map(r => r.route.path));
+app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+        console.log(middleware.route.path);
+    } else if (middleware.name === 'router') {
+        middleware.handle.stack.forEach((subMiddleware) => {
+            if (subMiddleware.route) {
+                console.log(subMiddleware.route.path);
+            }
+        });
+    }
+});
+
 
 app.listen(port, ()=>{
     console.log(`Server running on port http://localhost:${port}`);

@@ -12,11 +12,11 @@ Every time the app is started (backend must be running first), the command "ngro
 
 Copy and paste the XML metadata below into SSOCircle
 -->
-<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://ff43-45-22-139-127.ngrok-free.app/saml/metadata">
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://b03f-45-22-139-127.ngrok-free.app/saml/metadata">
     <SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
         <AssertionConsumerService 
             Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" 
-            Location="https://ff43-45-22-139-127.ngrok-free.app/auth/callback" 
+            Location="https://b03f-45-22-139-127.ngrok-free.app/auth/callback" 
             index="1"/>
     </SPSSODescriptor>
 </EntityDescriptor>

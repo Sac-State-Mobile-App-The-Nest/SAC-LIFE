@@ -10,6 +10,7 @@ require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 // // Ensure `idpCert` is correctly loaded
+// TODO: Needs to use environment variable
 // const idpCert = `-----BEGIN CERTIFICATE-----
 // MIIEYzCCAkugAwIBAgIDIAZm...
 // -----END CERTIFICATE-----`;
@@ -19,7 +20,6 @@ const idpCert = "-----BEGIN CERTIFICATE-----\nMIIEYzCCAkugAwIBAgIDIAZmMA0GCSqGSI
 
 // console.log("DEBUG: idpCert Value:\n", idpCert);  // Log idpCert
 
-// Debugging: Print Final SAML Configuration
 const samlConfig = {
     entryPoint: process.env.SAML_ENTRY_POINT,
     issuer: process.env.SAML_ISSUER,
@@ -28,7 +28,8 @@ const samlConfig = {
     identifierFormat: null
 };
 
-console.log("SAML Strategy Config Before Passport Initialization:", samlConfig);
+// Debugging: Print Final SAML Configuration
+// console.log("SAML Strategy Config Before Passport Initialization:", samlConfig);
 
 // Add Try-Catch to Catch `passport-saml` Issues
 try {
@@ -46,4 +47,29 @@ try {
     process.exit(1);
 }
 
-module.exports = passport;
+// Define login function
+const login = (req, res, next) =>  {
+    console.log("Redirecting to our SAML Identity Provider...");
+    passport.authenticate('saml', { failureRedirect: '/'})(req, res, next);
+}
+
+// Define callback function
+const callback = (req, res, next) => {
+    console.log("✅ Processing SAML callback...");
+    passport.authenticate('saml', (err, user, info) => {
+        if (err || !user) {
+            console.error("❌ SAML Authentication Failed:", err || info);
+            return res.status(401).json({ message: "SAML Authentication Failed" });
+        }
+        req.login(user, (loginErr) => {
+            if (loginErr) {
+                console.error("❌ Error during login:", loginErr);
+                return res.status(500).json({ message: "Error during login." });
+            }
+            console.log("✅ SAML Authentication Success:", user);
+            return res.json({ message: "SAML Login Successful", user });
+        });
+    })(req, res, next);
+};
+
+module.exports = { login, callback, passport};

@@ -16,4 +16,10 @@ router.post('/callback', (req, res, next) => {
     authService.callback(req, res, next);
 });
 
+// Allow browsers to trigger SAML login via GET request
+router.get('/login', (req, res, next) => {
+    console.log("Received GET request at /auth/login (Browser SAML Login)");
+    authService.login(req, res, next);
+})
+
 module.exports = router;
