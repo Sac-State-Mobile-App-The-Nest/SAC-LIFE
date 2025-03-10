@@ -15,6 +15,8 @@ function AdminRoles() {
   const [password, setPassword] = useState('');
   const [editAdmin, setEditAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ username: '', role: '' });
+  const [createAdminModal, setCreateAdminModal] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "admin" });
   const navigate = useNavigate();
 
   // Fetches the list of admins from the backend and sets state
@@ -68,12 +70,58 @@ function AdminRoles() {
     getAdminRole();
   }, [fetchAdmins, getAdminRole]);
 
+   // Handles form input change
+   const handleInputChange = (e) => {
+    setNewAdmin({ ...newAdmin, [e.target.name]: e.target.value });
+  };
+
   const handleCheckboxChange = (username) => {
     setSelectedAdmins((prevSelected) =>
       prevSelected.includes(username)
         ? prevSelected.filter((admin) => admin !== username)
         : [...prevSelected, username]
     );
+  };
+
+  // Creates a new admin account
+  const handleCreateAdmin = async () => {
+    if (!newAdmin.username || !newAdmin.password) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in.");
+        logoutAdmin(navigate);
+        return;
+      }
+
+      const response = await api.post(
+        "/adminRoutes/create",
+        {
+          username: newAdmin.username,
+          password: newAdmin.password,
+          role: newAdmin.role,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status === 201) {
+        alert("Admin created successfully!");
+        fetchAdmins();
+        setCreateAdminModal(false);
+        setNewAdmin({ username: "", password: "", role: "admin" });
+      } else {
+        alert("Failed to create admin.");
+      }
+    } catch (error) {
+      console.error("Error creating admin:", error);
+      alert("Error: Unable to create admin.");
+    }
   };
 
   // Handles "Select All" checkbox selection
@@ -199,6 +247,13 @@ return (
     <BackButton />
     <h2>Admin List</h2>
 
+    {/* Create Admin Button (Visible to Super-Admins Only) */}
+    {role === "super-admin" && (
+        <button className="create-admin-button" onClick={() => setCreateAdminModal(true)}>
+          + Create Admin
+        </button>
+      )}
+
     {/* Search input for filtering admins */}
     <input
       type="text"
@@ -320,6 +375,38 @@ return (
         </div>
       </div>
     )}
+
+     {/* Create Admin Modal */}
+     {createAdminModal && (
+        <div className="edit-modal">
+          <div className="edit-modal-content">
+            <h3>Create New Admin</h3>
+
+            <label>Username:</label>
+            <input type="text" name="username" value={newAdmin.username} onChange={handleInputChange} />
+
+            <label>Password:</label>
+            <input type="password" name="password" value={newAdmin.password} onChange={handleInputChange} />
+
+            <label>Role:</label>
+            <select name="role" value={newAdmin.role} onChange={handleInputChange}>
+              <option value="admin">Admin</option>
+              <option value="content-manager">Content Manager</option>
+              <option value="super-admin">Super Admin</option>
+            </select>
+
+            <div className="edit-modal-actions">
+              <button className="save-button" onClick={handleCreateAdmin}>
+                Create
+              </button>
+              <button className="cancel-button" onClick={() => setCreateAdminModal(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
   </div>
 );
 }

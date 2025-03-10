@@ -236,5 +236,33 @@ module.exports = function (poolPromise) {
     }
   });
 
+  /**
+   * POST: Creates a new admin account
+   * Only super-admins can perform this action.
+   */
+  router.post("/create", authenticateToken, verifyRole(["super-admin"]), async (req, res) => {
+    const { username, password, role } = req.body;
+
+    if (!username || !password || !role) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    try {
+      const pool = await poolPromise;
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await pool.request()
+        .input("username", sql.VarChar, username)
+        .input("password", sql.VarChar, hashedPassword)
+        .input("role", sql.VarChar, role)
+        .query("INSERT INTO admin_login (username, password, role) VALUES (@username, @password, @role)");
+
+      res.status(201).json({ message: "Admin created successfully" });
+    } catch (error) {
+      console.error("SQL error:", error.message);
+      res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+  });
+
   return router;
 };
