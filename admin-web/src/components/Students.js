@@ -396,39 +396,54 @@ function Students() {
   
       {/* Edit Student Modal */}
       {editUser && (
-        <div className="eimodal">
-          <div className="modal-content">
+        <div className="edit-modal">
+          <div className="edit-modal-content">
             <h3>Edit Student</h3>
-            <form>
-              <label>
-                Preferred Name:
-                <input
-                  name="preferred_name"
-                  value={editForm.preferred_name}
-                  onChange={handleEditChange}
-                />
-              </label>
-              <label>
-                Expected Graduation:
-                <input
-                  name="expected_grad"
-                  value={editForm.expected_grad}
-                  onChange={handleEditChange}
-                />
-              </label>
-              <label>
-                Service IDs:
-                <select multiple value={editForm.service_ids} onChange={handleServiceChange}>
-                  {availableServices.map(service => (
-                    <option key={service.service_id} value={service.service_id}>
-                      {service.serv_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button type="button" onClick={handleSaveEdit}>Save</button>
-              <button type="button" onClick={() => setEditUser(null)}>Cancel</button>
-            </form>
+
+            <label>Preferred Name:</label>
+            <input
+              type="text"
+              name="preferred_name"
+              value={editForm.preferred_name}
+              onChange={handleEditChange}
+            />
+
+            <label>Expected Graduation:</label>
+            <input
+              type="text"
+              name="expected_grad"
+              value={editForm.expected_grad}
+              onChange={handleEditChange}
+            />
+
+            <label>Service Subscriptions:</label>
+            <div className="service-checkbox-container">
+              {availableServices.map((service) => (
+                <label key={service.service_id} className="service-checkbox">
+                  <input
+                    type="checkbox"
+                    value={service.service_id}
+                    checked={editForm.service_ids.includes(service.service_id)}
+                    onChange={(e) => {
+                      const updatedServices = e.target.checked
+                        ? [...editForm.service_ids, service.service_id]
+                        : editForm.service_ids.filter((id) => id !== service.service_id);
+                      setEditForm({ ...editForm, service_ids: updatedServices });
+                    }}
+                  />
+                  {service.serv_name}
+                </label>
+              ))}
+            </div>
+
+            <div className="edit-modal-actions">
+              <button className="save-button" onClick={handleSaveEdit}>
+                Save
+              </button>
+              <button className="cancel-button" onClick={() => setEditUser(null)}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

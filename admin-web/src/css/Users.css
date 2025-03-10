@@ -358,6 +358,49 @@ button {
     background-color: #aaa;
 }
 
+/* Services Container */
+.service-checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #f7f8f5;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Service Checkbox Styling */
+.service-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+    font-size: 14px;
+    color: #2e5339;
+    border: 1px solid #ccc;
+    width: fit-content;
+}
+
+/* Hover Effect */
+.service-checkbox:hover {
+    background: #e8f0e8;
+    border-color: #35654d;
+}
+
+/* Checked Styling */
+.service-checkbox input:checked + label {
+    font-weight: bold;
+    color: #2f5544;
+}
+
 
 /* === Styled Search Bar === */
 .search-bar {
