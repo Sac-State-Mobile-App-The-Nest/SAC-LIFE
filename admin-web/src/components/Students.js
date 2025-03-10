@@ -263,7 +263,7 @@ function Students() {
   });
 
   return (
-    <div className="students-container">
+    <div className="users-container">
       <BackButton />
       <h2>Students</h2>
   
@@ -276,43 +276,41 @@ function Students() {
         className="search-bar"
       />
   
-      {/* Only Super Admins can delete students */}
-      {role === 'super-admin' && (
-        <div className="students-buttons">
-          <button
-            className="delete-selected-button"
-            onClick={() => {
-              if (selectedStudents.length === 0) {
-                alert("No students selected.");
-              } else {
-                setShowBulkConfirmModal(true);
-              }
-            }}
-          >
-            Delete Selected
-          </button>
-        </div>
-      )}
   
       {/* Table Container with Scroll for Large Lists */}
       <div style={{ maxHeight: "400px", overflowY: "auto", width: "100%" }}>
-        <table className="students-table">
-          <thead>
-            <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  onChange={handleSelectAllChange}
-                  checked={students.length > 0 && selectedStudents.length === students.length}
-                />
-              </th>
-              <th>Student ID</th>
-              <th>Preferred Name</th>
-              <th>Expected Graduation</th>
-              <th>Service IDs</th>
-              {role === 'super-admin' && <th>Actions</th>}
-            </tr>
-          </thead>
+        <table className="users-table">
+        <thead>
+        <tr>
+          {/* Checkbox Header with Delete Button Inside */}
+          <th className="checkbox-header">
+            {role === 'super-admin' && (
+              <button
+                className="delete-selected-button"
+                onClick={() => {
+                  if (selectedStudents.length === 0) {
+                    alert("No students selected.");
+                  } else {
+                    setShowBulkConfirmModal(true);
+                  }
+                }}
+              >
+                Delete Selected
+              </button>
+            )}
+            <input
+              type="checkbox"
+              onChange={handleSelectAllChange}
+              checked={students.length > 0 && selectedStudents.length === students.length}
+            />
+          </th>
+          <th>Student ID</th>
+          <th>Preferred Name</th>
+          <th>Expected Graduation</th>
+          <th>Service IDs</th>
+          {role === 'super-admin' && <th>Actions</th>}
+        </tr>
+      </thead>
           <tbody>
             {filteredStudents.map((user) => (
               <tr key={user.std_id}>
@@ -398,7 +396,7 @@ function Students() {
   
       {/* Edit Student Modal */}
       {editUser && (
-        <div className="modal">
+        <div className="eimodal">
           <div className="modal-content">
             <h3>Edit Student</h3>
             <form>

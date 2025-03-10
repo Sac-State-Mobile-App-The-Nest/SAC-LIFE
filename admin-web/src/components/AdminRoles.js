@@ -195,7 +195,7 @@ const filteredAdmins = admins.filter((admin) => {
 });
 
 return (
-  <div className="students-container">
+  <div className="users-container">
     <BackButton />
     <h2>Admin List</h2>
 
@@ -208,28 +208,24 @@ return (
       className="search-bar"
     />
 
-    {/* Delete Selected button - Visible only for super-admins */}
-    {role === 'super-admin' && (
-      <button
-        className="delete-selected-button"
-        onClick={() => {
-          if (selectedAdmins.length === 0) {
-            alert("No admins selected.");
-          } else {
-            setShowBulkConfirmModal(true);
-          }
-        }}
-      >
-        Delete Selected
-      </button>
-    )}
-
     {/* Admins Table */}
-    <table className="students-table">
+    <table className="users-table">
       <thead>
         <tr>
-          {/* Select All Checkbox */}
-          <th>
+          {/* Checkbox Header with Delete Button Inside */}
+          <th className="checkbox-header">
+            <button
+              className="delete-selected-button"
+              onClick={() => {
+                if (selectedAdmins.length === 0) {
+                  alert("No admins selected.");
+                } else {
+                  setShowBulkConfirmModal(true);
+                }
+              }}
+            >
+              Delete Selected
+            </button>
             <input
               type="checkbox"
               onChange={handleSelectAllChange}
@@ -297,29 +293,30 @@ return (
 
     {/* Edit Admin Modal */}
     {editAdmin && (
-      <div className="modal">
-        <div className="modal-content">
+      <div className="edit-modal">
+        <div className="edit-modal-content">
           <h3>Edit Admin</h3>
-          <label>
-            Username:
-            <input
-              type="text"
-              name="username"
-              value={editForm.username}
-              onChange={handleEditChange}
-            />
-          </label>
-          <label>
-            Role:
-            <input
-              type="text"
-              name="role"
-              value={editForm.role}
-              onChange={handleEditChange}
-            />
-          </label>
-          <button onClick={handleSaveEdit}>Save</button>
-          <button onClick={() => setEditAdmin(null)}>Cancel</button>
+
+          <label>Username:</label>
+          <input
+            type="text"
+            name="username"
+            value={editForm.username}
+            onChange={handleEditChange}
+          />
+
+          <label>Role:</label>
+          <input
+            type="text"
+            name="role"
+            value={editForm.role}
+            onChange={handleEditChange}
+          />
+
+          <div className="edit-modal-actions">
+            <button className="save-button" onClick={handleSaveEdit}>Save</button>
+            <button className="cancel-button" onClick={() => setEditAdmin(null)}>Cancel</button>
+          </div>
         </div>
       </div>
     )}
