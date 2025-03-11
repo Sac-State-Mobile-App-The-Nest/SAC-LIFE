@@ -114,6 +114,23 @@ module.exports = function(poolPromise) {
             res.status(500).send('Server Error');
         }
     });
+  
+    //get all of the sac state events to send to the app 
+    router.get('/getAllCampusEvents', authenticateToken, async(req, res) => {
+        try{
+            //(event_id, event_title, event_description, event_type, event_link, event_date)
+            //only get the new events that haven't happened yet and order them by the date
+            const result = await sql.query(`
+                SELECT * FROM sac_events WHERE 
+                event_date >= GETDATE() ORDER BY 
+                event_date ASC`);
+            console.log(result.recordset);
+            res.json(result.recordset);
+        } catch (err){
+            console.error('SQL error', err);
+            res.status(500).send('Server Error');
+        }
+    });
 
     return router;
 };

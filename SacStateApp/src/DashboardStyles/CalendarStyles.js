@@ -139,15 +139,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eventsContainer: {
+    maxHeight: 300,
+    width: '100%',
     marginTop: 20,
     paddingHorizontal: 15,
     backgroundColor: colors.white,
-    borderRadius: 15,
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+
+  },
+  scrollContainer: {
+  maxHeight: 280,  // Prevents it from growing too large
+  flexGrow: 1,  // Allows content to expand within the set height
   },
   sectionTitle: {
     color: colors.sacGreen,
@@ -161,8 +162,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1, // Subtle border
     borderColor: colors.mutedGold,
-    padding: 15,
+    padding: 10,
     marginVertical: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2
   },
   eventTitle: {
     fontSize: 16,
