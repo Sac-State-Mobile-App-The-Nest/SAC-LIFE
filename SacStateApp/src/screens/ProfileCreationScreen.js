@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
@@ -10,7 +10,6 @@ import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 const { height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
-// Question class to represent a question in the profile creation process
 class Question {
     constructor(id, text, inputType, options = [], placeholder = null) {
         this.id = id;
@@ -21,7 +20,6 @@ class Question {
     }
 }
 
-// ProfileCreationManager class to manage the profile creation process
 class ProfileCreationManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;
@@ -42,10 +40,10 @@ class ProfileCreationManager {
     }
 }
 
-// Function to validate the graduation year input
 const validateGraduationYear = (text, selectedYear) => {
     const currentYear = new Date().getFullYear();
     const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+    const maximumGraduationYear = currentYear + 10; // 10-year limit from the current year
 
     if (text.length === 4) {
         const inputYear = parseInt(text);
@@ -58,6 +56,9 @@ const validateGraduationYear = (text, selectedYear) => {
         if (inputYear < minimumGraduationYear) {
             return { isValid: false, message: `Invalid Year: Graduation year must be ${minimumGraduationYear} or later for a ${selectedYear}.` };
         }
+        if (inputYear > maximumGraduationYear) {
+            return { isValid: false, message: `Invalid Year: Graduation year cannot be more than 10 years from now (${maximumGraduationYear}).` };
+        }
         return { isValid: true, message: "" };
     } else if (text.length > 4) {
         return { isValid: false, message: "Invalid Year: Please enter a valid 4-digit year." };
@@ -65,7 +66,6 @@ const validateGraduationYear = (text, selectedYear) => {
     return { isValid: true, message: "" };
 };
 
-// Function to calculate the minimum graduation year based on the selected year in studies
 const getMinimumGraduationYear = (selectedYear) => {
     const currentYear = new Date().getFullYear();
     switch (selectedYear) {
@@ -82,7 +82,6 @@ const getMinimumGraduationYear = (selectedYear) => {
     }
 };
 
-// Function to send profile data to the server
 const sendProfileDataToServer = async (answers, navigation) => {
     try {
         const specificAnswers = {
@@ -125,7 +124,6 @@ const sendProfileDataToServer = async (answers, navigation) => {
     }
 };
 
-// Component to render the completion screen
 const CompletionScreen = ({ onPress }) => (
     <View style={styles.completionContainer}>
         <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
@@ -135,7 +133,6 @@ const CompletionScreen = ({ onPress }) => (
     </View>
 );
 
-// Component to render a single question
 const QuestionRenderer = ({ question, answers, profileCreationManager, currentQuestion, preferredName, setPreferredName }) => {
     switch (question.inputType) {
         case "text":
@@ -232,13 +229,13 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
     }
 };
 
-// Main ProfileCreation component
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [preferredName, setPreferredName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
+    const fadeAnim = useRef(new Animated.Value(1)).current; // Start with opacity 1
 
     const questions = [
         new Question(0, "Tell us your name! (Or preferred name)", "text"),
@@ -266,9 +263,10 @@ const ProfileCreation = () => {
             const currentYear = new Date().getFullYear();
             const selectedYear = answers[4];
             const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+            const maximumGraduationYear = currentYear + 10; // 10-year limit
 
-            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < minimumGraduationYear) {
-                Alert.alert("Error", `Please select a semester and enter a valid 4-digit year (${minimumGraduationYear} or later).`);
+            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < minimumGraduationYear || parseInt(graduationDate.year) > maximumGraduationYear) {
+                Alert.alert("Error", `Please select a semester and enter a valid 4-digit year (between ${minimumGraduationYear} and ${maximumGraduationYear}).`);
                 return;
             }
         }
@@ -276,8 +274,42 @@ const ProfileCreation = () => {
         if (currentQuestion === questions.length - 1) {
             setIsCompleted(true);
         } else {
-            profileCreationManager.goToNext(currentQuestion);
+            // Fade out the current question
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                // Move to the next question
+                profileCreationManager.goToNext(currentQuestion);
+
+                // Fade in the next question
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }).start();
+            });
         }
+    };
+
+    const handlePreviousPress = () => {
+        // Fade out the current question
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            // Move to the previous question
+            profileCreationManager.goToPrevious(currentQuestion);
+
+            // Fade in the previous question
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        });
     };
 
     return (
@@ -289,22 +321,24 @@ const ProfileCreation = () => {
                     ) : (
                         <>
                             <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                            <View style={styles.box}>
-                                <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                                <QuestionRenderer
-                                    question={questions[currentQuestion]}
-                                    answers={answers}
-                                    profileCreationManager={profileCreationManager}
-                                    currentQuestion={currentQuestion}
-                                    preferredName={preferredName}
-                                    setPreferredName={setPreferredName}
-                                />
-                            </View>
+                            <Animated.View style={{ opacity: fadeAnim }}>
+                                <View style={styles.box}>
+                                    <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
+                                    <QuestionRenderer
+                                        question={questions[currentQuestion]}
+                                        answers={answers}
+                                        profileCreationManager={profileCreationManager}
+                                        currentQuestion={currentQuestion}
+                                        preferredName={preferredName}
+                                        setPreferredName={setPreferredName}
+                                    />
+                                </View>
+                            </Animated.View>
                             <View style={styles.navigationButtons}>
                                 {currentQuestion !== 0 && (
                                     <TouchableOpacity
                                         style={[styles.button, styles.previousButton]}
-                                        onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
+                                        onPress={handlePreviousPress}
                                     >
                                         <Text style={styles.buttonText}>Previous</Text>
                                     </TouchableOpacity>

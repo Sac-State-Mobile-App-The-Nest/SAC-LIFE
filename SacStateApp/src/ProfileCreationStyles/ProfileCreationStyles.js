@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     },
     navigationButtons: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'space-between', // Buttons will be on opposite ends
         marginTop: 20,
         width: '90%',
         alignSelf: 'center',
@@ -220,6 +220,19 @@ const styles = StyleSheet.create({
         fontSize: 14, // Smaller font size
         color: '#666', // Optional: Use a lighter color for the text
         marginBottom: 10, // Add some spacing below the text
+    },
+    // Base styles for animations
+    fadeInInitial: {
+        opacity: 0, // Initial state for fade-in
+    },
+    fadeInActive: {
+        opacity: 1, // Final state for fade-in
+    },
+    slideInInitial: {
+        transform: [{ translateX: -100 }], // Initial state for slide-in
+    },
+    slideInActive: {
+        transform: [{ translateX: 0 }], // Final state for slide-in
     },
 });
 
