@@ -87,7 +87,34 @@ module.exports = function(poolPromise) {
         }
     });
 
+    // Send student created event from calendar dashboard
+    router.post('/created-event', authenticateToken, async (req, res) => {
+        const std_id = req.user.std_id;
+        const { createdEvent }  = req.body;
+        const { title, description, event_date, time } = createdEvent;
+        const sqlDatetime = event_date + " " + time;
+        console.log(createdEvent);
+        console.log("Data: ", {std_id, title, description, event_date, time});
+        try {
+            const pool = await poolPromise;
 
+            await pool.request()
+                .input('std_id', sql.Int, std_id)
+                .input('event_title', sql.NVarChar(255), title)
+                .input('event_description', sql.NVarChar(sql.MAX), description)
+                .input('event_date', sql.DateTime, sqlDatetime)
+                .query(`
+                   INSERT INTO student_created_events (std_id, event_title, event_description, event_date)
+                   VALUES (@std_id, @event_title, @event_description, @event_date) 
+                `);
+            res.status(200).json({ message: 'Student Event stored successfully', createdEvent});
+            
+        } catch (err) {
+            console.error('Failed to send created event: ', err);
+            res.status(500).send('Server Error');
+        }
+    });
+  
     //get all of the sac state events to send to the app 
     router.get('/getAllCampusEvents', authenticateToken, async(req, res) => {
         try{

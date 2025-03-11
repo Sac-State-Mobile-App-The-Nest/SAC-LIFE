@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { sendStudentCreatedEvent } from '../DashboardAPI/api';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../DashboardStyles/CalendarStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { Linking } from 'react-native';
+import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView, Platform, Linking } from 'react-native';
 
 const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [currentWeek, setCurrentWeek] = useState([]);
@@ -19,7 +21,10 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [events, setEvents] = useState([]); // Store events in an array
   const [selectedDayEvents, setSelectedDayEvents] = useState([]); // Store events for the selected day
   const animationHeight = useRef(new Animated.Value(0)).current;
+  const [eventTime, setEventTime] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [sacStateEvents, setSacStateEvents] = useState([]); //stores all of the sac state events -> fills with api call
+
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const fullCalendarHeight = screenHeight * 0.5; // Dropdown height is half the screen
 
@@ -121,6 +126,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         title: eventTitle,
         description: eventDescription,
         date: eventDate.toDateString(),
+        event_date: eventDate.toISOString().split('T')[0],
+        time: eventTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}),
       };
 
       if (eventToEdit) {
@@ -136,6 +143,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       } else {
         // Create a new event
         setEvents((prevEvents) => [...prevEvents, newEvent]);
+        // Send to server
+        sendStudentCreatedEvent(newEvent);
         Alert.alert('Event Created', `Event created for ${eventDate.toLocaleDateString()}`);
       }
       
@@ -302,6 +311,27 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
               value={eventDescription}
               onChangeText={setEventDescription}
             />
+            {/* Time Picker Button */}
+            <TouchableOpacity onPress={() => setShowTimePicker(true)} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
+              <Text>Select Time: {eventTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</Text>
+            </TouchableOpacity>
+
+            {/* Time Picker Modal */}
+            {showTimePicker && (
+              <DateTimePicker
+                value={eventTime}
+                mode="time"
+                is24Hour
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(event, selectedTime) => {
+                  setShowTimePicker(false);
+                  if (selectedTime) {
+                    setEventTime(selectedTime);
+                  }
+                }}
+              />
+            )}
+
             <Button title={eventToEdit ? 'Save Changes' : 'Save Event'} onPress={saveEvent} />
             {eventToEdit && (
               <Button title="Delete Event" onPress={deleteEvent} color="red" />
@@ -326,7 +356,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
                 <View style={styles.eventItemContent}>
                   <Text style={styles.eventItemTitle}>{item.title}</Text>
                   <Text style={styles.eventItemDescription}>{item.description}</Text>
-                  <Text style={styles.eventItemDate}>{item.date}</Text>
+                  <Text style={styles.eventItemDate}>{item.time}</Text>
                 </View>
               </TouchableOpacity>
             )}
