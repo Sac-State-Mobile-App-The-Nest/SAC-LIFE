@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { sendStudentCreatedEvent } from '../DashboardAPI/api';
-import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../DashboardStyles/CalendarStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
