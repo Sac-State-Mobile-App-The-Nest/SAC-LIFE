@@ -113,6 +113,22 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start', // Bot message is on the left side
     },
 
+    typingIndicator: {
+        maxWidth: '80%',
+        padding: 10,
+        borderRadius: 15,
+        backgroundColor: colors.whiteGold,
+        borderColor: colors.mutedGold,
+        borderWidth: 1,
+        alignSelf: 'flex-start', // Ensure it's aligned like other bot messages
+    },
+    typingIndicatorText: {
+        fontSize: 14,
+        fontStyle: 'italic',
+        color: colors.gray,
+    },
+    
+
     userMessageText: {
         fontSize: 16,
         fontWeight: '600',
