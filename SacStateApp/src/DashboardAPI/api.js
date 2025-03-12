@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const fetchUserServices = async (token) => {
   try {
@@ -100,5 +101,27 @@ export const updateUserYearOfStudy = async (token, studentYears) => {
   } catch (error) {
     console.error('Error updating year of study', error);
     return { success: false, message: 'Failed to update year of study' };
+  }
+};
+
+// send to server: student created events
+export const sendStudentCreatedEvent = async (createdEvent) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/created-event`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ createdEvent })
+    });
+  
+    if (!response.ok) {
+      throw new Error('Error sending created event to server')
+    }
+    
+  } catch (err) {
+    console.error('Error sending created event: ', err);
   }
 };
