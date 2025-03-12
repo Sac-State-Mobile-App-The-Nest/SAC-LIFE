@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
@@ -9,6 +9,7 @@ import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
 const { height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
+
 
 // Question class to represent a question in the profile creation process
 class Question {
@@ -113,19 +114,19 @@ const sendProfileDataToServer = async (answers, navigation) => {
 
         navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     } catch (err) {
         console.error('Error sending profile answers: ', err);
         Alert.alert('Error', 'Failed to send profile answers. Please try again.');
         navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     }
 };
 
-// Component to render the completion screen
+// Completion screen to show after profile creation
 const CompletionScreen = ({ onPress }) => (
     <View style={styles.completionContainer}>
         <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
@@ -134,6 +135,53 @@ const CompletionScreen = ({ onPress }) => (
         </TouchableOpacity>
     </View>
 );
+
+// TutorialScreen Component (First tutorial screen)
+const TutorialScreen = ({ onPressNext }) => (
+    <View style={styles.container}>
+        <Text style={styles.tutorialTitle}>Tutorial</Text>
+        <Text style={styles.tutorialContainer}>
+            Welcome! In this process, you'll learn how to navigate the app and its features.
+        </Text>
+        <Text style={styles.tutorialContainer}>
+            The Dashboard is where you'll see the calendar with the ability to create your own by expanding the calendar and double tapping on a date.
+        </Text>
+
+        <Image
+            source={require('../assets/Dashboard.png')}  // Path to the image in the assets folder
+            style={styles.tutorialImage}
+        />
+        <Image
+            source={require('../assets/Calendar.png')}  // Path to the image in the assets folder
+            style={styles.tutorialImage}
+        />
+        <Text style={styles.tutorialContainer}>
+            Next we have our own AI chat bot, HerkyBot! Ask it questions when your stuck or need information.
+        </Text>
+
+        <Image
+            source={require('../assets/Chatbot.png')}  // Path to the second tutorial image
+            style={styles.tutorialImage}
+        />
+        <Text style={styles.tutorialContainer}>
+            Next we have our wellness questions which will be used to personalize your services.
+        </Text>
+
+        <Image
+            source={require('../assets/Wellness.png')}  // Path to the second tutorial image
+            style={styles.tutorialImage}
+        />
+
+        <Text style={styles.tutorialContainer}>
+            Continue to browse around the app and if you have any questions, you can ask HerkyBot!
+        </Text>
+
+        <TouchableOpacity style={styles.largeButton} onPress={onPressNext}>
+            <Text style={styles.largeButtonText}>Finish Tutorial</Text>
+        </TouchableOpacity>
+    </View>
+);
+
 
 // Component to render a single question
 const QuestionRenderer = ({ question, answers, profileCreationManager, currentQuestion, preferredName, setPreferredName }) => {
@@ -232,12 +280,13 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
     }
 };
 
-// Main ProfileCreation component
+// ProfileCreation Component (Main component for profile creation)
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [preferredName, setPreferredName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
+    const [hasSeenTutorial, setHasSeenTutorial] = useState(false);  // Tutorial state
     const navigation = useNavigation();
 
     const questions = [
@@ -254,6 +303,15 @@ const ProfileCreation = () => {
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
+
+    const handleTutorialFinish = () => {
+        setHasSeenTutorial(true);  // Mark tutorial as completed
+        // Proceed to dashboard or desired screen
+        navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
+        });
+    };
 
     const handleNextPress = () => {
         if (currentQuestion === 0 && preferredName.trim() === "") {
@@ -274,7 +332,7 @@ const ProfileCreation = () => {
         }
 
         if (currentQuestion === questions.length - 1) {
-            setIsCompleted(true);
+            setIsCompleted(true); // Mark as completed after last question
         } else {
             profileCreationManager.goToNext(currentQuestion);
         }
@@ -285,43 +343,48 @@ const ProfileCreation = () => {
             <View style={styles.logoContainer}>
                 <ScrollView contentContainerStyle={styles.container}>
                     {isCompleted ? (
-                        <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                        !hasSeenTutorial ? (
+                            <TutorialScreen onPressNext={handleTutorialFinish} />
                     ) : (
-                        <>
-                            <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                            <View style={styles.box}>
-                                <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                                <QuestionRenderer
-                                    question={questions[currentQuestion]}
-                                    answers={answers}
-                                    profileCreationManager={profileCreationManager}
-                                    currentQuestion={currentQuestion}
-                                    preferredName={preferredName}
-                                    setPreferredName={setPreferredName}
-                                />
-                            </View>
-                            <View style={styles.navigationButtons}>
-                                {currentQuestion !== 0 && (
-                                    <TouchableOpacity
-                                        style={[styles.button, styles.previousButton]}
-                                        onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
-                                    >
-                                        <Text style={styles.buttonText}>Previous</Text>
-                                    </TouchableOpacity>
-                                )}
+                    <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                    )
+                    ) : (
+                    <>
+                        <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
+                        <View style={styles.box}>
+                            <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
+                            <QuestionRenderer
+                                question={questions[currentQuestion]}
+                                answers={answers}
+                                profileCreationManager={profileCreationManager}
+                                currentQuestion={currentQuestion}
+                                preferredName={preferredName}
+                                setPreferredName={setPreferredName}
+                            />
+                        </View>
+                        <View style={styles.navigationButtons}>
+                            {currentQuestion !== 0 && (
                                 <TouchableOpacity
-                                    style={[styles.button, styles.nextButton]}
-                                    onPress={handleNextPress}
+                                    style={[styles.button, styles.previousButton]}
+                                    onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
                                 >
-                                    <Text style={styles.buttonText}>Next</Text>
+                                    <Text style={styles.buttonText}>Previous</Text>
                                 </TouchableOpacity>
-                            </View>
-                        </>
+                            )}
+                            <TouchableOpacity
+                                style={[styles.button, styles.nextButton]}
+                                onPress={handleNextPress}
+                            >
+                                <Text style={styles.buttonText}>Next</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </>
                     )}
                 </ScrollView>
             </View>
         </ImageBackground>
     );
 };
+
 
 export default ProfileCreation;

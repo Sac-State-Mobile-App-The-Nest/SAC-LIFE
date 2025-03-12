@@ -221,6 +221,64 @@ const styles = StyleSheet.create({
         color: '#666', // Optional: Use a lighter color for the text
         marginBottom: 10, // Add some spacing below the text
     },
+    tutorialTitle: {
+        fontSize: 40,              // Title size
+        fontWeight: 'bold',        // Bold text for the title
+        textAlign: 'center',       // Horizontally center the title
+        marginTop: 40,             // Add some space from the top of the screen
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#f4f4f4', // Light background color for a clean look
+        borderRadius: 10,  // Rounded corners for a softer feel
+        shadowColor: '#000',  // Adding shadow for depth
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 5,  // For Android to display shadow
+        marginHorizontal: 20,  // Added horizontal margin to avoid content touching the edges
+        textAlign: 'center',
+    },
+
+    tutorialContainer: {
+        fontWeight: '600',
+        marginTop: 20,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#f4f4f4', // Light background color for a clean look
+        borderRadius: 10,  // Rounded corners for a softer feel
+        shadowColor: '#000',  // Adding shadow for depth
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 5,  // For Android to display shadow
+        marginHorizontal: 20,  // Added horizontal margin to avoid content touching the edges
+        fontSize: 20,
+        textAlign: 'center',
+    },
+
+    largeButton: {
+        marginTop: 20,
+        backgroundColor: '#4CAF50', // Green button
+        paddingVertical: 15,
+        paddingHorizontal: 40,
+        borderRadius: 5,
+    },
+
+    largeButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        textAlign: 'center',
+    },
+    tutorialImage: {
+        width: 275,  
+        height: 600,  
+        marginTop: 20, 
+        borderRadius: 10,
+    },
 });
 
 export default styles;
