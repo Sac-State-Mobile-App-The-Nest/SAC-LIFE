@@ -21,24 +21,58 @@ const config = {
 };
 
 //Function to insert a chat log into the SQL database
-async function insertChatLog(studentQuestion, botResponse) {
+async function insertChatLog(stdId, studentQuestion, botResponse) {
   try {
-    let pool = await sql.connect(config);
-    await pool.request()
-      .input('student_question', sql.NVarChar(sql.MAX), studentQuestion)
-      .input('bot_response', sql.NVarChar(sql.MAX), botResponse)
-      .query('INSERT INTO chat_logs (student_question, bot_response) VALUES (@student_question, @bot_response)');
-    console.log('Chat log inserted successfully');
-    sql.close(); 
+      let pool = await sql.connect(config);
+      let request = pool.request()
+          .input('student_question', sql.NVarChar(sql.MAX), studentQuestion)
+          .input('bot_response', sql.NVarChar(sql.MAX), botResponse);
+
+      let query;
+
+      if (stdId) {
+          request.input('stdId', sql.Int, stdId);
+          query = `
+              INSERT INTO chat_logs (std_id, student_question, bot_response) 
+              VALUES (@stdId, @student_question, @bot_response)
+          `;
+      } else {
+          query = `
+              INSERT INTO chat_logs (student_question, bot_response) 
+              VALUES (@student_question, @bot_response)
+          `;
+      }
+
+      await request.query(query);
+      console.log('Chat log inserted successfully');
+      sql.close();
   } catch (err) {
-    console.error('SQL error:', err);
-    sql.close();
+      console.error('SQL error:', err);
+      sql.close();
   }
 }
 
+
+
+
 app.post('/message', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, username } = req.body;
+
+    let pool = await sql.connect(config);
+    let stdId = null;
+
+    if (username) {
+        // Fetch std_id from login_info based on username
+        let stdIdResult = await pool.request()
+            .input('username', sql.NVarChar(255), username)
+            .query('SELECT std_id FROM login_info WHERE username = @username');
+
+        if (stdIdResult.recordset.length > 0) {
+            stdId = stdIdResult.recordset[0].std_id;
+        }
+    }
+   
 
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
@@ -86,11 +120,43 @@ app.post('/message', async (req, res) => {
     res.json({ response: botResponse });
 
     // Log the chat into the SQL database
-    insertChatLog(message, botResponse);
+    insertChatLog(stdId, message, botResponse);
+ 
   } catch (error) {
     console.error('OpenAI API Error:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to fetch response from OpenAI' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to fetch response from OpenAI' });
+    }
   }
 });
+app.get('/api/students/getLoggedInUser', async (req, res) => {
+  try {
+      const token = req.headers.authorization?.split(' ')[1]; // Extract JWT token
+      if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+      let pool = await sql.connect(config);
+
+      // Assuming JWT token is associated with a user in login_info
+      let userResult = await pool.request()
+          .input('token', sql.NVarChar(255), token)
+          .query(`
+              SELECT username 
+              FROM login_info
+              WHERE token = @token
+          `);
+
+      if (userResult.recordset.length === 0) {
+          return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json(userResult.recordset[0]); // Return { username: "exampleUser" }
+
+  } catch (err) {
+      console.error('SQL error:', err);
+      res.status(500).json({ error: "Failed to retrieve logged-in user" });
+  }
+});
+
+
 
 app.listen(3000, () => console.log('Server running on port 3000'));
