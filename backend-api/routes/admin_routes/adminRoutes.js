@@ -1,6 +1,4 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const sql = require('mssql');
 const router = express.Router();
 const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware');
@@ -13,7 +11,7 @@ module.exports = function (poolPromise) {
   router.get('/', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     try {
       const pool = await poolPromise;
-      const result = await pool.request().query('SELECT * FROM admin_login');
+      const result = await pool.request().query('SELECT username, role FROM admin_login');
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
@@ -28,31 +26,18 @@ module.exports = function (poolPromise) {
   router.delete('/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { username } = req.params;
     const { password } = req.body;
-    const token = req.headers.authorization?.split(' ')[1];
 
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication token is missing' });
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required for deleting an admin' });
     }
 
     try {
-       const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
       const pool = await poolPromise;
 
       // Fetch requesting admin's details
       const adminResult = await pool.request()
         .input('username', sql.VarChar, decoded.username)
         .query('SELECT password, role FROM admin_login WHERE username = @username');
-
-      if (adminResult.recordset.length === 0) {
-         return res.status(401).json({ message: 'Admin not found' });
-      }
-
-       const requestingAdmin = adminResult.recordset[0];
-
-      // Ensure only super-admins can delete admins
-      if (requestingAdmin.role !== 'super-admin') {
-         return res.status(403).json({ message: 'Only super-admins can delete admins.' });
-      }
 
       // Verify the password before deletion
       const isMatch = await bcrypt.compare(password, requestingAdmin.password);
@@ -84,29 +69,22 @@ module.exports = function (poolPromise) {
   router.delete('/students/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { studentId } = req.params;
     const { password } = req.body;
-    const token = req.headers.authorization?.split(' ')[1];
 
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication token is missing' });
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required for deleting a student' });
     }
 
     let transaction;
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
       const pool = await poolPromise;
+
       const result = await pool.request()
         .input('username', sql.VarChar, decoded.username)
         .query('SELECT password, role FROM admin_login WHERE username = @username');
 
       if (result.recordset.length === 0) {
         return res.status(401).json({ message: 'Admin not found' });
-      }
-
-      const admin = result.recordset[0];
-
-      if (admin.role !== 'super-admin') {
-        return res.status(403).json({ message: "Invalid role: Only super-admins can delete students." });
       }
 
       const isMatch = await bcrypt.compare(password, admin.password);

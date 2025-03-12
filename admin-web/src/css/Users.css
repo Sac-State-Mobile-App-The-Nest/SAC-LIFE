@@ -14,9 +14,10 @@
 }
 
 /* Apply fade-in animation to each row in the table */
-.userss-table tr {
+.users-table tr {
     opacity: 0; /* Start hidden */
     animation: fadeIn 0.5s ease forwards; /* Fade in each row */
+    border-bottom: 1px solid #dcdcdc; /* Light grey for better separation */
 }
 
 /* Add a slight delay for even and odd rows to create a staggered effect */
@@ -83,7 +84,7 @@
 
 /* Highlight row on hover */
 .users-table tr:hover {
-    background-color: #d3e0d5; /* Faded Sac State green on row hover */
+    background-color: #cfe1cf; /* Slightly darker green */
 }
 
 /* Buttons container (Aligning elements to the left) */
@@ -401,7 +402,6 @@ button {
     color: #2f5544;
 }
 
-
 /* === Styled Search Bar === */
 .search-bar {
     width: 100%;
@@ -418,13 +418,13 @@ button {
 
 /* Add hover effect */
 .search-bar:hover {
-    border-color: #2e5339; /* Sac State dark green */
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Focus effect for accessibility */
 .search-bar:focus {
-    border-color: #35654d;
-    box-shadow: 0px 2px 6px rgba(53, 101, 77, 0.2);
+    border-width: 2px;
+    border-color: #35654d; /* Dark green */
 }
 
 /* Search Icon */
@@ -449,4 +449,25 @@ button {
   .create-admin-button:hover {
     background-color: #2f5544;
     transform: scale(1.05);
+  }
+
+  /* Smooth scrollbar styling */
+.scrollable-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    width: 100%;
+  }
+  
+  /* Optional: Hide scrollbar but still allow scrolling */
+  .scrollable-table-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollable-table-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  .scrollable-table-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
   }
