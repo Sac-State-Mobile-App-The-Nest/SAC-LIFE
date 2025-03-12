@@ -344,7 +344,7 @@ const ProfileCreation = () => {
                                     </TouchableOpacity>
                                 )}
                                 <TouchableOpacity
-                                    style={[styles.button, styles.nextButton]}
+                                    style={[styles.button, styles.nextButton, currentQuestion === 0 && { marginLeft: 'auto' }]}
                                     onPress={handleNextPress}
                                 >
                                     <Text style={styles.buttonText}>Next</Text>
