@@ -112,14 +112,14 @@ const sendProfileDataToServer = async (answers, navigation) => {
 
         navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     } catch (err) {
         console.error('Error sending profile answers: ', err);
         Alert.alert('Error', 'Failed to send profile answers. Please try again.');
         navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     }
 };
@@ -234,6 +234,7 @@ const ProfileCreation = () => {
     const [answers, setAnswers] = useState({});
     const [preferredName, setPreferredName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
+    const [hasSeenTutorial, setHasSeenTutorial] = useState(false);  // Tutorial state
     const navigation = useNavigation();
     const fadeAnim = useRef(new Animated.Value(1)).current; // Start with opacity 1
 
@@ -251,6 +252,15 @@ const ProfileCreation = () => {
     ];
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
+
+    const handleTutorialFinish = () => {
+        setHasSeenTutorial(true);  // Mark tutorial as completed
+        // Proceed to dashboard or desired screen
+        navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
+        });
+    };
 
     const handleNextPress = () => {
         if (currentQuestion === 0 && preferredName.trim() === "") {
@@ -272,7 +282,7 @@ const ProfileCreation = () => {
         }
 
         if (currentQuestion === questions.length - 1) {
-            setIsCompleted(true);
+            setIsCompleted(true); // Mark as completed after last question
         } else {
             // Fade out the current question
             Animated.timing(fadeAnim, {
@@ -317,7 +327,11 @@ const ProfileCreation = () => {
             <View style={styles.logoContainer}>
                 <ScrollView contentContainerStyle={styles.container}>
                     {isCompleted ? (
-                        <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                        !hasSeenTutorial ? (
+                            <TutorialScreen onPressNext={handleTutorialFinish} />
+                    ) : (
+                    <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                    )
                     ) : (
                         <>
                             <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
@@ -357,5 +371,6 @@ const ProfileCreation = () => {
         </ImageBackground>
     );
 };
+
 
 export default ProfileCreation;
