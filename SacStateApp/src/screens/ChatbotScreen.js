@@ -38,6 +38,7 @@ const ChatbotScreen = () => {
             setMessages([...messages, { text: message, sender: 'You' }]);
             const userMessage = message;
             setMessage('');
+            setIsTyping(true);
 
             try {
                 const response = await fetch('http://10.0.2.2:3000/message', {
@@ -65,6 +66,9 @@ const ChatbotScreen = () => {
                     ...prevMessages,
                     { text: 'Error: Unable to connect to server', sender: 'SacLifeBot' },
                 ]);
+
+            } finally {
+                setIsTyping(false);
             }
         }
     };
