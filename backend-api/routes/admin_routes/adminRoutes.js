@@ -242,5 +242,27 @@ module.exports = function (poolPromise) {
     }
   });
 
+  router.put('/admin/deactivate/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    const { username } = req.params;
+    const { is_active } = req.body; 
+  
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('username', sql.VarChar, username)
+            .input('is_active', sql.Bit, is_active)
+            .query('UPDATE admin_login SET is_active = @is_active WHERE username = @username');
+  
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+  
+        res.json({ message: `Admin ${is_active ? 'activated' : 'deactivated'} successfully!` });
+    } catch (err) {
+        console.error('SQL error:', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+});
+
   return router;
 };

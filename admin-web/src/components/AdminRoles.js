@@ -14,7 +14,7 @@ function AdminRoles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [password, setPassword] = useState('');
   const [editAdmin, setEditAdmin] = useState(null);
-  const [editForm, setEditForm] = useState({ username: '', role: '' });
+  const [editForm, setEditForm] = useState({ username: '', role: '', is_active: true });
   const [createAdminModal, setCreateAdminModal] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "admin" });
   const navigate = useNavigate();
@@ -205,7 +205,7 @@ function AdminRoles() {
       return;
     }
     setEditAdmin(admin);
-    setEditForm({ username: admin.username, role: admin.role });
+    setEditForm({ username: admin.username, role: admin.role, is_active: admin.is_active });
   };
 
   // Handles changes in the edit form fields
@@ -263,6 +263,35 @@ const filteredAdmins = admins.filter((admin) => {
     (admin.role ? admin.role.toLowerCase() : "").includes(term)
   );
 });
+
+const handleToggleActive = async () => {
+  try {
+      let token = sessionStorage.getItem('token');
+      if (!token) {
+          alert("You must be logged in.");
+          logoutAdmin(navigate);
+          return;
+      }
+
+      const updatedStatus = !editForm.is_active; // Toggle status
+      const response = await api.put(`/adminRoutes/admin/deactivate/${editAdmin.username}`, {
+          is_active: updatedStatus
+      }, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.status === 200) {
+          alert(`Admin ${updatedStatus ? 'activated' : 'deactivated'} successfully!`);
+          setEditForm({ ...editForm, is_active: updatedStatus });
+          fetchAdmins();
+      } else {
+          alert('Failed to update admin status.');
+      }
+  } catch (error) {
+      console.error('Error updating admin status:', error);
+      alert('An error occurred. Please try again.');
+  }
+};
 
 return (
   <div className="users-container">
@@ -391,6 +420,15 @@ return (
             value={editForm.role}
             onChange={handleEditChange}
           />
+
+          <label>Deactivate Admin:</label>
+          <div className="toggle-container">
+              <span>{editForm.is_active ? "Active" : "Inactive"}</span>
+              <label className="switch">
+                  <input type="checkbox" checked={editForm.is_active} onChange={handleToggleActive} />
+                  <span className="slider round"></span>
+              </label>
+          </div>
 
           <div className="edit-modal-actions">
             <button className="save-button" onClick={handleSaveEdit}>Save</button>
