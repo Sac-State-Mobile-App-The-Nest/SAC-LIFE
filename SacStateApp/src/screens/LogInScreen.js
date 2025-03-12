@@ -23,6 +23,7 @@ const LogInScreen = () => {
             const token = response.data.accessToken;
 
             await AsyncStorage.setItem('token', token);
+            await AsyncStorage.setItem('username', username);
 
             const booleanResponse = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/check-login-bool`, {
                 headers: { Authorization: `Bearer ${token}` },
