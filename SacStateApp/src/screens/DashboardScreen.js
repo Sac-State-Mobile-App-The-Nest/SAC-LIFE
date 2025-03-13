@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import DashboardTab from '../DashboardComponents/DashboardTab';
 import SettingsScreen from './SettingsScreen';
-import WellnessScreen from './WellnessScreen'; // Import WellnessScreen
+import WellnessScreen from './WellnessScreen'; 
 import ChatbotScreen from './ChatbotScreen';
 
 const Tab = createBottomTabNavigator();

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import CalendarComponent from './CalendarComponent';
 import ServicesList from './ServicesList';
-import WellBeingButton from './WellBeingButton';
-import ChatWidget from './ChatWidget';
 import { fetchUserServices } from '../DashboardAPI/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,17 +11,9 @@ const DashboardTab = () => {
   const [userServicesRec, setUserServicesRec] = useState([]);
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [events, setEvents] = useState([]);
   const [isFullCalendarVisible, setFullCalendarVisible] = useState(true);
 
   useEffect(() => {
-    // Fetch events for the current day
-    const currentDayEvents = [
-      { title: 'Project Meeting', time: '2:00 PM - 3:00 PM' },
-      { title: 'Workshop: AI in Education', time: '4:00 PM - 5:30 PM' },
-    ];
-    setEvents(currentDayEvents);
-
     const getServices = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -79,21 +69,6 @@ const DashboardTab = () => {
               <CalendarComponent selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
             </View>
           )}
-
-          {/* Events Section */}
-          <View style={styles.eventsContainer}>
-            <Text style={styles.sectionTitle}>Today's Events</Text>
-            {events.length > 0 ? (
-              <FlatList
-                data={events}
-                renderItem={renderEvent}
-                keyExtractor={(item, index) => index.toString()}
-                nestedScrollEnabled // Allow nested scrolling
-              />
-            ) : (
-              <Text style={styles.noEventsText}>No events scheduled for today</Text>
-            )}
-          </View>
         </>
       }
       ListFooterComponent={
@@ -101,11 +76,7 @@ const DashboardTab = () => {
           {/* Services and Well-being */}
           <View style={styles.servicesContainer}>
             <ServicesList services={userServicesRec} />
-            <WellBeingButton prompt={wellBeingPrompt} />
           </View>
-
-          {/* Chat Widget */}
-          <ChatWidget />
         </>
       }
       contentContainerStyle={styles.scrollViewContainer}
