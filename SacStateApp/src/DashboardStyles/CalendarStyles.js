@@ -77,47 +77,65 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dayBox: {
-    width: 50,
-    height: 70,
+    width: 45,  // Adjusted to be smaller for better spacing
+    height: 60, 
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.mutedGold,
-    backgroundColor: 'transparent', // Remove white backgrounds here
+    marginHorizontal: 4,
+    borderRadius: 10, // Rounded corners for a smooth design
+    backgroundColor: colors.softCream, // Subtle gold background
+    borderWidth: 1.2, // Slightly thinner border
+    borderColor: colors.mutedGold, 
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1.5,
   },
   monthDayBox: {
-    width: tileSize * 0.9, // Smaller width for the tile
-    height: tileSize * 0.9, // Smaller height for the tile
+    width: tileSize * 0.85, // Adjusted for better proportion
+    height: tileSize * 0.85, 
     alignItems: 'center',
     justifyContent: 'center',
     margin: tileMargin,
-    borderRadius: 8,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.mutedGold,
+    borderRadius: 8, // Slightly rounded corners
+    backgroundColor: colors.softCream, 
+    borderWidth: 1.2, 
+    borderColor: colors.mutedGold, 
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1.5,
   },
   todayBox: {
-    borderColor: colors.mutedGold,
-    borderWidth: 2,
-    backgroundColor: colors.bubbles,
+    backgroundColor: colors.fadedSacGold, // Softer gold, less aggressive
+    borderColor: colors.sacGreen, // Retain the green contrast
+    borderWidth: 2, // Less overwhelming border
+    shadowColor: colors.sacGreen,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3, // Keep subtle elevation for modern design
   },
   selectedBox: {
-    backgroundColor: colors.bubbles,
-    borderColor: colors.mutedGold,
-    borderWidth: 2,
+    backgroundColor: colors.softCream, // More refined, neutral selection
+    borderColor: colors.sacGreen,
+    borderWidth: 2, // Slightly thinner for a modern feel
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   dayOfWeek: {
-    fontSize: 12, // Smaller font size for day names
-    fontWeight: '600',
-    color: colors.sacGreen,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.sacGreen, // Dark green for better contrast
     textAlign: 'center',
   },
   dateText: {
-    fontSize: tileSize * 0.3, // Smaller responsive font size
+    fontSize: 16,
     fontWeight: 'bold',
-    color: colors.sacGreen,
+    color: colors.black, // Ensures high visibility on gold backgrounds
     textAlign: 'center',
   },
   toggleButton: {
@@ -147,8 +165,8 @@ const styles = StyleSheet.create({
 
   },
   scrollContainer: {
-  maxHeight: 280,  // Prevents it from growing too large
-  flexGrow: 1,  // Allows content to expand within the set height
+    maxHeight: 280,  // Prevents it from growing too large
+    flexGrow: 1,  // Allows content to expand within the set height
   },
   sectionTitle: {
     color: colors.sacGreen,
@@ -200,12 +218,18 @@ const styles = StyleSheet.create({
   },
   weeklyViewContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly', // Even spacing between days
+    justifyContent: 'space-between', // Even spacing between days
     alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: colors.whiteSmokeLight,
+    paddingVertical: 12, 
+    paddingHorizontal: 10,
+    backgroundColor: colors.sacGreen, // Blend with green theme
     borderRadius: 15,
     marginBottom: 10,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4, // Adds depth for a premium look
   },
   monthlyRow: {
     justifyContent: 'space-between', // Ensure spacing between tiles
@@ -218,114 +242,112 @@ const styles = StyleSheet.create({
       marginBottom: 10,
   },
   fullCalendarHeader: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: 'bold',
     color: colors.sacGreen,
     textAlign: 'center',
   },
-  // Add these styles to your styles file
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center', // Centers content horizontally
+  },
+  modalTitle: {
+    fontSize: 24,
+    marginBottom: 20,
+    color: 'black', // Keeping title text color black
+    textAlign: 'center', // Ensure the title is centered
+  },
+  inputField: {
+    width: '100%',
+    padding: 10,
+    color: 'black',
+    marginVertical: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    textAlign: 'left', // Keep text aligned to the left inside the input field
+  },
+  button: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#043927', // Button background color (green for example)
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center', // Center the button text
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  // Event list container style
+  eventListContainer: {
+    padding: 15,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    marginTop: 10,
+  },
 
-modalContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-},
-modalContent: {
-  width: '80%',
-  padding: 20,
-  backgroundColor: 'white',
-  borderRadius: 10,
-  alignItems: 'center', // Centers content horizontally
-},
-modalTitle: {
-  fontSize: 24,
-  marginBottom: 20,
-  color: 'black', // Keeping title text color black
-  textAlign: 'center', // Ensure the title is centered
-},
-inputField: {
-  width: '100%',
-  padding: 10,
-  color: 'black',
-  marginVertical: 10,
-  borderColor: '#ccc',
-  borderWidth: 1,
-  borderRadius: 5,
-  textAlign: 'left', // Keep text aligned to the left inside the input field
-},
-button: {
-  marginTop: 20,
-  padding: 10,
-  backgroundColor: '#043927', // Button background color (green for example)
-  borderRadius: 5,
-  width: '100%',
-  alignItems: 'center', // Center the button text
-},
-buttonText: {
-  color: 'white',
-  fontWeight: 'bold',
-  fontSize: 16,
-},
-// Event list container style
-eventListContainer: {
-  padding: 15,
-  backgroundColor: '#f9f9f9',
-  borderRadius: 10,
-  marginTop: 10,
-},
+  // Title of the event list section
+  eventListTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#043927',
+    marginBottom: 10,
+  },
 
-// Title of the event list section
-eventListTitle: {
-  fontSize: 18,
-  fontWeight: 'bold',
-  color: '#043927',
-  marginBottom: 10,
-},
+  // Individual event styling
+  eventItem: {
+    backgroundColor: '#fff',
+    marginBottom: 10,
+    padding: 15,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: '#043927', // Highlight with a left border
+  },
 
-// Individual event styling
-eventItem: {
-  backgroundColor: '#fff',
-  marginBottom: 10,
-  padding: 15,
-  borderRadius: 8,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-  elevation: 2,
-  borderLeftWidth: 4,
-  borderLeftColor: '#043927', // Highlight with a left border
-},
+  // Event item content container
+  eventItemContent: {
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
 
-// Event item content container
-eventItemContent: {
-  paddingLeft: 10,
-  paddingRight: 10,
-},
+  // Event title styling
+  eventItemTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#043927',
+    marginBottom: 5,
+  },
 
-// Event title styling
-eventItemTitle: {
-  fontSize: 16,
-  fontWeight: 'bold',
-  color: '#043927',
-  marginBottom: 5,
-},
+  // Event description styling
+  eventItemDescription: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 5,
+  },
 
-// Event description styling
-eventItemDescription: {
-  fontSize: 14,
-  color: '#555',
-  marginBottom: 5,
-},
-
-// Event date styling
-eventItemDate: {
-  fontSize: 12,
-  color: '#777',
-  fontStyle: 'italic',
-}
-});
+  // Event date styling
+  eventItemDate: {
+    fontSize: 12,
+    color: '#777',
+    fontStyle: 'italic',
+  }
+  });
 
 
 export default styles;
