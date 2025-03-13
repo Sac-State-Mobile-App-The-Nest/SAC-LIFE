@@ -69,16 +69,13 @@ const DashboardTab = () => {
         <>
           {/* Current Day Section (Header) */}
           <View style={styles.currentDayContainer}>
-            <Ionicons name="school-outline" size={50} color={colors.mutedGold} />
+            <Ionicons name="school-outline" size={50} color={colors.mutedGold} style={styles.headerIcon} />
 
-            {/* Force the current date to be in a single row */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap' }}>
-              <Text style={styles.currentDayText} numberOfLines={1}>
-                {selectedDate instanceof Date
-                  ? `${selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}, ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, ${selectedDate.getFullYear()}`
-                  : 'Invalid Date'}
-              </Text>
-            </View>
+            <Text style={styles.currentDayText} numberOfLines={1}>
+                {selectedDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
+                })}
+            </Text>
 
             {/* Weekly Calendar - Transparent Background */}
             <View style={[styles.weeklyViewContainer, { backgroundColor: 'transparent', paddingVertical: 10 }]}>
@@ -93,6 +90,7 @@ const DashboardTab = () => {
               ))}
             </View>
           </View>
+          
 
           {/* Full Calendar Section */}
           {isFullCalendarVisible && (

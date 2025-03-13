@@ -126,20 +126,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sacGreen,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    padding: 25,
+    paddingVertical: 35, // Increase padding for better spacing
+    paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   currentDayText: {
-    fontSize: 24, 
+    fontSize: 28, // Increase for a more elegant header
     fontWeight: 'bold',
     color: colors.mutedGold,
     textAlign: 'center',
-    flexWrap: 'nowrap',   // Prevents breaking onto a new line
-    maxWidth: '90%',      // Ensures it fits within the container
+    letterSpacing: 1, // Adds spacing for a professional look
+    lineHeight: 34, // Improves text alignment
+    flexWrap: 'nowrap', // Keeps it on one line
+    maxWidth: '90%', // Ensures it fits within the container
   },
   expandButton: {
     marginTop: 15,
@@ -155,6 +160,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
+  },
+  headerIcon: {
+    marginBottom: 10, // Space between icon and text
   },
 });
 
