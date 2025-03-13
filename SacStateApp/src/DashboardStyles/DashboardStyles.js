@@ -95,23 +95,6 @@ const styles = StyleSheet.create({
     color: colors.sacGreen,
     textAlign: 'center',
   },
-  chatWidget: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: colors.sacGreen,
-    padding: 15,
-    borderRadius: 25,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  chatWidgetIcon: {
-    color: colors.goldenWhite,
-    fontSize: 20,
-  },
   eventCard: {
     backgroundColor: colors.white,
     borderRadius: 15,
@@ -151,10 +134,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   currentDayText: {
-    fontSize: 28,
+    fontSize: 24, 
     fontWeight: 'bold',
     color: colors.mutedGold,
-    marginTop: 10,
+    textAlign: 'center',
+    flexWrap: 'nowrap',   // Prevents breaking onto a new line
+    maxWidth: '90%',      // Ensures it fits within the container
   },
   expandButton: {
     marginTop: 15,

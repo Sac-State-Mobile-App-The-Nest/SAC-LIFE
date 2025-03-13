@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import CalendarComponent from './CalendarComponent';
 import ServicesList from './ServicesList';
 import { fetchUserServices } from '../DashboardAPI/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../DashboardStyles/CalendarStyles';
+import * as colors from '../SacStateColors/GeneralColors'; // ✅ Import colors for customization
+
 
 const DashboardTab = () => {
   const [userServicesRec, setUserServicesRec] = useState([]);
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isFullCalendarVisible, setFullCalendarVisible] = useState(true);
+  const [currentWeek, setCurrentWeek] = useState([]);
 
   useEffect(() => {
     const getServices = async () => {
@@ -24,7 +27,24 @@ const DashboardTab = () => {
       }
     };
 
-    getServices();
+    const generateCurrentWeek = () => {
+      const today = new Date();
+      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+      const week = Array.from({ length: 7 }, (_, index) => {
+          const date = new Date(startOfWeek);
+          date.setDate(startOfWeek.getDate() + index);
+          return {
+              day: date.getDate(),
+              dateObject: date,
+              isToday: date.toDateString() === new Date().toDateString(),
+          };
+      });
+
+      setCurrentWeek(week);
+  };
+
+    getServices(); // Fetch user services
+    generateCurrentWeek(); // Generate the current week
 
     const prompts = [
       'How are you feeling today?',
@@ -44,23 +64,34 @@ const DashboardTab = () => {
   return (
     <FlatList
       data={[]} // Dummy data since FlatList requires `data`
-      keyExtractor={() => 'dummy'} // Unique key
+      keyExtractor={() => 'dummy'}
       ListHeaderComponent={
         <>
-          {/* Current Day Section */}
+          {/* Current Day Section (Header) */}
           <View style={styles.currentDayContainer}>
-            <Ionicons name="school-outline" size={50} color="#E4CFA3" />
-            <Text style={styles.currentDayText}>
-              {selectedDate instanceof Date
-                ? `${selectedDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                  })}, ${selectedDate.toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                  })}, ${selectedDate.getFullYear()}`
-                : 'Invalid Date'}
-            </Text>
-           
+            <Ionicons name="school-outline" size={50} color={colors.mutedGold} />
+
+            {/* Force the current date to be in a single row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap' }}>
+              <Text style={styles.currentDayText} numberOfLines={1}>
+                {selectedDate instanceof Date
+                  ? `${selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}, ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, ${selectedDate.getFullYear()}`
+                  : 'Invalid Date'}
+              </Text>
+            </View>
+
+            {/* Weekly Calendar - Transparent Background */}
+            <View style={[styles.weeklyViewContainer, { backgroundColor: 'transparent', paddingVertical: 10 }]}>
+              {currentWeek.map((item, index) => (
+                <TouchableOpacity key={index} onPress={() => handleDayPress(item)} style={{ alignItems: 'center', paddingHorizontal: 10 }}>
+                  <Text style={[styles.dayOfWeek, { color: colors.mutedGold }]}>
+                    {item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </Text>
+                  <Text style={[styles.dateText, { color: colors.mutedGold }]}>{item.day}</Text>
+                  {item.isToday && <View style={[styles.currentDayDot, { backgroundColor: colors.mutedGold }]} />}
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Full Calendar Section */}
@@ -80,9 +111,10 @@ const DashboardTab = () => {
         </>
       }
       contentContainerStyle={styles.scrollViewContainer}
-      nestedScrollEnabled // Enable nested scrolling for safety
+      nestedScrollEnabled
     />
   );
 };
 
 export default DashboardTab;
+

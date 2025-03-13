@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   iconButton: {
     alignSelf: 'center',
     position: 'absolute',
-    top: 60, // Move it up a bit from 80
+    top: 5,  // Reduce this value (was 60 or 80) to move it up
     left: screenWidth / 2.3,
     zIndex: 100,
     padding: 10,
@@ -231,8 +231,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 20, // Increase spacing from the toggle button
-    marginBottom: 10,
+    marginTop: 5, // Increase spacing from the toggle button
+    marginBottom: 0,
   },
   fullCalendarHeader: {
     fontSize: 22,

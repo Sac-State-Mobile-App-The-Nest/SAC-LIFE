@@ -214,23 +214,10 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   return (
     <View style={styles.calendarContainer}>
-      {/* Weekly View */}
-      <View style={styles.weeklyViewContainer}>
-      {currentWeek.map((item, index) => (
-        <TouchableOpacity key={index} onPress={() => handleDayPress(item)}>
-          <Text style={styles.dayOfWeek}>
-            {item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
-          </Text>
-          <Text style={styles.dateText}>{item.day}</Text>
-
-          {item.isToday && <View style={styles.currentDayDot} />}
-        </TouchableOpacity>
-      ))}
-    </View>
 
       {/* Toggle Button */}
       <TouchableOpacity
-        style={[styles.iconButton, { position: 'absolute', top: 80, left: screenWidth / 2.3, zIndex: 100 }]}
+        style={[styles.iconButton]}
         onPress={toggleCalendar}
       >
         <Ionicons
