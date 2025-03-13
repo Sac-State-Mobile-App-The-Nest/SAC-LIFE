@@ -7,7 +7,7 @@ import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
 class Question {
@@ -236,7 +236,7 @@ const ProfileCreation = () => {
     const [isCompleted, setIsCompleted] = useState(false);
     const [hasSeenTutorial, setHasSeenTutorial] = useState(false);  // Tutorial state
     const navigation = useNavigation();
-    const fadeAnim = useRef(new Animated.Value(1)).current; // Start with opacity 1
+    const slideAnim = useRef(new Animated.Value(0)).current;
 
     const questions = [
         new Question(0, "Tell us your name! (Or preferred name)", "text"),
@@ -282,43 +282,57 @@ const ProfileCreation = () => {
         }
 
         if (currentQuestion === questions.length - 1) {
-            setIsCompleted(true); // Mark as completed after last question
-        } else {
-            // Fade out the current question
-            Animated.timing(fadeAnim, {
-                toValue: 0,
+            setIsCompleted(true);
+        } 
+        
+        // Start exit animation
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: -width, // Slide left
                 duration: 300,
                 useNativeDriver: true,
-            }).start(() => {
-                // Move to the next question
-                profileCreationManager.goToNext(currentQuestion);
-
-                // Fade in the next question
-                Animated.timing(fadeAnim, {
-                    toValue: 1,
+            }),
+        ]).start(() => {
+            // Change question
+            setCurrentQuestion(prev => prev + 1);
+            
+            // Reset animation position
+            slideAnim.setValue(width);
+            
+            // Start enter animation
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0, // Slide back in
                     duration: 300,
                     useNativeDriver: true,
-                }).start();
-            });
-        }
+                }),
+            ]).start();
+        });
     };
 
     const handlePreviousPress = () => {
-        // Fade out the current question
-        Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            // Move to the previous question
-            profileCreationManager.goToPrevious(currentQuestion);
-
-            // Fade in the previous question
-            Animated.timing(fadeAnim, {
-                toValue: 1,
+         // Start exit animation
+         Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: width, // Slide right
                 duration: 300,
                 useNativeDriver: true,
-            }).start();
+            }),
+        ]).start(() => {
+            // Change question
+            setCurrentQuestion(prev => prev - 1);
+            
+            // Reset animation position
+            slideAnim.setValue(-width);
+            
+            // Start enter animation
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0, // Slide back in
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
         });
     };
 
@@ -329,13 +343,25 @@ const ProfileCreation = () => {
                     {isCompleted ? (
                         !hasSeenTutorial ? (
                             <TutorialScreen onPressNext={handleTutorialFinish} />
-                    ) : (
-                    <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
-                    )
+                        ) : (
+                            <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                        )
                     ) : (
                         <>
-                            <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                            <Animated.View style={{ opacity: fadeAnim }}>
+                            {/* Animated question title */}
+                            <Animated.Text 
+                                style={[
+                                    styles.heading, 
+                                    { transform: [{ translateX: slideAnim }] }
+                                ]}
+                            >
+                                Question {currentQuestion + 1} of {questions.length}
+                            </Animated.Text>
+    
+                            {/* Animated question box */}
+                            <Animated.View 
+                                style={[styles.questionContainer, { transform: [{ translateX: slideAnim }] }]}
+                            >
                                 <View style={styles.box}>
                                     <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
                                     <QuestionRenderer
@@ -348,22 +374,30 @@ const ProfileCreation = () => {
                                     />
                                 </View>
                             </Animated.View>
-                            <View style={styles.navigationButtons}>
+    
+                            {/* Animated navigation buttons */}
+                            <Animated.View 
+                                style={[styles.navigationButtons, { transform: [{ translateX: slideAnim }] }]}
+                            >
                                 {currentQuestion !== 0 && (
-                                    <TouchableOpacity
-                                        style={[styles.button, styles.previousButton]}
+                                    <TouchableOpacity 
+                                        style={[styles.button, styles.previousButton]} 
                                         onPress={handlePreviousPress}
                                     >
                                         <Text style={styles.buttonText}>Previous</Text>
                                     </TouchableOpacity>
                                 )}
-                                <TouchableOpacity
-                                    style={[styles.button, styles.nextButton, currentQuestion === 0 && { marginLeft: 'auto' }]}
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.button, 
+                                        styles.nextButton, 
+                                        currentQuestion === 0 && { marginLeft: 'auto' }
+                                    ]} 
                                     onPress={handleNextPress}
                                 >
                                     <Text style={styles.buttonText}>Next</Text>
                                 </TouchableOpacity>
-                            </View>
+                            </Animated.View>
                         </>
                     )}
                 </ScrollView>
