@@ -123,10 +123,9 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   currentDayContainer: {
-    backgroundColor: colors.sacGreen,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    paddingVertical: 35, // Increase padding for better spacing
+    paddingVertical: 35, // Increased padding for better spacing
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
@@ -135,16 +134,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
+    overflow: 'hidden', 
+    position: 'relative',
   },
   currentDayText: {
-    fontSize: 28, // Increase for a more elegant header
+    fontSize: 28, 
     fontWeight: 'bold',
     color: colors.mutedGold,
     textAlign: 'center',
-    letterSpacing: 1, // Adds spacing for a professional look
-    lineHeight: 34, // Improves text alignment
-    flexWrap: 'nowrap', // Keeps it on one line
-    maxWidth: '90%', // Ensures it fits within the container
+    letterSpacing: 1, 
+    lineHeight: 34, 
+    flexWrap: 'nowrap', 
+    maxWidth: '90%', 
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   expandButton: {
     marginTop: 15,
@@ -164,6 +172,7 @@ const styles = StyleSheet.create({
   headerIcon: {
     marginBottom: 10, // Space between icon and text
   },
+  
 });
 
 export default styles;
