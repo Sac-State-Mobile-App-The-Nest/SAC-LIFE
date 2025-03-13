@@ -216,23 +216,17 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     <View style={styles.calendarContainer}>
       {/* Weekly View */}
       <View style={styles.weeklyViewContainer}>
-        <FlatList
-          horizontal={true}
-          data={currentWeek}
-          keyExtractor={(item) => item.dateObject.toISOString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handleDayPress(item)}
-              style={[styles.dayBox, item.isToday && styles.todayBox, selectedDate.toDateString() === item.dateObject.toDateString() && styles.selectedBox]}
-            >
-              <Text style={styles.dayOfWeek}>
-                {item.dateObject && item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
-              </Text>
-              <Text style={styles.dateText}>{item.day}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+      {currentWeek.map((item, index) => (
+        <TouchableOpacity key={index} onPress={() => handleDayPress(item)}>
+          <Text style={styles.dayOfWeek}>
+            {item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
+          </Text>
+          <Text style={styles.dateText}>{item.day}</Text>
+
+          {item.isToday && <View style={styles.currentDayDot} />}
+        </TouchableOpacity>
+      ))}
+    </View>
 
       {/* Toggle Button */}
       <TouchableOpacity

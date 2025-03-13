@@ -31,7 +31,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Ensure the gradient respects container bounds
     position: 'relative',
   },
-
   gradientBackground: {
     position: 'absolute',
     top: 0,
@@ -77,19 +76,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dayBox: {
-    width: 45,  // Adjusted to be smaller for better spacing
-    height: 60, 
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 4,
-    borderRadius: 10, // Rounded corners for a smooth design
-    backgroundColor: colors.softCream, // Subtle gold background
-    borderWidth: 1.2, // Slightly thinner border
-    borderColor: colors.mutedGold, 
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 1.5,
+    marginHorizontal: 2,
+    paddingVertical: 5, // Reduce extra padding
+    backgroundColor: 'transparent', // No background
+    borderWidth: 0, // Remove border
+    shadowColor: 'transparent', // Remove shadow
   },
   monthDayBox: {
     width: tileSize * 0.85, // Adjusted for better proportion
@@ -117,9 +110,9 @@ const styles = StyleSheet.create({
     elevation: 3, // Keep subtle elevation for modern design
   },
   selectedBox: {
-    backgroundColor: colors.softCream, // More refined, neutral selection
+    backgroundColor: colors.softCream, // Neutral selection
     borderColor: colors.sacGreen,
-    borderWidth: 2, // Slightly thinner for a modern feel
+    borderWidth: 2, 
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -128,14 +121,14 @@ const styles = StyleSheet.create({
   },
   dayOfWeek: {
     fontSize: 12,
-    fontWeight: '700',
-    color: colors.sacGreen, // Dark green for better contrast
+    fontWeight: 'bold',
+    color: colors.sacGreen, 
     textAlign: 'center',
   },
   dateText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.black, // Ensures high visibility on gold backgrounds
+    color: colors.black, 
     textAlign: 'center',
   },
   toggleButton: {
@@ -165,8 +158,8 @@ const styles = StyleSheet.create({
 
   },
   scrollContainer: {
-    maxHeight: 280,  // Prevents it from growing too large
-    flexGrow: 1,  // Allows content to expand within the set height
+    maxHeight: 280,  
+    flexGrow: 1,  
   },
   sectionTitle: {
     color: colors.sacGreen,
@@ -206,40 +199,40 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     alignSelf: 'center',
-    marginTop: 15,
+    position: 'absolute',
+    top: 60, // Move it up a bit from 80
+    left: screenWidth / 2.3,
+    zIndex: 100,
     padding: 10,
-    borderRadius: 50, // Retain circular padding for clickability
-    backgroundColor: 'transparent', // Transparent background
-    elevation: 0, // No elevation
-    shadowColor: 'transparent', // Remove shadow
-    shadowOffset: { width: 0, height: 0 }, // No offset
-    shadowOpacity: 0, // No opacity
-    shadowRadius: 0, // No blur
+    borderRadius: 50,
+    backgroundColor: 'transparent',
   },
   weeklyViewContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Even spacing between days
+    justifyContent: 'space-evenly', // Ensures even spacing
     alignItems: 'center',
-    paddingVertical: 12, 
-    paddingHorizontal: 10,
-    backgroundColor: colors.sacGreen, // Blend with green theme
-    borderRadius: 15,
-    marginBottom: 10,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4, // Adds depth for a premium look
+    paddingVertical: 8,  // Reduce padding for a cleaner look
+    paddingHorizontal: 5,
+    backgroundColor: 'transparent', // Remove the green background
+  },
+  currentDayDot: {
+    width: 6,  // Small dot size
+    height: 6,
+    borderRadius: 3, // Circular shape
+    backgroundColor: colors.sacGreen, // Sac State Green color
+    alignSelf: 'center', // Ensures centering within the container
+    marginTop: 2, // Slightly adjust the spacing to center under the number
   },
   monthlyRow: {
     justifyContent: 'space-between', // Ensure spacing between tiles
     marginVertical: 5,
   },
   fullCalendarHeaderContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 20, // Increase spacing from the toggle button
+    marginBottom: 10,
   },
   fullCalendarHeader: {
     fontSize: 22,
