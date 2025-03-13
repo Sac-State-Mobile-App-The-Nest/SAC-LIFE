@@ -1,7 +1,6 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import * as colors from '../SacStateColors/GeneralColors';
-
-const { height } = Dimensions.get('window') || { height: 800 };
+const { width, height } = Dimensions.get('window'); // ✅ Ensure `width` is included
 
 const styles = StyleSheet.create({
     background: {
@@ -243,6 +242,38 @@ const styles = StyleSheet.create({
     },
     slideInActive: {
         transform: [{ translateX: 0 }], 
+    },
+
+    
+    tutorialContainer: {
+        flexGrow: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 30,
+        width: '100%', // Ensures proper alignment
+    },
+    tutorialImage: {
+        width: width * 3,  // Makes it larger, but still responsive
+        height: undefined,  // Allows height to be determined by aspect ratio
+        aspectRatio: 16 / 9,  // Adjust this based on your image dimensions
+        resizeMode: 'contain', // Ensures no stretching
+        marginVertical: height * 0.02, // Dynamic margin for different screens
+        alignSelf: 'center',
+    },
+    tutorialTitle: {
+        fontSize: 28, 
+        fontWeight: 'bold',
+        color: colors.sacGreen,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    tutorialText: {
+        fontSize: 18, 
+        color: colors.darkGray, 
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 10,
     },
 });
 

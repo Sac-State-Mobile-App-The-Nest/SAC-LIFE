@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
@@ -229,6 +229,44 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
     }
 };
 
+const TutorialScreen = ({ onPressNext }) => (
+    <ScrollView contentContainerStyle={styles.tutorialContainer}>
+        <Text style={styles.tutorialTitle}>Tutorial</Text>
+
+        <Text style={styles.tutorialText}>
+            Welcome! In this process, you'll learn how to navigate the app and its features.
+        </Text>
+
+        <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            The Dashboard is where you'll see the calendar with the ability to create your own by expanding the calendar and double-tapping on a date.
+        </Text>
+
+        <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            Next, we have our own AI chatbot, HerkyBot! Ask it questions when you're stuck or need information.
+        </Text>
+
+        <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            Next, we have our wellness questions, which will be used to personalize your services.
+        </Text>
+
+        <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            Continue to browse around the app, and if you have any questions, you can ask HerkyBot!
+        </Text>
+
+        <TouchableOpacity style={styles.largeButton} onPress={onPressNext}>
+            <Text style={styles.largeButtonText}>Finish Tutorial</Text>
+        </TouchableOpacity>
+    </ScrollView>
+);
+
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -338,11 +376,13 @@ const ProfileCreation = () => {
 
     return (
         <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
-            <View style={styles.logoContainer}>
-                <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.overlayContainer}>
+                <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                     {isCompleted ? (
                         !hasSeenTutorial ? (
-                            <TutorialScreen onPressNext={handleTutorialFinish} />
+                            <View style={styles.tutorialWrapper}>
+                                <TutorialScreen onPressNext={handleTutorialFinish} />
+                            </View>
                         ) : (
                             <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
                         )
@@ -404,7 +444,7 @@ const ProfileCreation = () => {
             </View>
         </ImageBackground>
     );
-};
+    };
 
 
 export default ProfileCreation;
