@@ -115,6 +115,25 @@ module.exports = function(poolPromise) {
         }
     });
   
+    //get all the events that a user created
+    router.get('/getAllStudentEvents', authenticateToken, async(req, res) => {
+        const std_id = req.user.std_id;
+        try{
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input('std_id', sql.Int, std_id)
+                .query(`
+                    SELECT event_id, event_title, event_description, event_date FROM student_created_events WHERE
+                    @std_id = std_id
+                `);
+            res.json(result.recordset);
+        } catch (err) {
+            console.error('SQL error', err);
+            res.status(500).send('Server Error');
+        }
+    });
+
+
     //get all of the sac state events to send to the app 
     router.get('/getAllCampusEvents', authenticateToken, async(req, res) => {
         try{
@@ -131,6 +150,7 @@ module.exports = function(poolPromise) {
             res.status(500).send('Server Error');
         }
     });
+
 
     return router;
 };
