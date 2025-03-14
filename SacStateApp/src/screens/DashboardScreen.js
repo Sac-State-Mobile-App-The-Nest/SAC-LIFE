@@ -1,9 +1,11 @@
 import React from 'react';
+import { View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import DashboardTab from '../DashboardComponents/DashboardTab';
 import SettingsScreen from './SettingsScreen';
-import WellnessScreen from './WellnessScreen'; // Import WellnessScreen
+import WellnessScreen from './WellnessScreen'; 
 import ChatbotScreen from './ChatbotScreen';
 
 const Tab = createBottomTabNavigator();
@@ -35,6 +37,23 @@ const DashboardScreen = () => {
           color: '#E4CFA3',
           fontWeight: 'bold',
         },
+        tabBarBackground: () => (
+          <View style={{ flex: 1 }}>
+            <LinearGradient
+              colors={['#043927', '#06442F']} // ✅ Gradient applied here
+              style={{ flex: 1 }}
+            />
+          </View>
+        ),
+        headerBackground: () => (
+          <View style={{ flex: 1 }}>
+            <LinearGradient
+              colors={['#043927', '#0B6845']} // ✅ Gradient applied to header
+              style={{ flex: 1 }}
+            />
+          </View>
+        ),
+
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardTab} options={{ headerShown: false }} />

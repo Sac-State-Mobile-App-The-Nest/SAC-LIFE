@@ -214,29 +214,10 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   return (
     <View style={styles.calendarContainer}>
-      {/* Weekly View */}
-      <View style={styles.weeklyViewContainer}>
-        <FlatList
-          horizontal={true}
-          data={currentWeek}
-          keyExtractor={(item) => item.dateObject.toISOString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handleDayPress(item)}
-              style={[styles.dayBox, item.isToday && styles.todayBox, selectedDate.toDateString() === item.dateObject.toDateString() && styles.selectedBox]}
-            >
-              <Text style={styles.dayOfWeek}>
-                {item.dateObject && item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
-              </Text>
-              <Text style={styles.dateText}>{item.day}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
 
       {/* Toggle Button */}
       <TouchableOpacity
-        style={[styles.iconButton, { position: 'absolute', top: 80, left: screenWidth / 2.3, zIndex: 100 }]}
+        style={[styles.iconButton]}
         onPress={toggleCalendar}
       >
         <Ionicons

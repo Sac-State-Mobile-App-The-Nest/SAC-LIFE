@@ -1,29 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import CalendarComponent from './CalendarComponent';
 import ServicesList from './ServicesList';
-import WellBeingButton from './WellBeingButton';
-import ChatWidget from './ChatWidget';
 import { fetchUserServices } from '../DashboardAPI/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../DashboardStyles/CalendarStyles';
+import * as colors from '../SacStateColors/GeneralColors'; // ✅ Import colors for customization
+
 
 const DashboardTab = () => {
   const [userServicesRec, setUserServicesRec] = useState([]);
   const [wellBeingPrompt, setWellBeingPrompt] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [events, setEvents] = useState([]);
   const [isFullCalendarVisible, setFullCalendarVisible] = useState(true);
+  const [currentWeek, setCurrentWeek] = useState([]);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(20)); // Controls slide-up effect
 
   useEffect(() => {
-    // Fetch events for the current day
-    const currentDayEvents = [
-      { title: 'Project Meeting', time: '2:00 PM - 3:00 PM' },
-      { title: 'Workshop: AI in Education', time: '4:00 PM - 5:30 PM' },
-    ];
-    setEvents(currentDayEvents);
-
     const getServices = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -34,7 +30,38 @@ const DashboardTab = () => {
       }
     };
 
-    getServices();
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1, // Fully visible
+        duration: 1000, // Smooth fade-in over 1000ms
+        delay: 200, // Add a slight delay before it starts
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0, // Moves to its normal position (no offset)
+        duration: 800, // Slightly faster slide-up effect
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    const generateCurrentWeek = () => {
+      const today = new Date();
+      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+      const week = Array.from({ length: 7 }, (_, index) => {
+          const date = new Date(startOfWeek);
+          date.setDate(startOfWeek.getDate() + index);
+          return {
+              day: date.getDate(),
+              dateObject: date,
+              isToday: date.toDateString() === new Date().toDateString(),
+          };
+      });
+
+      setCurrentWeek(week);
+  };
+
+    getServices(); // Fetch user services
+    generateCurrentWeek(); // Generate the current week
 
     const prompts = [
       'How are you feeling today?',
@@ -54,24 +81,41 @@ const DashboardTab = () => {
   return (
     <FlatList
       data={[]} // Dummy data since FlatList requires `data`
-      keyExtractor={() => 'dummy'} // Unique key
+      keyExtractor={() => 'dummy'}
       ListHeaderComponent={
         <>
-          {/* Current Day Section */}
-          <View style={styles.currentDayContainer}>
-            <Ionicons name="school-outline" size={50} color="#E4CFA3" />
-            <Text style={styles.currentDayText}>
-              {selectedDate instanceof Date
-                ? `${selectedDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                  })}, ${selectedDate.toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                  })}, ${selectedDate.getFullYear()}`
-                : 'Invalid Date'}
+          {/*Header with Gradient & Animation */}
+          <Animated.View style={[styles.currentDayContainer, { opacity: fadeAnim }]}>
+            <LinearGradient
+             colors={['#043927', '#0B6845']}
+              style={styles.gradientBackground}
+            />
+            <Ionicons name="school-outline" size={50} color={colors.mutedGold} style={styles.headerIcon} />
+
+            <Text style={styles.currentDayText} numberOfLines={1}>
+              {selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
             </Text>
-           
-          </View>
+        
+
+            {/* Weekly Calendar - Transparent Background */}
+            <View style={[styles.weeklyViewContainer, { backgroundColor: 'transparent', paddingVertical: 10 }]}>
+              {currentWeek.map((item, index) => (
+                <TouchableOpacity key={index} onPress={() => handleDayPress(item)} style={{ alignItems: 'center', paddingHorizontal: 10 }}>
+                  <Text style={[styles.dayOfWeek, { color: colors.mutedGold }]}>
+                    {item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </Text>
+                  <Text style={[styles.dateText, { color: colors.mutedGold }]}>{item.day}</Text>
+                  {item.isToday && <View style={[styles.currentDayDot, { backgroundColor: colors.mutedGold }]} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
+          
 
           {/* Full Calendar Section */}
           {isFullCalendarVisible && (
@@ -79,21 +123,6 @@ const DashboardTab = () => {
               <CalendarComponent selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
             </View>
           )}
-
-          {/* Events Section */}
-          <View style={styles.eventsContainer}>
-            <Text style={styles.sectionTitle}>Today's Events</Text>
-            {events.length > 0 ? (
-              <FlatList
-                data={events}
-                renderItem={renderEvent}
-                keyExtractor={(item, index) => index.toString()}
-                nestedScrollEnabled // Allow nested scrolling
-              />
-            ) : (
-              <Text style={styles.noEventsText}>No events scheduled for today</Text>
-            )}
-          </View>
         </>
       }
       ListFooterComponent={
@@ -101,17 +130,14 @@ const DashboardTab = () => {
           {/* Services and Well-being */}
           <View style={styles.servicesContainer}>
             <ServicesList services={userServicesRec} />
-            <WellBeingButton prompt={wellBeingPrompt} />
           </View>
-
-          {/* Chat Widget */}
-          <ChatWidget />
         </>
       }
       contentContainerStyle={styles.scrollViewContainer}
-      nestedScrollEnabled // Enable nested scrolling for safety
+      nestedScrollEnabled
     />
   );
 };
 
 export default DashboardTab;
+

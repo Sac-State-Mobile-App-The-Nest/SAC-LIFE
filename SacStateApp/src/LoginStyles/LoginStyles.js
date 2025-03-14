@@ -16,24 +16,31 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     title: {
-        fontSize: 28, // Prominent but not overpowering
-        fontWeight: 'bold',
-        marginBottom: 5,
+        fontSize: 32, // Slightly larger for more presence
+        fontWeight: '900', // Extra bold for impact
+        marginBottom: 6, // Better spacing
         color: colors.mutedGold,
-        textShadowColor: colors.darkerOverlay,
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
         textAlign: 'center',
+        textTransform: 'uppercase', // Professional look
+        letterSpacing: 1.5, // Adds spacing for a refined feel
+        fontFamily: 'serif', // A more distinct font style (try other fonts if needed)
+        textShadowColor: colors.black, // Stronger contrast
+        textShadowOffset: { width: 2, height: 2 }, // Deeper shadow for depth
+        textShadowRadius: 4,
     },
+    
     subTitle: {
         fontSize: 16, // Subtle yet readable
-        fontWeight: '400',
-        color: colors.mutedGold,
-        textShadowColor: colors.softOverlay,
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 2,
-        marginBottom: 20,
+        fontWeight: '500', // Slightly bolder
+        fontStyle: 'italic', // Adds some elegance
+        color: colors.mutedGold, // Softer for contrast
         textAlign: 'center',
+        marginBottom: 22, // More spacing below
+        letterSpacing: 1, // More refined look
+        fontFamily: 'sans-serif-light', // Smooth, modern font
+        textShadowColor: colors.black,
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 3,
     },
     box: {
         backgroundColor: colors.mutedDarkGreen, //colors.mutedDarkGreen
@@ -61,18 +68,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: colors.sacGreen,
     },
-    togglePasswordButton: {
-        backgroundColor: colors.mutedSacStateGreen,
-        paddingVertical: 12,
-        borderRadius: 8,
+    passwordContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
         width: '100%',
+        backgroundColor: colors.opaqueWhite,
+        borderRadius: 8,
+        borderColor: colors.fadedGold,
+        borderWidth: 1.5,
+        paddingHorizontal: 15,
     },
-    togglePasswordText: {
-        color: colors.softCream,
+    passwordInput: {
+        flex: 1, // Makes the input field take up remaining space
+        height: 45,
         fontSize: 16,
-        fontWeight: '600',
+        color: colors.sacGreen,
+    },
+    eyeIcon: {
+        padding: 10,
     },
     error: {
         color: colors.brightRed, // Bright red for visibility
@@ -82,11 +95,12 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: colors.mutedSacStateGreen,
-        paddingVertical: 12,
-        paddingHorizontal: 25,
+        paddingVertical: 14,
+        paddingHorizontal: 30,
         borderRadius: 8,
         alignItems: 'center',
-        width: '100%',
+        width: '60%',
+        marginTop: 10,
         shadowColor: colors.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
