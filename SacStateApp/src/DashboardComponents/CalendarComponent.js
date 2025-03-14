@@ -6,6 +6,7 @@ import styles from '../DashboardStyles/CalendarStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView, Platform, Linking } from 'react-native';
+import * as filter from 'leo-profanity';
 
 const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [currentWeek, setCurrentWeek] = useState([]);
@@ -23,9 +24,12 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [eventTime, setEventTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [sacStateEvents, setSacStateEvents] = useState([]); //stores all of the sac state events -> fills with api call
+  const [studentEvents, setStudentEvents] = useState([]); //stores all of the student created events
+  const [expandedEvent, setExpandedEvent] = useState(null); //whether the event tile is expanded to show description or not
 
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const fullCalendarHeight = screenHeight * 0.5; // Dropdown height is half the screen
+  filter.loadDictionary();
 
   useEffect(() => {
     const today = new Date();
@@ -39,9 +43,22 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         isToday: date.toDateString() === new Date().toDateString(),
       };
     });
+    setCurrentWeek(week);
+    setCurrentDate(today);
     getAllSacStateEvents();
+    getAllStudentCreatedEvents();
     setCurrentWeek(week);
   }, []);
+  //watches for changes in events and makes sure the events show right when app is loaded
+  useEffect(() => {
+    if (sacStateEvents.length > 0 || studentEvents.length > 0) {
+      const todayEvents = [
+        ...getSacStateEventsForDate(selectedDate),
+        ...getStudentCreatedEventsForDate(selectedDate),
+      ];
+      setSelectedDayEvents(todayEvents);
+    }
+  }, [sacStateEvents, studentEvents, selectedDate]);
 
   const toggleCalendar = () => {
     setFullCalendarVisible(!isFullCalendarVisible);
@@ -61,7 +78,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     } else {
       setSelectedDate(day.dateObject);
       const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
-      const userEvents = getEventsForDate(day.dateObject); //user created events
+      const userEvents = getStudentCreatedEventsForDate(day.dateObject); //user created events
       setSelectedDayEvents([...userEvents, ...campusEvents]); // Get events for the tapped day - user and campus events
     }
 
@@ -119,19 +136,66 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     });
   };
 
-  const saveEvent = () => {
+  //gets a list of all user created events for that user (event_id, event_title, event_description, event_date)
+  const getAllStudentCreatedEvents = async () => {
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/getAllStudentEvents`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setStudentEvents(response.data);
+    } catch(err){
+      console.error("Unable to get all Sac State Events");
+    }
+  };
+  const getStudentCreatedEventsForDate = (date) => {
+    return studentEvents.filter(event => {
+      const eventDate = new Date(event.event_date);
+  
+      // Normalize both eventDate and the date to be compared to, and only use year, month, and day
+      const eventDateString = eventDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const selectedDateString = date.toISOString().split('T')[0];  // Format: YYYY-MM-DD
+  
+      return eventDateString === selectedDateString;
+    });
+  };
+
+  const saveEvent = async () => {
     if (eventTitle.trim() && eventDescription.trim()) {
+
+      //title and description length filtering
+      if (eventTitle.length > 30){
+        Alert.alert('Title Too Long', 'Event title must be less than or equal to 30 characters.');
+        return;
+      }
+      if (eventDescription.length > 100){
+        Alert.alert('Description Too Long', 'Event description must be less than or eqaul to 100 characters');
+        return;
+      }
+
+      //bad word filtering
+      if (filter.check(eventTitle)) {
+        Alert.alert('Inappropriate Title', 'Let\'s be friendly');
+        return;
+      }
+      if (filter.check(eventDescription)) {
+        Alert.alert('Inappropriate Description', 'Let\'s be friendly');
+        return;
+      }
+
       const newEvent = {
         title: eventTitle,
         description: eventDescription,
         date: eventDate.toDateString(),
         event_date: eventDate.toISOString().split('T')[0],
-        time: eventTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}),
+        time: eventTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       };
-
+  
       if (eventToEdit) {
         // Edit the existing event
-        setEvents((prevEvents) =>
+        setStudentEvents((prevEvents) =>
           prevEvents.map((event) =>
             event.date === eventToEdit.date && event.title === eventToEdit.title
               ? { ...event, ...newEvent }
@@ -140,19 +204,28 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         );
         Alert.alert('Event Updated', `Event updated for ${eventDate.toLocaleDateString()}`);
       } else {
-        // Create a new event
-        setEvents((prevEvents) => [...prevEvents, newEvent]);
-        // Send to server
-        sendStudentCreatedEvent(newEvent);
+        // Add the new event locally first
+        setStudentEvents((prevEvents) => [...prevEvents, newEvent]);
+        setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
+  
+        try {
+          await sendStudentCreatedEvent(newEvent); // Send to server
+        } catch (error) {
+          console.error('Error saving event:', error);
+        }
+  
         Alert.alert('Event Created', `Event created for ${eventDate.toLocaleDateString()}`);
       }
-      
-      setSelectedDayEvents(getEventsForDate(eventDate)); // Update events for selected day
+  
       closeEventModal();
+      
+      // Fetch latest events from the backend after updating state
+      getAllStudentCreatedEvents();
     } else {
       Alert.alert('Error', 'Please fill in both the title and description.');
     }
   };
+  
 
   const deleteEvent = () => {
     if (eventToEdit) {
@@ -210,6 +283,11 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   const getEventsForDate = (date) => {
     return events.filter(event => event.date === date.toDateString());
+  };
+
+  //when a tile is clicked, it'll set whether it has been expanded or not
+  const toggleExpand = (event) => {
+    setExpandedEvent(expandedEvent === event ? null : event);
   };
 
   return (
@@ -279,14 +357,14 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
             <Text style={styles.modalTitle}>{eventToEdit ? 'Edit Event' : 'Create Event'}</Text>
             <TextInput
               style={styles.inputField}
-              placeholder="Event Title"
+              placeholder="Title: Max 30 characters"
               placeholderTextColor='grey'
               value={eventTitle}
               onChangeText={setEventTitle}
             />
             <TextInput
               style={styles.inputField}
-              placeholder="Event Description"
+              placeholder="Description: Max 100 characters"
               placeholderTextColor='grey'
               value={eventDescription}
               onChangeText={setEventDescription}
@@ -321,64 +399,39 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         </View>
       </Modal>
 
-      {/* Display events for the selected day */}
-      {/* {selectedDayEvents.length > 0 && (
-        <View style={styles.eventListContainer}>
-          <Text style={styles.eventListTitle}>Events for {selectedDate.toLocaleDateString()}:</Text>
-          <FlatList
-            data={selectedDayEvents}
-            keyExtractor={(item, index) => `${item.date}-${index}`}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.eventItem}
-                onPress={() => openEventModal(selectedDate, item)} // Open modal for editing
-              >
-                <View style={styles.eventItemContent}>
-                  <Text style={styles.eventItemTitle}>{item.title}</Text>
-                  <Text style={styles.eventItemDescription}>{item.description}</Text>
-                  <Text style={styles.eventItemDate}>{item.time}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      )} */}
 
-
+      <Text style={styles.eventsHeader}>Your Events</Text>
       <View style={styles.eventsContainer}>
         {selectedDayEvents.length > 0 ? (
-          <ScrollView 
-            style={styles.scrollContainer} 
-            contentContainerStyle={{ paddingBottom: 10 }} 
+          <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={{ paddingBottom: 10 }}
             showsVerticalScrollIndicator={true}
             nestedScrollEnabled={true}
           >
             {selectedDayEvents.map((event, index) => (
-              <View key={index} style={styles.eventCard}>
-                {event.event_link ? (
-                  <TouchableOpacity onPress={() => Linking.openURL(event.event_link)}>
-                    <Text style={styles.eventTitle}>{event.title || event.event_title}</Text>
-                    <Text style={styles.eventTime}>
-                      {new Date(event.date || event.event_date).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <>
-                    <Text style={styles.eventTitle}>{event.title || event.event_title}</Text>
-                    <Text style={styles.eventTime}>
-                      {new Date(event.date || event.event_date).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}
-                    </Text>
-                  </>
+              <TouchableOpacity key={index} onPress={() => toggleExpand(event)} style={styles.eventCard}>
+                <Text style={styles.eventTitle}>{event.event_title}</Text>
+                <Text style={styles.eventTime}>
+                  {new Date(event.date || event.event_date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                </Text>
+                {expandedEvent === event && (
+                  <View style={styles.expandedContent}>
+                    <Text style={styles.eventDescription}>{event.event_description || "No description available."}</Text>
+                    {event.event_link && (
+                      <TouchableOpacity onPress={() => Linking.openURL(event.event_link)}>
+                        <Text style={styles.eventLink}>Open Event Link</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 )}
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         ) : (
           <Text style={styles.noEventsText}>No events for this day</Text>
         )}
       </View>
-
-
     </View>
   );
 };
