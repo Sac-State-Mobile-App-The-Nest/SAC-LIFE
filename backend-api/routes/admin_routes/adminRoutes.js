@@ -1,6 +1,4 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const sql = require('mssql');
 const router = express.Router();
 const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware');
@@ -13,7 +11,7 @@ module.exports = function (poolPromise) {
   router.get('/', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     try {
       const pool = await poolPromise;
-      const result = await pool.request().query('SELECT * FROM admin_login');
+      const result = await pool.request().query('SELECT username, role FROM admin_login');
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
@@ -28,31 +26,18 @@ module.exports = function (poolPromise) {
   router.delete('/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { username } = req.params;
     const { password } = req.body;
-    const token = req.headers.authorization?.split(' ')[1];
 
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication token is missing' });
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required for deleting an admin' });
     }
 
     try {
-       const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
       const pool = await poolPromise;
 
       // Fetch requesting admin's details
       const adminResult = await pool.request()
         .input('username', sql.VarChar, decoded.username)
         .query('SELECT password, role FROM admin_login WHERE username = @username');
-
-      if (adminResult.recordset.length === 0) {
-         return res.status(401).json({ message: 'Admin not found' });
-      }
-
-       const requestingAdmin = adminResult.recordset[0];
-
-      // Ensure only super-admins can delete admins
-      if (requestingAdmin.role !== 'super-admin') {
-         return res.status(403).json({ message: 'Only super-admins can delete admins.' });
-      }
 
       // Verify the password before deletion
       const isMatch = await bcrypt.compare(password, requestingAdmin.password);
@@ -84,29 +69,22 @@ module.exports = function (poolPromise) {
   router.delete('/students/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { studentId } = req.params;
     const { password } = req.body;
-    const token = req.headers.authorization?.split(' ')[1];
 
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication token is missing' });
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required for deleting a student' });
     }
 
     let transaction;
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
       const pool = await poolPromise;
+
       const result = await pool.request()
         .input('username', sql.VarChar, decoded.username)
         .query('SELECT password, role FROM admin_login WHERE username = @username');
 
       if (result.recordset.length === 0) {
         return res.status(401).json({ message: 'Admin not found' });
-      }
-
-      const admin = result.recordset[0];
-
-      if (admin.role !== 'super-admin') {
-        return res.status(403).json({ message: "Invalid role: Only super-admins can delete students." });
       }
 
       const isMatch = await bcrypt.compare(password, admin.password);
@@ -235,6 +213,56 @@ module.exports = function (poolPromise) {
       res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
   });
+
+  /**
+   * POST: Creates a new admin account
+   * Only super-admins can perform this action.
+   */
+  router.post("/create", authenticateToken, verifyRole(["super-admin"]), async (req, res) => {
+    const { username, password, role } = req.body;
+
+    if (!username || !password || !role) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    try {
+      const pool = await poolPromise;
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await pool.request()
+        .input("username", sql.VarChar, username)
+        .input("password", sql.VarChar, hashedPassword)
+        .input("role", sql.VarChar, role)
+        .query("INSERT INTO admin_login (username, password, role) VALUES (@username, @password, @role)");
+
+      res.status(201).json({ message: "Admin created successfully" });
+    } catch (error) {
+      console.error("SQL error:", error.message);
+      res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+  });
+
+  router.put('/admin/deactivate/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    const { username } = req.params;
+    const { is_active } = req.body; 
+  
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('username', sql.VarChar, username)
+            .input('is_active', sql.Bit, is_active)
+            .query('UPDATE admin_login SET is_active = @is_active WHERE username = @username');
+  
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: 'Admin not found' });
+        }
+  
+        res.json({ message: `Admin ${is_active ? 'activated' : 'deactivated'} successfully!` });
+    } catch (err) {
+        console.error('SQL error:', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+});
 
   return router;
 };

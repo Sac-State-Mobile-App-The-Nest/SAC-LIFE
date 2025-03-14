@@ -14,22 +14,23 @@
 }
 
 /* Apply fade-in animation to each row in the table */
-.students-table tr {
+.users-table tr {
     opacity: 0; /* Start hidden */
     animation: fadeIn 0.5s ease forwards; /* Fade in each row */
+    border-bottom: 1px solid #dcdcdc; /* Light grey for better separation */
 }
 
 /* Add a slight delay for even and odd rows to create a staggered effect */
-.students-table tr:nth-child(even) {
+.users-table tr:nth-child(even) {
     animation-delay: 0.1s; /* Staggered delay for even rows */
 }
 
-.students-table tr:nth-child(odd) {
+.users-table tr:nth-child(odd) {
     animation-delay: 0.2s; /* Staggered delay for odd rows */
 }
 
 /* === Container Styles === */
-.students-container {
+.users-container {
     max-height: 90vh;  /* Prevents exceeding the viewport */
     overflow-y: auto;  /* Enables vertical scrolling */
     display: flex;
@@ -45,7 +46,7 @@
 }
 
 /* Heading styles */
-.students-container h2 {
+.users-container h2 {
     max-height: 90vh;  /* Prevents exceeding the viewport */
     overflow-y: auto;  /* Enables vertical scrolling */
     font-family: 'Roboto', sans-serif;
@@ -57,7 +58,7 @@
 }
 
 /* === Table Styles === */
-.students-table {
+.users-table {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
@@ -68,7 +69,7 @@
 }
 
 /* Table header and cell styling */
-.students-table th, .users-table td {
+.userss-table th, .users-table td {
     padding: 12px;
     text-align: center;
     color: #3b4f3d; /* Muted Sac State green */
@@ -76,20 +77,23 @@
 }
 
 /* Table header background color */
-.students-table th {
+.users-table th {
     background-color: #faf9e6; /* Soft, muted pale gold */
     font-weight: bold;
 }
 
 /* Highlight row on hover */
-.students-table tr:hover {
-    background-color: #d3e0d5; /* Faded Sac State green on row hover */
+.users-table tr:hover {
+    background-color: #cfe1cf; /* Slightly darker green */
 }
 
-/* === Buttons Container === */
-.students-buttons {
+/* Buttons container (Aligning elements to the left) */
+.users-buttons {
     display: flex;
+    align-items: center;
     gap: 10px;
+    width: 100%;
+    position: relative;
 }
 
 /* === General Button Styles === */
@@ -115,37 +119,53 @@ button {
     border-color: #b8c49e;
 }
 
-/* === Delete Button Styles === */
-.delete-button {
-    background-color: #e8b4b4; /* Muted soft red for delete */
-    color: #5a1e1e; /* Dark red text */
-    border-color: #d89a9a; /* Light border for delete button */
-    
-    
-}
-.delete-button:hover {
-    background-color: #d89a9a; /* Darker muted red on hover */
-    border-color: #c08484;
-    left: 5px; 
+/* Ensure the checkbox header is a flex container */
+.checkbox-header {
+    display: flex;
+    flex-direction: column; /* Stacks button above checkbox */
+    align-items: center;
+    gap: 5px; /* Space between button and checkbox */
 }
 
-/* === Delete Selected Button (Fixed Position in Top-Left) === */
-.delete-selected-button{
-    position: absolute; /* Fixes button in the top-left */
-    top: 115px; /* Distance from the top */
-    left: 430px; /* Distance from the left */
-    background-color: #e8b4b4; /* Muted soft red for delete */
-    color: #5a1e1e; /* Dark red text */
-    border-color: #d89a9a; /* Light border for delete button */
-    padding: 10px 16px;
+/* Delete Selected Button (Now Inside Table Header) */
+.delete-selected-button {
+    background-color: #e8b4b4;
+    color: #5a1e1e;
+    border-color: #d89a9a;
+    padding: 8px 16px;
     font-size: 14px;
     font-weight: bold;
     border-radius: 6px;
     border: none;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-    z-index: 10; /* Ensures it stays above other elements */
+    width: auto;
+    min-width: 120px;
+    text-align: center;
 }
+
+/* Responsive Fix for Smaller Screens */
+@media (max-width: 768px) {
+    .delete-selected-button {
+        width: 100%; /* Full width on small screens */
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+/* Ensures it remains in place and adapts on small screens */
+@media (max-width: 768px) {
+    .users-buttons {
+        flex-direction: column; /* Stack elements on small screens */
+        align-items: flex-start; /* Keep left-aligned */
+    }
+
+    .delete-selected-button {
+        width: 100%; /* Make it full width for smaller screens */
+        text-align: center;
+    }
+}
+
 
 /* === Back Button (Fixed at Top-Left) === */
 .delete-selected-button:hover {
@@ -264,25 +284,236 @@ button {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay for focus */
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
-/* Edit modal content */
+/* === Edit Modal Box === */
 .edit-modal-content {
-    max-height: 80vh; 
-    overflow-y: auto; 
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
+    padding: 25px;
+    border-radius: 8px;
+    width: 350px; /* Adjust width for better readability */
+    max-width: 90%;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Edit modal buttons container */
+/* Input Fields */
+.edit-modal-content label {
+    display: block;
+    font-weight: bold;
+    color: #3b4f3d;
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.edit-modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: white;
+    color: #2e5339; /* Dark green text */
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out;
+}
+
+/* Focus effect */
+.edit-modal-content input:focus {
+    border-color: #35654d; /* Green highlight */
+    outline: none;
+    box-shadow: 0px 0px 5px rgba(53, 101, 77, 0.3);
+}
+
+/* Modal Buttons */
 .edit-modal-actions {
-    margin-top: 10px;
     display: flex;
     justify-content: space-between;
+    margin-top: 15px;
+}
+
+.edit-modal-actions .save-button:hover {
+    background-color: #2f5544; /* Darker green */
+}
+
+/* Cancel Button */
+.edit-modal-actions .cancel-button {
+    background-color: #ccc;
+    color: black;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.edit-modal-actions .cancel-button:hover {
+    background-color: #aaa;
+}
+
+/* Services Container */
+.service-checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #f7f8f5;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Service Checkbox Styling */
+.service-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+    font-size: 14px;
+    color: #2e5339;
+    border: 1px solid #ccc;
+    width: fit-content;
+}
+
+/* Hover Effect */
+.service-checkbox:hover {
+    background: #e8f0e8;
+    border-color: #35654d;
+}
+
+/* Checked Styling */
+.service-checkbox input:checked + label {
+    font-weight: bold;
+    color: #2f5544;
+}
+
+/* === Styled Search Bar === */
+.search-bar {
+    width: 100%;
+    max-width: 300px; /* Prevents it from stretching too much */
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 20px; /* Rounded corners */
+    background-color: #fff;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Add hover effect */
+.search-bar:hover {
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus effect for accessibility */
+.search-bar:focus {
+    border-width: 2px;
+    border-color: #35654d; /* Dark green */
+}
+
+/* Search Icon */
+.search-icon {
+    color: #888;
+    font-size: 16px;
+}
+
+.create-admin-button {
+    background-color: #35654d;
+    color: white;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+    margin-bottom: 15px;
+  }
+  
+  .create-admin-button:hover {
+    background-color: #2f5544;
+    transform: scale(1.05);
+  }
+
+  /* Smooth scrollbar styling */
+.scrollable-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    width: 100%;
+  }
+  
+  /* Optional: Hide scrollbar but still allow scrolling */
+  .scrollable-table-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollable-table-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  .scrollable-table-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  /* Toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 22px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2e5339;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
 }

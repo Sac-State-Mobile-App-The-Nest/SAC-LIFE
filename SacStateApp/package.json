@@ -11,6 +11,7 @@
   "dependencies": {
     "@google-cloud/dialogflow": "^6.11.0",
     "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/bottom-tabs": "^6.6.1",
@@ -20,6 +21,7 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.5",
     "expo": "^52.0.31",
+    "expo-linear-gradient": "^14.0.2",
     "expo-status-bar": "~2.0.0",
     "express": "^4.21.1",
     "mssql": "^11.0.1",

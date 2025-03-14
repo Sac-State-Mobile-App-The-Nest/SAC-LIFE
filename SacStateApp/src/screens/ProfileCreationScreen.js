@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
@@ -7,10 +7,9 @@ import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
-// Question class to represent a question in the profile creation process
 class Question {
     constructor(id, text, inputType, options = [], placeholder = null) {
         this.id = id;
@@ -21,7 +20,6 @@ class Question {
     }
 }
 
-// ProfileCreationManager class to manage the profile creation process
 class ProfileCreationManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;
@@ -42,10 +40,10 @@ class ProfileCreationManager {
     }
 }
 
-// Function to validate the graduation year input
 const validateGraduationYear = (text, selectedYear) => {
     const currentYear = new Date().getFullYear();
     const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+    const maximumGraduationYear = currentYear + 10; // 10-year limit from the current year
 
     if (text.length === 4) {
         const inputYear = parseInt(text);
@@ -58,6 +56,9 @@ const validateGraduationYear = (text, selectedYear) => {
         if (inputYear < minimumGraduationYear) {
             return { isValid: false, message: `Invalid Year: Graduation year must be ${minimumGraduationYear} or later for a ${selectedYear}.` };
         }
+        if (inputYear > maximumGraduationYear) {
+            return { isValid: false, message: `Invalid Year: Graduation year cannot be more than 10 years from now (${maximumGraduationYear}).` };
+        }
         return { isValid: true, message: "" };
     } else if (text.length > 4) {
         return { isValid: false, message: "Invalid Year: Please enter a valid 4-digit year." };
@@ -65,7 +66,6 @@ const validateGraduationYear = (text, selectedYear) => {
     return { isValid: true, message: "" };
 };
 
-// Function to calculate the minimum graduation year based on the selected year in studies
 const getMinimumGraduationYear = (selectedYear) => {
     const currentYear = new Date().getFullYear();
     switch (selectedYear) {
@@ -82,7 +82,6 @@ const getMinimumGraduationYear = (selectedYear) => {
     }
 };
 
-// Function to send profile data to the server
 const sendProfileDataToServer = async (answers, navigation) => {
     try {
         const specificAnswers = {
@@ -113,19 +112,18 @@ const sendProfileDataToServer = async (answers, navigation) => {
 
         navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     } catch (err) {
         console.error('Error sending profile answers: ', err);
         Alert.alert('Error', 'Failed to send profile answers. Please try again.');
         navigation.reset({
             index: 0,
-            routes: [{ name: "Dashboard" }],
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     }
 };
 
-// Component to render the completion screen
 const CompletionScreen = ({ onPress }) => (
     <View style={styles.completionContainer}>
         <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
@@ -135,7 +133,6 @@ const CompletionScreen = ({ onPress }) => (
     </View>
 );
 
-// Component to render a single question
 const QuestionRenderer = ({ question, answers, profileCreationManager, currentQuestion, preferredName, setPreferredName }) => {
     switch (question.inputType) {
         case "text":
@@ -232,13 +229,52 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
     }
 };
 
-// Main ProfileCreation component
+const TutorialScreen = ({ onPressNext }) => (
+    <ScrollView contentContainerStyle={styles.tutorialContainer}>
+        <Text style={styles.tutorialTitle}>Tutorial</Text>
+
+        <Text style={styles.tutorialText}>
+            Welcome! In this process, you'll learn how to navigate the app and its features.
+        </Text>
+
+        <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            The Dashboard is where you'll see the calendar with the ability to create your own by expanding the calendar and double-tapping on a date.
+        </Text>
+
+        <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            Next, we have our own AI chatbot, HerkyBot! Ask it questions when you're stuck or need information.
+        </Text>
+
+        <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            Next, we have our wellness questions, which will be used to personalize your services.
+        </Text>
+
+        <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
+
+        <Text style={styles.tutorialText}>
+            Continue to browse around the app, and if you have any questions, you can ask HerkyBot!
+        </Text>
+
+        <TouchableOpacity style={styles.largeButton} onPress={onPressNext}>
+            <Text style={styles.largeButtonText}>Finish Tutorial</Text>
+        </TouchableOpacity>
+    </ScrollView>
+);
+
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [preferredName, setPreferredName] = useState("");
     const [isCompleted, setIsCompleted] = useState(false);
+    const [hasSeenTutorial, setHasSeenTutorial] = useState(false);  // Tutorial state
     const navigation = useNavigation();
+    const slideAnim = useRef(new Animated.Value(0)).current;
 
     const questions = [
         new Question(0, "Tell us your name! (Or preferred name)", "text"),
@@ -255,6 +291,15 @@ const ProfileCreation = () => {
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
+    const handleTutorialFinish = () => {
+        setHasSeenTutorial(true);  // Mark tutorial as completed
+        // Proceed to dashboard or desired screen
+        navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }], // Adjust route name as needed
+        });
+    };
+
     const handleNextPress = () => {
         if (currentQuestion === 0 && preferredName.trim() === "") {
             Alert.alert("Error", "Please fill in your name.");
@@ -266,62 +311,140 @@ const ProfileCreation = () => {
             const currentYear = new Date().getFullYear();
             const selectedYear = answers[4];
             const minimumGraduationYear = getMinimumGraduationYear(selectedYear);
+            const maximumGraduationYear = currentYear + 10; // 10-year limit
 
-            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < minimumGraduationYear) {
-                Alert.alert("Error", `Please select a semester and enter a valid 4-digit year (${minimumGraduationYear} or later).`);
+            if (!graduationDate?.semester || !graduationDate?.year || graduationDate.year.length !== 4 || parseInt(graduationDate.year) < minimumGraduationYear || parseInt(graduationDate.year) > maximumGraduationYear) {
+                Alert.alert("Error", `Please select a semester and enter a valid 4-digit year (between ${minimumGraduationYear} and ${maximumGraduationYear}).`);
                 return;
             }
         }
 
         if (currentQuestion === questions.length - 1) {
             setIsCompleted(true);
-        } else {
-            profileCreationManager.goToNext(currentQuestion);
-        }
+        } 
+        
+        // Start exit animation
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: -width, // Slide left
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            // Change question
+            setCurrentQuestion(prev => prev + 1);
+            
+            // Reset animation position
+            slideAnim.setValue(width);
+            
+            // Start enter animation
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0, // Slide back in
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        });
+    };
+
+    const handlePreviousPress = () => {
+         // Start exit animation
+         Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: width, // Slide right
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            // Change question
+            setCurrentQuestion(prev => prev - 1);
+            
+            // Reset animation position
+            slideAnim.setValue(-width);
+            
+            // Start enter animation
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0, // Slide back in
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        });
     };
 
     return (
         <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
-            <View style={styles.logoContainer}>
-                <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.overlayContainer}>
+                <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                     {isCompleted ? (
-                        <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                        !hasSeenTutorial ? (
+                            <View style={styles.tutorialWrapper}>
+                                <TutorialScreen onPressNext={handleTutorialFinish} />
+                            </View>
+                        ) : (
+                            <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                        )
                     ) : (
                         <>
-                            <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                            <View style={styles.box}>
-                                <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                                <QuestionRenderer
-                                    question={questions[currentQuestion]}
-                                    answers={answers}
-                                    profileCreationManager={profileCreationManager}
-                                    currentQuestion={currentQuestion}
-                                    preferredName={preferredName}
-                                    setPreferredName={setPreferredName}
-                                />
-                            </View>
-                            <View style={styles.navigationButtons}>
+                            {/* Animated question title */}
+                            <Animated.Text 
+                                style={[
+                                    styles.heading, 
+                                    { transform: [{ translateX: slideAnim }] }
+                                ]}
+                            >
+                                Question {currentQuestion + 1} of {questions.length}
+                            </Animated.Text>
+    
+                            {/* Animated question box */}
+                            <Animated.View 
+                                style={[styles.questionContainer, { transform: [{ translateX: slideAnim }] }]}
+                            >
+                                <View style={styles.box}>
+                                    <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
+                                    <QuestionRenderer
+                                        question={questions[currentQuestion]}
+                                        answers={answers}
+                                        profileCreationManager={profileCreationManager}
+                                        currentQuestion={currentQuestion}
+                                        preferredName={preferredName}
+                                        setPreferredName={setPreferredName}
+                                    />
+                                </View>
+                            </Animated.View>
+    
+                            {/* Animated navigation buttons */}
+                            <Animated.View 
+                                style={[styles.navigationButtons, { transform: [{ translateX: slideAnim }] }]}
+                            >
                                 {currentQuestion !== 0 && (
-                                    <TouchableOpacity
-                                        style={[styles.button, styles.previousButton]}
-                                        onPress={() => profileCreationManager.goToPrevious(currentQuestion)}
+                                    <TouchableOpacity 
+                                        style={[styles.button, styles.previousButton]} 
+                                        onPress={handlePreviousPress}
                                     >
                                         <Text style={styles.buttonText}>Previous</Text>
                                     </TouchableOpacity>
                                 )}
-                                <TouchableOpacity
-                                    style={[styles.button, styles.nextButton]}
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.button, 
+                                        styles.nextButton, 
+                                        currentQuestion === 0 && { marginLeft: 'auto' }
+                                    ]} 
                                     onPress={handleNextPress}
                                 >
                                     <Text style={styles.buttonText}>Next</Text>
                                 </TouchableOpacity>
-                            </View>
+                            </Animated.View>
                         </>
                     )}
                 </ScrollView>
             </View>
         </ImageBackground>
     );
-};
+    };
+
 
 export default ProfileCreation;

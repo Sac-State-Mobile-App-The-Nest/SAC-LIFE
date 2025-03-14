@@ -1,43 +1,103 @@
-/* Login.css */
+/* Center everything properly */
 .login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #f0f4f8;
-  }
-  
-  .login-container h2 {
-    font-size: 24px;
-    color: #2e5339;
-    margin-bottom: 20px;
-  }
-  
-  .login-container form {
+    background-color: white; /* Pure white background */
+    padding: 20px;
+}
+
+/* Form Container */
+.login-form {
     display: flex;
     flex-direction: column;
-    width: 300px;
-  }
-  
-  .login-container input {
-    padding: 10px;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 90%;
+}
+
+/* Title Styling */
+.login-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #2e5339;
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+/* Underline effect */
+.login-title::after {
+    content: "";
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: #2e5339;
+    margin: 8px auto 0 auto;
+    border-radius: 2px;
+}
+
+/* Input Fields */
+.login-form input {
+    padding: 14px;
     margin: 10px 0;
     border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .login-container button {
-    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s;
+    width: 100%;
+}
+
+/* Focus Effect */
+.login-form input:focus {
+    border-color: #2e5339;
+    box-shadow: 0px 0px 5px rgba(46, 83, 57, 0.4);
+}
+
+/* Error Message */
+.error-message {
+    color: #d9534f;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Button Styling */
+.login-form button {
+    padding: 14px;
     background-color: #2e5339;
     color: white;
     font-weight: bold;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-  }
-  
-  .login-container button:hover {
+    font-size: 16px;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+.login-form button:hover {
     background-color: #3f5b48;
-  }
-  
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Disabled Button Styling */
+.login-form button:disabled {
+    background-color: #a5b1a6;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 500px) {
+    .login-form {
+        width: 100%;
+        padding: 20px;
+    }
+}

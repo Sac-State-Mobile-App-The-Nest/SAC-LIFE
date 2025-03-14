@@ -95,23 +95,6 @@ const styles = StyleSheet.create({
     color: colors.sacGreen,
     textAlign: 'center',
   },
-  chatWidget: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: colors.sacGreen,
-    padding: 15,
-    borderRadius: 25,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  chatWidgetIcon: {
-    color: colors.goldenWhite,
-    fontSize: 20,
-  },
   eventCard: {
     backgroundColor: colors.white,
     borderRadius: 15,
@@ -140,21 +123,36 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   currentDayContainer: {
-    backgroundColor: colors.sacGreen,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    padding: 25,
+    paddingVertical: 35, // Increased padding for better spacing
+    paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+    overflow: 'hidden', 
+    position: 'relative',
   },
   currentDayText: {
-    fontSize: 28,
+    fontSize: 28, 
     fontWeight: 'bold',
     color: colors.mutedGold,
-    marginTop: 10,
+    textAlign: 'center',
+    letterSpacing: 1, 
+    lineHeight: 34, 
+    flexWrap: 'nowrap', 
+    maxWidth: '90%', 
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   expandButton: {
     marginTop: 15,
@@ -171,6 +169,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
+  headerIcon: {
+    marginBottom: 10, // Space between icon and text
+  },
+  
 });
 
 export default styles;

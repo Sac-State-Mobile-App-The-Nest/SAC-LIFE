@@ -1,42 +1,47 @@
 // components/LogIn.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import '../css/LogIn.css';
+import { api, refreshAccessToken, logoutAdmin } from '../api/api'; // ✅ Import missing functions
 
-function LogIn() {
+function LogIn({ setIsAuthenticated }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); 
+  const navigate = useNavigate(); 
 
   const handleLogin = async (event) => {
-    console.log("Login button is clicked");
     event.preventDefault();
+    setError(''); 
+    setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/admin_login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await api.post('/admin_login', { username, password });
       
-      if (response.ok) {
-        const data = await response.json();
-        // Save the JWT token (e.g., in localStorage)
-        localStorage.setItem('token', data.token);
-        console.log("Token saved in localStorage:", localStorage.getItem("token"));
-        // Redirect to the main content page for authenticated admins
-        window.location.href = '/';
+      if (response.data.token && response.data.refreshToken) {
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem('refreshToken', response.data.refreshToken);
+        setIsAuthenticated(true);
+        navigate('/');
       } else {
-        alert('Invalid login credentials');
+        setError('Login successful, but no token received.');
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('An error occurred. Please try again.');
+      setError('Invalid username or password');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-container">
-      <h2>Admin Login</h2>
-      <form onSubmit={handleLogin}>
+      <form className="login-form" onSubmit={handleLogin}>
+      <h2 className="login-title">Sac LIFE Admin Portal</h2>
+        
+        {error && <p className="error-message">{error}</p>} {/* Inline Error Message */}
+
         <input
           type="text"
           placeholder="Username"
@@ -51,7 +56,9 @@ function LogIn() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Log In</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Log In'}
+        </button>
       </form>
     </div>
   );

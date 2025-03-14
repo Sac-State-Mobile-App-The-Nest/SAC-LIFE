@@ -1,0 +1,21 @@
+{
+  "name": "chatbot-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dfserver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mssql": "^11.0.1",
+    "openai": "^4.83.0",
+    "react-native-parsed-text": "^0.0.22"
+  }
+}
