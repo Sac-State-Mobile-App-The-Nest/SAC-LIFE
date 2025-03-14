@@ -6,6 +6,7 @@ import styles from '../DashboardStyles/CalendarStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView, Platform, Linking } from 'react-native';
+import * as filter from 'leo-profanity';
 
 const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [currentWeek, setCurrentWeek] = useState([]);
@@ -28,6 +29,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const fullCalendarHeight = screenHeight * 0.5; // Dropdown height is half the screen
+  filter.loadDictionary();
 
   useEffect(() => {
     const today = new Date();
@@ -162,6 +164,27 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   const saveEvent = async () => {
     if (eventTitle.trim() && eventDescription.trim()) {
+
+      //title and description length filtering
+      if (eventTitle.length > 30){
+        Alert.alert('Title Too Long', 'Event title must be less than or equal to 30 characters.');
+        return;
+      }
+      if (eventDescription.length > 100){
+        Alert.alert('Description Too Long', 'Event description must be less than or eqaul to 100 characters');
+        return;
+      }
+
+      //bad word filtering
+      if (filter.check(eventTitle)) {
+        Alert.alert('Inappropriate Title', 'Let\'s be friendly');
+        return;
+      }
+      if (filter.check(eventDescription)) {
+        Alert.alert('Inappropriate Description', 'Let\'s be friendly');
+        return;
+      }
+
       const newEvent = {
         title: eventTitle,
         description: eventDescription,
@@ -334,14 +357,14 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
             <Text style={styles.modalTitle}>{eventToEdit ? 'Edit Event' : 'Create Event'}</Text>
             <TextInput
               style={styles.inputField}
-              placeholder="Event Title"
+              placeholder="Title: Max 30 characters"
               placeholderTextColor='grey'
               value={eventTitle}
               onChangeText={setEventTitle}
             />
             <TextInput
               style={styles.inputField}
-              placeholder="Event Description"
+              placeholder="Description: Max 100 characters"
               placeholderTextColor='grey'
               value={eventDescription}
               onChangeText={setEventDescription}
