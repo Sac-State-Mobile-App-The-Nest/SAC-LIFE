@@ -106,6 +106,7 @@ export const updateUserYearOfStudy = async (token, studentYears) => {
 
 // send to server: student created events
 export const sendStudentCreatedEvent = async (createdEvent) => {
+  console.log(createdEvent);
   try {
     const token = await AsyncStorage.getItem('token');
     const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/created-event`, {

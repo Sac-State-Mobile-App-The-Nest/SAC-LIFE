@@ -21,11 +21,15 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [events, setEvents] = useState([]); // Store events in an array
   const [selectedDayEvents, setSelectedDayEvents] = useState([]); // Store events for the selected day
   const animationHeight = useRef(new Animated.Value(0)).current;
-  const [eventTime, setEventTime] = useState(new Date());
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [sacStateEvents, setSacStateEvents] = useState([]); //stores all of the sac state events -> fills with api call
   const [studentEvents, setStudentEvents] = useState([]); //stores all of the student created events
   const [expandedEvent, setExpandedEvent] = useState(null); //whether the event tile is expanded to show description or not
+
+  const [eventStartTime, setEventStartTime] = useState(new Date());
+  const [eventEndTime, setEventEndTime] = useState(new Date());
+  const [showCalendarPicker, setShowCalendarPicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [isStartDate, setIsStartDate] = useState(null)
 
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const fullCalendarHeight = screenHeight * 0.5; // Dropdown height is half the screen
@@ -50,15 +54,15 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     setCurrentWeek(week);
   }, []);
   //watches for changes in events and makes sure the events show right when app is loaded
-  useEffect(() => {
-    if (sacStateEvents.length > 0 || studentEvents.length > 0) {
-      const todayEvents = [
-        ...getSacStateEventsForDate(selectedDate),
-        ...getStudentCreatedEventsForDate(selectedDate),
-      ];
-      setSelectedDayEvents(todayEvents);
-    }
-  }, [sacStateEvents, studentEvents, selectedDate]);
+  // useEffect(() => {
+  //   if (sacStateEvents.length > 0 || studentEvents.length > 0) {
+  //     const todayEvents = [
+  //       ...getSacStateEventsForDate(selectedDate),
+  //       ...getStudentCreatedEventsForDate(selectedDate),
+  //     ];
+  //     setSelectedDayEvents(todayEvents);
+  //   }
+  // }, [sacStateEvents, studentEvents, selectedDate]);
 
   const toggleCalendar = () => {
     setFullCalendarVisible(!isFullCalendarVisible);
@@ -77,9 +81,9 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       openEventModal(day); // Open event creation modal
     } else {
       setSelectedDate(day.dateObject);
-      const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
-      const userEvents = getStudentCreatedEventsForDate(day.dateObject); //user created events
-      setSelectedDayEvents([...userEvents, ...campusEvents]); // Get events for the tapped day - user and campus events
+      //const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
+      //const userEvents = getStudentCreatedEventsForDate(day.dateObject); //user created events
+      //setSelectedDayEvents([...userEvents, ...campusEvents]); // Get events for the tapped day - user and campus events
     }
 
     setLastClickTime(currentTime); // Update last click time
@@ -162,7 +166,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     });
   };
 
-  const saveEvent = async () => {
+  const saveEvent = () => {
     if (eventTitle.trim() && eventDescription.trim()) {
 
       //title and description length filtering
@@ -188,9 +192,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       const newEvent = {
         title: eventTitle,
         description: eventDescription,
-        date: eventDate.toDateString(),
-        event_date: eventDate.toISOString().split('T')[0],
-        time: eventTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        event_start_date: eventStartTime.toISOString().split('T')[0] + " " + eventStartTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false}),
+        event_end_date: eventEndTime.toISOString().split('T')[0] + " " + eventEndTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false})
       };
   
       if (eventToEdit) {
@@ -205,14 +208,12 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         Alert.alert('Event Updated', `Event updated for ${eventDate.toLocaleDateString()}`);
       } else {
         // Add the new event locally first
-        setStudentEvents((prevEvents) => [...prevEvents, newEvent]);
-        setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
+        //setStudentEvents((prevEvents) => [...prevEvents, newEvent]);
+        //setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
   
-        try {
-          await sendStudentCreatedEvent(newEvent); // Send to server
-        } catch (error) {
-          console.error('Error saving event:', error);
-        }
+        
+        sendStudentCreatedEvent(newEvent); // Send to server
+        
   
         Alert.alert('Event Created', `Event created for ${eventDate.toLocaleDateString()}`);
       }
@@ -220,7 +221,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       closeEventModal();
       
       // Fetch latest events from the backend after updating state
-      getAllStudentCreatedEvents();
+      // getAllStudentCreatedEvents();
     } else {
       Alert.alert('Error', 'Please fill in both the title and description.');
     }
@@ -369,22 +370,75 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
               value={eventDescription}
               onChangeText={setEventDescription}
             />
-            {/* Time Picker Button */}
-            <TouchableOpacity onPress={() => setShowTimePicker(true)} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
-              <Text>Select Time: {eventTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</Text>
-            </TouchableOpacity>
+
+            <View style={styles.modalTimeSelector}>
+              {/* Time Picker Button */}
+              <TouchableOpacity onPress={() => {
+                setShowCalendarPicker(true);
+                setIsStartDate(true);
+                }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
+                <Text>{eventStartTime.toDateString()}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {
+                setShowCalendarPicker(true);
+                setIsStartDate(false);
+                }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
+                <Text>{eventEndTime.toDateString()}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalTimeSelector}>
+              {/* Time Picker Button */}
+              <TouchableOpacity onPress={() => {
+                setShowTimePicker(true);
+                setIsStartDate(true);
+                }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
+                <Text>{eventStartTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {
+                setShowTimePicker(true);
+                setIsStartDate(false);
+                }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
+                <Text>{eventEndTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Time Picker Modal */}
+            {showCalendarPicker && (
+              <DateTimePicker
+                value={eventStartTime}
+                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                onChange={(event, selectedDate) => {
+                  setShowCalendarPicker(false);
+                  if (selectedDate && isStartDate) {
+                    setEventStartTime(selectedDate);
+                  } else if (selectedDate && !isStartDate) {
+                    setEventEndTime(selectedDate)
+                  }
+                }}
+              />
+            )}
             {showTimePicker && (
               <DateTimePicker
-                value={eventTime}
-                mode="time"
-                is24Hour
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                value={eventStartTime}
+                mode = "time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'clock'}
                 onChange={(event, selectedTime) => {
                   setShowTimePicker(false);
-                  if (selectedTime) {
-                    setEventTime(selectedTime);
+                  if (selectedTime && isStartDate) {
+                    setEventStartTime((prevDate) => {
+                      const newDate = new Date(prevDate);
+                      newDate.setHours(selectedTime.getHours());
+                      newDate.setMinutes(selectedTime.getMinutes());
+                      return newDate;
+                    });
+                  } else if (selectedTime && !isStartDate) {
+                    setEventEndTime((prevDate) => {
+                      const newDate = new Date(prevDate);
+                      newDate.setHours(selectedTime.getHours());
+                      newDate.setMinutes(selectedTime.getMinutes());
+                      return newDate;
+                    });
                   }
                 }}
               />
