@@ -1,11 +1,10 @@
 {
   "name": "sacstateapp",
   "version": "1.0.0",
-  "main": "expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -13,6 +12,8 @@
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-community/masked-view": "^0.1.11",
+    "@react-native-firebase/app": "^21.12.0",
+    "@react-native-firebase/messaging": "^21.12.0",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
@@ -21,6 +22,7 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.5",
     "expo": "^52.0.31",
+    "expo-dev-client": "~5.0.14",
     "expo-linear-gradient": "^14.0.2",
     "expo-status-bar": "~2.0.0",
     "express": "^4.21.1",
@@ -28,7 +30,7 @@
     "openai": "^4.83.0",
     "react": "18.3.1",
     "react-icons": "^5.3.0",
-    "react-native": "0.76.2",
+    "react-native": "0.76.7",
     "react-native-calendars": "^1.1307.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-elements": "^3.4.3",
@@ -43,7 +45,13 @@
     "react-native-svg": "^15.9.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2"
+    "@babel/core": "^7.25.2",
+    "expo-build-properties": "^0.13.2"
   },
-  "private": true
+  "private": true,
+  "expo-build-properties": {
+    "android": {
+      "kotlinVersion": "1.9.25"
+    }
+  }
 }

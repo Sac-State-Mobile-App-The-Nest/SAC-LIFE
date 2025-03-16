@@ -4,6 +4,10 @@ import { ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import PushNotificationService from "./src/notifications/PushNotificationService";
+
+
 import HomeScreen from './src/screens/HomeScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -18,19 +22,31 @@ export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('hasSeenWelcome').then((value) => {
-      if (value === null) {
-        console.log("hasSeenWelcome flag: null (first launch)");
-        // First launch: set flag and mark as first launch.
-        setIsFirstLaunch(true);
-        AsyncStorage.setItem('hasSeenWelcome', 'true');
-      } else {
-        console.log("hasSeenWelcome flag:", value);
-        // Not first launch.
-        setIsFirstLaunch(false);
+    const initializeApp = async () => {
+      try {
+        // Check AsyncStorage for first launch flag
+        const value = await AsyncStorage.getItem("hasSeenWelcome");
+
+        if (value === null) {
+          console.log("hasSeenWelcome flag: null (first launch)");
+          setIsFirstLaunch(true);
+          await AsyncStorage.setItem("hasSeenWelcome", "true");
+        } else {
+          console.log("hasSeenWelcome flag:", value);
+          setIsFirstLaunch(false);
+        }
+
+        // Initialize push notifications only AFTER checking AsyncStorage
+        await PushNotificationService.requestUserPermission();
+        PushNotificationService.listenForNotifications();
+      } catch (error) {
+        console.error("Error initializing app:", error);
       }
-    });
+    };
+
+    initializeApp();
   }, []);
+
 
   // While checking AsyncStorage, show a loading indicator.
   if (isFirstLaunch === null) {
