@@ -37,6 +37,10 @@
     },
     "plugins": [
       "expo-build-properties"
+    ],
+    "assetBundlePatterns": [
+      "**/*",
+      "src/assets/*"
     ]
   }
 }
