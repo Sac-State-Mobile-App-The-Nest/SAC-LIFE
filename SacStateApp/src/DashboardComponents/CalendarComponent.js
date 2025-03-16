@@ -53,16 +53,16 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     getAllStudentCreatedEvents();
     setCurrentWeek(week);
   }, []);
-  //watches for changes in events and makes sure the events show right when app is loaded
-  // useEffect(() => {
-  //   if (sacStateEvents.length > 0 || studentEvents.length > 0) {
-  //     const todayEvents = [
-  //       ...getSacStateEventsForDate(selectedDate),
-  //       ...getStudentCreatedEventsForDate(selectedDate),
-  //     ];
-  //     setSelectedDayEvents(todayEvents);
-  //   }
-  // }, [sacStateEvents, studentEvents, selectedDate]);
+  // watches for changes in events and makes sure the events show right when app is loaded
+  useEffect(() => {
+    if (sacStateEvents.length > 0 || studentEvents.length > 0) {
+      const todayEvents = [
+        ...getSacStateEventsForDate(selectedDate),
+        ...getStudentCreatedEventsForDate(selectedDate),
+      ];
+      setSelectedDayEvents(todayEvents);
+    }
+  }, [sacStateEvents, studentEvents, selectedDate,]);
 
   const toggleCalendar = () => {
     setFullCalendarVisible(!isFullCalendarVisible);
@@ -81,9 +81,9 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       openEventModal(day); // Open event creation modal
     } else {
       setSelectedDate(day.dateObject);
-      //const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
-      //const userEvents = getStudentCreatedEventsForDate(day.dateObject); //user created events
-      //setSelectedDayEvents([...userEvents, ...campusEvents]); // Get events for the tapped day - user and campus events
+      const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
+      const userEvents = getStudentCreatedEventsForDate(day.dateObject); //user created events
+      setSelectedDayEvents([...userEvents, ...campusEvents]); // Get events for the tapped day - user and campus events
     }
 
     setLastClickTime(currentTime); // Update last click time
@@ -91,6 +91,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   const openEventModal = (day, event = null) => {
     setEventDate(day.dateObject); // Set the date for the event
+    
     if (event) {
       // If editing an existing event, pre-fill the modal with the event data
       setEventToEdit(event); // Store the event to be edited
@@ -130,7 +131,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   //get a list of sac state events just for the day when clicked on calendar
   const getSacStateEventsForDate = (date) => {
     return sacStateEvents.filter(event => {
-      const eventDate = new Date(event.event_date);
+      const eventDate = new Date(event.event_start_date);
   
       // Normalize both eventDate and the date to be compared to, and only use year, month, and day
       const eventDateString = eventDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -156,7 +157,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   };
   const getStudentCreatedEventsForDate = (date) => {
     return studentEvents.filter(event => {
-      const eventDate = new Date(event.event_date);
+      const eventDate = new Date(event.event_start_date);
   
       // Normalize both eventDate and the date to be compared to, and only use year, month, and day
       const eventDateString = eventDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -207,9 +208,9 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         );
         Alert.alert('Event Updated', `Event updated for ${eventDate.toLocaleDateString()}`);
       } else {
-        // Add the new event locally first
-        //setStudentEvents((prevEvents) => [...prevEvents, newEvent]);
-        //setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
+        // // Add the new event locally first
+        // setStudentEvents((prevEvents) => [...prevEvents, newEvent]);
+        // setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
   
         
         sendStudentCreatedEvent(newEvent); // Send to server
@@ -221,7 +222,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       closeEventModal();
       
       // Fetch latest events from the backend after updating state
-      // getAllStudentCreatedEvents();
+      getAllStudentCreatedEvents();
     } else {
       Alert.alert('Error', 'Please fill in both the title and description.');
     }
@@ -336,11 +337,11 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
             >
               <Text style={styles.dateText}>{item.dateObject ? item.day : ''}</Text>
               {/* Show event info if any */}
-              {item.dateObject && getEventsForDate(item.dateObject).length > 0 && (
+              {/* {item.dateObject && getEventsForDate(item.dateObject).length > 0 && (
                 <View style={styles.eventIndicator}>
                   <Text style={styles.eventText}>�</Text>
                 </View>
-              )}
+              )} */}
             </TouchableOpacity>
           )}
         />
@@ -467,7 +468,12 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
               <TouchableOpacity key={index} onPress={() => toggleExpand(event)} style={styles.eventCard}>
                 <Text style={styles.eventTitle}>{event.event_title}</Text>
                 <Text style={styles.eventTime}>
-                  {new Date(event.date || event.event_date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                  {new Date(event.date || event.event_start_date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} -
+                  {new Date(event.date || event.event_end_date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                </Text>
+                <Text style={styles.eventTime}>
+                  {new Date(event.date || event.event_start_date).toDateString()} -
+                  {new Date(event.date || event.event_end_date).toDateString()}
                 </Text>
                 {expandedEvent === event && (
                   <View style={styles.expandedContent}>
