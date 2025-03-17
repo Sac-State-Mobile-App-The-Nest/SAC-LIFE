@@ -29,7 +29,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [eventEndTime, setEventEndTime] = useState(new Date());
   const [showCalendarPicker, setShowCalendarPicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [isStartDate, setIsStartDate] = useState(null)
+  const [selectedTimePicker, setSelectedTimePicker] = useState(new Date());
+  const [isStartDate, setIsStartDate] = useState(null); // Used for modal (time picker): checking if the button on the left is pressed
 
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const fullCalendarHeight = screenHeight * 0.5; // Dropdown height is half the screen
@@ -47,12 +48,21 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         isToday: date.toDateString() === new Date().toDateString(),
       };
     });
+
     setCurrentWeek(week);
-    setCurrentDate(today);
+    setCurrentDate(new Date());
     getAllSacStateEvents();
     getAllStudentCreatedEvents();
     setCurrentWeek(week);
   }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentDate(new Date());
+  //   }, 1000); // Update every second
+  
+  //   return () => clearInterval(interval); // Cleanup when the component unmounts
+  // }, []);
+  
   // watches for changes in events and makes sure the events show right when app is loaded
   useEffect(() => {
     if (sacStateEvents.length > 0 || studentEvents.length > 0) {
@@ -75,7 +85,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   const handleDayPress = (day) => {
     const currentTime = new Date().getTime();
-    
+    // console.log(day);
+    console.log(currentDate);
     // Check if it's a double-click
     if (currentTime - lastClickTime < 500) { // Double-click within 500ms
       openEventModal(day); // Open event creation modal
@@ -89,6 +100,10 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     setLastClickTime(currentTime); // Update last click time
   };
 
+  const isDateEqual = (date1, date2) => {
+    return (date1.getDate() == date2.getDate() && date1.getMonth() == date2.getMonth());
+  }
+
   const openEventModal = (day, event = null) => {
     setEventDate(day.dateObject); // Set the date for the event
     
@@ -98,10 +113,50 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       setEventTitle(event.title);
       setEventDescription(event.description);
     } else {
+      console.log("ELSE STATEMENT");
+      // console.log(day.dateObject.getDate() == currentDate.getDate() && day.dateObject.getMonth() == currentDate.getMonth());
+      // console.log(Number(day.dateObject) == Number(currentDate));
       // Clear fields for creating a new event
       setEventToEdit(null);
       setEventTitle('');
       setEventDescription('');
+      // setting starting calendar date for creating new event
+      if(isDateEqual(day.dateObject, currentDate)){
+        setEventStartTime(() => {
+          const newDate = new Date(currentDate);
+          newDate.setHours(currentDate.getHours() + 1);
+          newDate.setMinutes(0);
+          newDate.setSeconds(0);
+          console.log(newDate);
+          return newDate;
+        });
+        setEventEndTime(() => {
+          const newDate = new Date(currentDate);
+          newDate.setHours(currentDate.getHours() + 2);
+          newDate.setMinutes(0);
+          newDate.setSeconds(0);
+          console.log(newDate);
+          return newDate;
+        });
+      }else{
+        setEventStartTime(() => {
+          const newDate = new Date(day.dateObject);
+          newDate.setHours(8);
+          newDate.setMinutes(0);
+          newDate.setSeconds(0);
+          console.log(newDate);
+          return newDate;
+        });
+        setEventEndTime(() => {
+          const newDate = new Date(day.dateObject);
+          newDate.setHours(9);
+          newDate.setMinutes(0);
+          newDate.setSeconds(0);
+          console.log(newDate);
+          return newDate;
+        });
+      }
+      console.log("current: ", currentDate);
     }
     setModalVisible(true); // Open the modal
   };
@@ -196,7 +251,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         event_start_date: eventStartTime.toISOString().split('T')[0] + " " + eventStartTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false}),
         event_end_date: eventEndTime.toISOString().split('T')[0] + " " + eventEndTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false})
       };
-  
+      console.log(newEvent);
       if (eventToEdit) {
         // Edit the existing event
         setStudentEvents((prevEvents) =>
@@ -213,7 +268,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         // setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
   
         
-        sendStudentCreatedEvent(newEvent); // Send to server
+        // sendStudentCreatedEvent(newEvent); // Send to server
         
   
         Alert.alert('Event Created', `Event created for ${eventDate.toLocaleDateString()}`);
@@ -222,7 +277,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       closeEventModal();
       
       // Fetch latest events from the backend after updating state
-      getAllStudentCreatedEvents();
+      // getAllStudentCreatedEvents();
     } else {
       Alert.alert('Error', 'Please fill in both the title and description.');
     }
@@ -372,78 +427,129 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
               onChangeText={setEventDescription}
             />
 
+            {/* Calendar Picker Button */}
             <View style={styles.modalTimeSelector}>
-              {/* Time Picker Button */}
+              {/* START DATE BUTTON */}
               <TouchableOpacity onPress={() => {
                 setShowCalendarPicker(true);
                 setIsStartDate(true);
+                setSelectedTimePicker(eventStartTime);
                 }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
                 <Text>{eventStartTime.toDateString()}</Text>
               </TouchableOpacity>
+              {/* END DATE BUTTON */}
               <TouchableOpacity onPress={() => {
                 setShowCalendarPicker(true);
                 setIsStartDate(false);
+                setSelectedTimePicker(eventEndTime);
                 }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
                 <Text>{eventEndTime.toDateString()}</Text>
               </TouchableOpacity>
             </View>
 
+            {/* Time Picker Button */}
             <View style={styles.modalTimeSelector}>
-              {/* Time Picker Button */}
+              {/* START DATE BUTTON */}
               <TouchableOpacity onPress={() => {
                 setShowTimePicker(true);
                 setIsStartDate(true);
+                setSelectedTimePicker(eventStartTime);
                 }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
                 <Text>{eventStartTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</Text>
               </TouchableOpacity>
+              {/* END DATE BUTTON */}
               <TouchableOpacity onPress={() => {
                 setShowTimePicker(true);
                 setIsStartDate(false);
+                setSelectedTimePicker(eventEndTime);
                 }} style={{ padding: 10, backgroundColor: '#ddd', marginBottom: 10 }}>
                 <Text>{eventEndTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Time Picker Modal */}
+            {/* Calendar Picker Modal */}
             {showCalendarPicker && (
               <DateTimePicker
-                value={eventStartTime}
+                value={selectedTimePicker}
                 display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
                 onChange={(event, selectedDate) => {
                   setShowCalendarPicker(false);
                   if (selectedDate && isStartDate) {
-                    setEventStartTime(selectedDate);
+                    if (selectedDate > eventEndTime){
+                      setEventStartTime((prevDate) => {
+                        const newDate = new Date(prevDate);
+                        newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                        eventEndTime.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                        return newDate;
+                      });
+                    }else{
+                      setEventStartTime(selectedDate);
+                    }
                   } else if (selectedDate && !isStartDate) {
-                    setEventEndTime(selectedDate)
+                    if (selectedDate < eventStartTime){
+                      setEventEndTime((prevDate) => {
+                        const newDate = new Date(prevDate);
+                        newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                        eventStartTime.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                        return newDate;
+                      });
+                    }else{
+                      setEventEndTime(selectedDate)
+                    }
                   }
                 }}
               />
             )}
+
+            {/* Time Picker Modal */}
             {showTimePicker && (
               <DateTimePicker
-                value={eventStartTime}
+                value={selectedTimePicker}
                 mode = "time"
                 display={Platform.OS === 'ios' ? 'spinner' : 'clock'}
                 onChange={(event, selectedTime) => {
                   setShowTimePicker(false);
+                  //
                   if (selectedTime && isStartDate) {
-                    setEventStartTime((prevDate) => {
-                      const newDate = new Date(prevDate);
-                      newDate.setHours(selectedTime.getHours());
-                      newDate.setMinutes(selectedTime.getMinutes());
-                      return newDate;
-                    });
+                    if(selectedTime.getTime() > eventEndTime.getTime()){
+                      setEventStartTime((prevDate) => {
+                        const newDate = new Date(prevDate);
+                        newDate.setHours(selectedTime.getHours());
+                        newDate.setMinutes(selectedTime.getMinutes());
+                        eventEndTime.setHours(selectedTime.getHours());
+                        eventEndTime.setMinutes(selectedTime.getMinutes());
+                        return newDate;
+                      });
+                    }else{
+                      setEventStartTime((prevDate) => {
+                        const newDate = new Date(prevDate);
+                        newDate.setHours(selectedTime.getHours());
+                        newDate.setMinutes(selectedTime.getMinutes());
+                        return newDate;
+                      });
+                    }
                   } else if (selectedTime && !isStartDate) {
-                    setEventEndTime((prevDate) => {
-                      const newDate = new Date(prevDate);
-                      newDate.setHours(selectedTime.getHours());
-                      newDate.setMinutes(selectedTime.getMinutes());
-                      return newDate;
-                    });
+                    if(selectedTime.getTime() < eventStartTime.getTime()){
+                      setEventEndTime((prevDate) => {
+                        const newDate = new Date(prevDate);
+                        newDate.setHours(selectedTime.getHours());
+                        newDate.setMinutes(selectedTime.getMinutes());
+                        eventStartTime.setHours(selectedTime.getHours());
+                        eventStartTime.setMinutes(selectedTime.getMinutes());
+                        return newDate;
+                      });
+                    }else{
+                      setEventEndTime((prevDate) => {
+                        const newDate = new Date(prevDate);
+                        newDate.setHours(selectedTime.getHours());
+                        newDate.setMinutes(selectedTime.getMinutes());
+                        return newDate;
+                      });
+                    }
                   }
                 }}
-              />
-            )}
+              />)
+            }
 
             <Button title={eventToEdit ? 'Save Changes' : 'Save Event'} onPress={saveEvent} />
             {eventToEdit && (
