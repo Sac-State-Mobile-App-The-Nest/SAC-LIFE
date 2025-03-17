@@ -85,8 +85,6 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
 
   const handleDayPress = (day) => {
     const currentTime = new Date().getTime();
-    // console.log(day);
-    console.log(currentDate);
     // Check if it's a double-click
     if (currentTime - lastClickTime < 500) { // Double-click within 500ms
       openEventModal(day); // Open event creation modal
@@ -113,9 +111,6 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       setEventTitle(event.title);
       setEventDescription(event.description);
     } else {
-      console.log("ELSE STATEMENT");
-      // console.log(day.dateObject.getDate() == currentDate.getDate() && day.dateObject.getMonth() == currentDate.getMonth());
-      // console.log(Number(day.dateObject) == Number(currentDate));
       // Clear fields for creating a new event
       setEventToEdit(null);
       setEventTitle('');
@@ -156,7 +151,6 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
           return newDate;
         });
       }
-      console.log("current: ", currentDate);
     }
     setModalVisible(true); // Open the modal
   };
@@ -251,7 +245,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         event_start_date: eventStartTime.toISOString().split('T')[0] + " " + eventStartTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false}),
         event_end_date: eventEndTime.toISOString().split('T')[0] + " " + eventEndTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false})
       };
-      console.log(newEvent);
+      
       if (eventToEdit) {
         // Edit the existing event
         setStudentEvents((prevEvents) =>
@@ -268,7 +262,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
         // setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
   
         
-        // sendStudentCreatedEvent(newEvent); // Send to server
+        sendStudentCreatedEvent(newEvent); // Send to server
         
   
         Alert.alert('Event Created', `Event created for ${eventDate.toLocaleDateString()}`);
@@ -277,7 +271,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       closeEventModal();
       
       // Fetch latest events from the backend after updating state
-      // getAllStudentCreatedEvents();
+      getAllStudentCreatedEvents();
     } else {
       Alert.alert('Error', 'Please fill in both the title and description.');
     }
