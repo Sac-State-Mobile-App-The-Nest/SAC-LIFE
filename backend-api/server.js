@@ -50,12 +50,6 @@ const port = process.env.PORT || 8080;
 
 console.log(`Server running on port ${port}`);
 
-if (!port) {
-  console.error('ERROR: process.env.PORT not defined!');
-  process.exit(1);  // Exit if PORT is not passed by Azure
-}
-console.log(`Using Azure-assigned port: ${port}`);
-
 
 // Only start the server if this file is executed directly
 if (require.main === module) {
