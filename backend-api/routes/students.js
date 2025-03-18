@@ -59,14 +59,14 @@ module.exports = function(poolPromise) {
       const pool = await poolPromise;
       const studentInfo = await pool.request()
         .input('std_id', sql.Int, std_id)
-        .query(`SELECT f_name, m_name, l_name FROM test_students WHERE std_id = @std_id`);
+        .query(`SELECT f_name, m_name, l_name, preferred_name FROM test_students WHERE std_id = @std_id`);
 
       if (studentInfo.recordset.length === 0) {
         return res.status(404).json({ message: 'Student not found in database' });
       }
 
-      const { f_name, m_name, l_name } = studentInfo.recordset[0];
-      res.json({ f_name, m_name, l_name });
+      const { f_name, m_name, l_name, preferred_name } = studentInfo.recordset[0];
+      res.json({ f_name, m_name, l_name, preferred_name });
     } catch (err) {
       console.error('SQL error', err);
       res.status(500).json({ message: 'Backend server error' });
@@ -255,6 +255,21 @@ module.exports = function(poolPromise) {
       res.status(500).json({ message: 'Backend server error' });
     }
   });
+
+  //a student can change their preferred name
+  //a student can change their expected graduation
+  //a student can change their password
+  //a student can deactivate their account
+  //a student can change font size
+  //a student can download their account data - chatbot logs and students table info
+  //a student can clear their chatbot logs
+  //a student can log out of the app
+  /**Tabs or Sections for Easy Navigation (Profile, Security, Notifications, etc.)
+    Editable Fields with Save/Cancel Options
+    Preview for Profile & Cover Picture
+    Real-time Feedback (e.g., “Username already taken”)
+    Security Confirmation for Sensitive Actions (e.g., Password change)
+  */
 
   // // DELETE a student by studentId
   // router.delete('/:studentId', async (req, res) => {
