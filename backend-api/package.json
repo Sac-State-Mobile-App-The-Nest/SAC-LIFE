@@ -18,5 +18,8 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }

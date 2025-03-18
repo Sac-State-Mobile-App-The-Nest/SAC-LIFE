@@ -2,7 +2,6 @@ const express = require('express');
 const sql = require("mssql");
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const port = 5000;
 const config = require('./config'); // server config file
 const { authenticateToken, verifyRole } = require('./middleware/authMiddleware'); // Ensure correct path
 
@@ -47,11 +46,22 @@ app.get('/api/helloMessage', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
 
+const port = process.env.PORT || 8080;
+
+console.log(`Server running on port ${port}`);
+
+if (!port) {
+  console.error('ERROR: process.env.PORT not defined!');
+  process.exit(1);  // Exit if PORT is not passed by Azure
+}
+console.log(`Using Azure-assigned port: ${port}`);
+
+
 // Only start the server if this file is executed directly
 if (require.main === module) {
-  app.listen(port, () => {
-      console.log(`Server running on port http://localhost:${port}`);
-  });
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
+});
 }
 
 // Export app for testing
