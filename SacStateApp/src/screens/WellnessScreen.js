@@ -1,19 +1,14 @@
-import React, { useState } from 'react';
-//import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground } from 'react-native';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../WellnessStyles/WellnessStyles';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
-// Ensure the Sac State logo is stored in your assets directory
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // Replace with the correct path to your logo file
-
-
-//What kind of questions are needed? Not text most likely, so just multiple choice and check boxes? (Leaving all setup for now)
 class Question {
     constructor(id, text, inputType, options = [], conditional = null) {
         this.id = id;
@@ -53,24 +48,80 @@ class WellnessCheckInManager {
 
   handleAnswer(questionId, answer, currentQuestion) {
       this.setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-      this.questions[questionId].handleCondition(answer, this.getActions(currentQuestion));
-  }
-
-  getActions(currentQuestion) {
-      return {
-          goToNext: () => this.goToNext(currentQuestion),
-          goToPrevious: () => this.goToPrevious(currentQuestion),
-          skipQuestion: () => this.skipQuestion(currentQuestion)
-      };
   }
 }
 
+// Sending profile data to server code goes here !!!
+
+const CompletionScreen = ({ onPress }) => (
+    <View style={styles.completionContainer}>
+        <Text style={styles.completionText}>Thank you for checking in on yourself!</Text>
+        <TouchableOpacity style={styles.largeButton} onPress={onPress}>
+            <Text style={styles.largeButtonText}>Complete Check-in!</Text>
+        </TouchableOpacity>
+    </View>
+);
+
+// NEEDS WORK !!!
+const QuestionRenderer = (question, wellnessCheckInManager) => {
+    switch (question.inputType) {
+        case "checkbox":
+            return question.options.map((option) => (
+                <View style={styles.inputContainer}>    
+                    <TouchableOpacity
+                        key={option}
+                        style={styles.optionButton}
+                        onPress={() => wellnessCheckInManager.handleAnswer(question.id, option, currentQuestion)}
+                    >
+                        <Text style={styles.optionText}>{option}</Text>
+                    </TouchableOpacity>
+                </View>
+            ));
+        case "dropdown":
+            return (
+                <ModalSelector
+                    data={question.options}
+                    initValue="Select your unit count"
+                    onChange={(option) => {
+                        setSelectedMajor(option.label);
+                        wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
+                    }}
+                    style={styles.pickerContainer}
+                    initValueTextStyle={styles.pickerText}
+                    selectTextStyle={styles.pickerText}
+                />
+            );
+        case "multiDropdown":
+            return (
+                <ModalSelector
+                    data={question.options}
+                    initValue="Click to choose"
+                    onChange={(option) => {
+                        setSelectedClub(option.label);
+                        wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
+                    }}
+                    style={styles.pickerContainer}
+                    initValueTextStyle={styles.pickerText}
+                    selectTextStyle={styles.pickerText}
+                />
+            );
+        default:
+            return (
+                <TextInput
+                    style={styles.input}
+                    placeholder="Input here"
+                    onChangeText={(text) => wellnessCheckInManager.handleAnswer(question.id, text, currentQuestion)}
+                />
+            );
+    }
+};
 
 const WellnessCreation = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [isCompleted, setIsCompleted] = useState(false);
   const navigation = useNavigation();
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   const questions = [
     //new Question(0, "How many units are you taking?", "checkbox", ["1-2", "3-9", "10-15", "16+"]),
@@ -87,142 +138,124 @@ const WellnessCreation = () => {
 
   const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
 
-  const completeWellnessCheckIn = () => {
-      setIsCompleted(true);
-      console.log(answers);
-      //sendProfileDataToServer();
-  };
-
-  // NEED TO SEND DATA TO SERVER HERE
-
-  const renderQuestion = (question) => {
-      switch (question.inputType) {
-          case "checkbox":
-              return question.options.map((option) => (
-                  <TouchableOpacity
-                      key={option}
-                      style={styles.optionButton}
-                      onPress={() => wellnessCheckInManager.handleAnswer(question.id, option, currentQuestion)}
-                  >
-                      <Text style={styles.optionText}>{option}</Text>
-                  </TouchableOpacity>
-              ));
-          case "dropdown":
-              return (
-                  <ModalSelector
-                      data={question.options}
-                      initValue="Select your unit count"
-                      onChange={(option) => {
-                          setSelectedMajor(option.label);
-                          wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
-                      }}
-                      style={styles.pickerContainer}
-                      initValueTextStyle={styles.pickerText}
-                      selectTextStyle={styles.pickerText}
-                  />
-              );
-          case "multiDropdown":
-              return (
-                  <ModalSelector
-                      data={question.options}
-                      initValue="Click to choose"
-                      onChange={(option) => {
-                          setSelectedClub(option.label);
-                          wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
-                      }}
-                      style={styles.pickerContainer}
-                      initValueTextStyle={styles.pickerText}
-                      selectTextStyle={styles.pickerText}
-                  />
-              );
-          default:
-              return (
-                  <TextInput
-                      style={styles.input}
-                      placeholder="Input here"
-                      onChangeText={(text) => wellnessCheckInManager.handleAnswer(question.id, text, currentQuestion)}
-                  />
-              );
-      }
-  };
-
   const handleNextPress = () => {  
       if (currentQuestion === questions.length - 1) {
           setIsCompleted(true);
-      } else {
-        wellnessCheckInManager.goToNext(currentQuestion);
       }
-  };
-  
-  const renderCompletionScreen = () => (
-    <View style={styles.completionContainer}>
-        <Text style={styles.completionText}>Thank you for checking in!</Text>
-        <TouchableOpacity
-            style={styles.largeButton}
-            onPress={async () => {
-                try {
-                    //await sendProfileDataToServer();
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: "Dashboard" }],
-                    });
-                } catch (error) {
-                    console.error("Error submitting Wellness data:", error);
-                    Alert.alert("Error", "Failed to submit Wellness data. Please try again.");
-                }
-            }}
-        >
-            <Text style={styles.largeButtonText}>Finish Check-in!</Text>
-        </TouchableOpacity>
-    </View>
-);
+
+      // Start exit animation
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+            toValue: -width, // Slide left
+            duration: 300,
+            useNativeDriver: true,
+        }),
+    ]).start(() => {
+        // Change question
+        setCurrentQuestion(prev => prev + 1);
+        
+        // Reset animation position
+        slideAnim.setValue(width);
+        
+        // Start enter animation
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: 0, // Slide back in
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    });
+};
+
+const handlePreviousPress = () => {
+    // Start exit animation
+    Animated.parallel([
+       Animated.timing(slideAnim, {
+           toValue: width, // Slide right
+           duration: 300,
+           useNativeDriver: true,
+       }),
+   ]).start(() => {
+       // Change question
+       setCurrentQuestion(prev => prev - 1);
+       
+       // Reset animation position
+       slideAnim.setValue(-width);
+       
+       // Start enter animation
+       Animated.parallel([
+           Animated.timing(slideAnim, {
+               toValue: 0, // Slide back in
+               duration: 300,
+               useNativeDriver: true,
+           }),
+       ]).start();
+   });
+};
 
   return (
-      <ImageBackground
-          source={SAC_STATE_LOGO}
-          style={styles.background}
-          imageStyle={styles.logoImage}
-      >
-          <View style={styles.logoContainer}>
-              <ScrollView contentContainerStyle={styles.container}>
-                  {isCompleted ? (
-                      renderCompletionScreen()
-                  ) : (
-                      <>
-                          <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                          <View style={styles.box}>
-                              <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                              {renderQuestion(questions[currentQuestion])}
-                          </View>
-                          <View style={styles.navigationButtons}>
-                              {currentQuestion !== 0 ? (
-                                  <TouchableOpacity
-                                      style={[styles.button, styles.previousButton]}
-                                      onPress={() => wellnessCheckInManager.goToPrevious(currentQuestion)}
-                                  >
-                                      <Text style={styles.buttonText}>Previous</Text>
-                                  </TouchableOpacity>
-                              ) : (
-                                  <View style={styles.placeholderButton} />
-                              )}
-                              <TouchableOpacity
-                                  style={[styles.button, styles.nextButton]}
-                                  onPress={() => {
-                                      if (currentQuestion === questions.length - 1) {
-                                        completeWellnessCheckIn();
-                                      } else {
-                                          handleNextPress();
-                                      }
-                                  }}
-                              >
-                                  <Text style={styles.buttonText}>Next</Text>
-                              </TouchableOpacity>
-                          </View>
-                      </>
-                  )}
-              </ScrollView>
-          </View>
-      </ImageBackground>
+    <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
+        <View style={styles.overlayContainer}>
+            <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+                {isCompleted ? (
+                    <CompletionScreen />
+                    //<CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                ) : (
+                    <>
+                        {/* Animated question title */}
+                        <Animated.Text 
+                            style={[
+                                styles.heading, 
+                                { transform: [{ translateX: slideAnim }] }
+                            ]}
+                        >
+                            Question {currentQuestion + 1} of {questions.length}
+                        </Animated.Text>
+
+                        {/* Animated question box */}
+                        <Animated.View 
+                            style={[styles.questionContainer, { transform: [{ translateX: slideAnim }] }]}
+                        >
+                            <View style={styles.box}>
+                                <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
+                                <QuestionRenderer
+                                    question={questions[currentQuestion]}
+                                    answers={answers}
+                                    wellnessCheckInManager={wellnessCheckInManager}
+                                    currentQuestion={currentQuestion}
+                                />
+                            </View>
+                        </Animated.View>
+
+                        {/* Animated navigation buttons */}
+                        <Animated.View 
+                            style={[styles.navigationButtons, { transform: [{ translateX: slideAnim }] }]}
+                        >
+                            {currentQuestion !== 0 && (
+                                <TouchableOpacity 
+                                    style={[styles.button, styles.previousButton]} 
+                                    onPress={handlePreviousPress}
+                                >
+                                    <Text style={styles.buttonText}>Previous</Text>
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity 
+                                style={[
+                                    styles.button, 
+                                    styles.nextButton, 
+                                    currentQuestion === 0 && { marginLeft: 'auto' }
+                                ]} 
+                                onPress={handleNextPress}
+                            >
+                                <Text style={styles.buttonText}>Next</Text>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    </>
+                )}
+            </ScrollView>
+        </View>
+    </ImageBackground>
   );
 };
 
