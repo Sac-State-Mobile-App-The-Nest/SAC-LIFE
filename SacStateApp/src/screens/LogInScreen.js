@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
 import styles from '../LoginStyles/LoginStyles';
+import BASE_URL from '../apiConfig.js';
 
 const LogInScreen = () => {
     const navigation = useNavigation(); 
@@ -20,13 +21,13 @@ const LogInScreen = () => {
     // Login function
     const login = async () => {
         try {
-            const response = await axios.post(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
+            const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
 
-            const booleanResponse = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/check-login-bool`, {
+            const booleanResponse = await axios.get(`${BASE_URL}/api/login_info/check-login-bool`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -59,11 +60,7 @@ const LogInScreen = () => {
         }
         
         setLoading(true);
-        // Simulate a login process
-        setTimeout(() => {
-            setLoading(false);
-            login();
-        }, 2000);
+        login();
     };
 
     const handleSkip = () => {
