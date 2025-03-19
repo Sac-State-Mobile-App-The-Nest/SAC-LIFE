@@ -1,3 +1,4 @@
+// styles/SignUpStyles.js
 import { StyleSheet } from 'react-native';
 import * as colors from '../SacStateColors/GeneralColors';
 
@@ -16,40 +17,25 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     title: {
-        fontSize: 32, // Slightly larger for more presence
-        fontWeight: '900', // Extra bold for impact
-        marginBottom: 6, // Better spacing
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 10,
         color: colors.mutedGold,
         textAlign: 'center',
-        textTransform: 'uppercase', // Professional look
-        letterSpacing: 1.5, // Adds spacing for a refined feel
-        fontFamily: 'serif', // A more distinct font style (try other fonts if needed)
-        textShadowColor: colors.black, // Stronger contrast
-        textShadowOffset: { width: 2, height: 2 }, // Deeper shadow for depth
-        textShadowRadius: 4,
-    },
-    
-    subTitle: {
-        fontSize: 16, // Subtle yet readable
-        fontWeight: '500', // Slightly bolder
-        fontStyle: 'italic', // Adds some elegance
-        color: colors.mutedGold, // Softer for contrast
-        textAlign: 'center',
-        marginBottom: 22, // More spacing below
-        letterSpacing: 1, // More refined look
-        fontFamily: 'sans-serif-light', // Smooth, modern font
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
         textShadowColor: colors.black,
         textShadowOffset: { width: 2, height: 2 },
-        textShadowRadius: 3,
+        textShadowRadius: 4,
     },
     box: {
-        backgroundColor: colors.mutedDarkGreen, //colors.mutedDarkGreen
-        borderRadius: 20, // Modern rounded edges
+        backgroundColor: colors.mutedDarkGreen,
+        borderRadius: 20,
         padding: 25,
         width: '90%',
         shadowColor: colors.black,
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.15, // Softer shadow
+        shadowOpacity: 0.15,
         shadowRadius: 6,
         elevation: 6,
         alignItems: 'center',
@@ -77,21 +63,16 @@ const styles = StyleSheet.create({
         borderColor: colors.fadedGold,
         borderWidth: 1.5,
         paddingHorizontal: 15,
+        marginBottom: 15,
     },
     passwordInput: {
-        flex: 1, // Makes the input field take up remaining space
+        flex: 1,
         height: 45,
         fontSize: 16,
         color: colors.sacGreen,
     },
     eyeIcon: {
         padding: 10,
-    },
-    error: {
-        color: colors.brightRed, // Bright red for visibility
-        marginBottom: 12,
-        fontSize: 14,
-        textAlign: 'center',
     },
     button: {
         backgroundColor: colors.mutedSacStateGreen,
@@ -116,30 +97,12 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
-    skipButton: {
-        position: 'absolute', // Keeps it in the top-right corner
-        top: 50,
-        right: 20,
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        backgroundColor: colors.fadedGold,
-    },
-    skipButtonText: {
-        color: colors.sacGreen,
-        fontSize: 16,
-        fontWeight: '600',
-    },
-
     linkText: {
         marginTop: 15,
         color: colors.white,
         textDecorationLine: 'underline',
         fontSize: 16,
-        fontWeight: 'bold',
-        textAlign: 'center',
     },
-    
 });
 
 export default styles;
