@@ -1,9 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BASE_URL from '../apiConfig.js';
 
+// ================================
+// Fetch Services
 export const fetchUserServices = async (token) => {
   try {
-    const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/campus_services/servicesRecommendation`, {
+    const response = await axios.get(`${BASE_URL}/api/campus_services/servicesRecommendation`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -15,10 +18,10 @@ export const fetchUserServices = async (token) => {
   }
 };
 
-//get the user's area of study to display on profile(ex: college of business, college of engineering & computer science)
+// Get the user's area of study to display on profile(ex: college of business, college of engineering & computer science)
 export const fetchUserAreaOfStudy = async (token) => {
   try {
-    const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/studentAreaOfStudy`, {
+    const response = await axios.get(`${BASE_URL}/api/students/studentAreaOfStudy`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -30,10 +33,10 @@ export const fetchUserAreaOfStudy = async (token) => {
   }
 };
 
-//get the user's year of study to display on profile(ex: freshman, sophomore, junior, senior, graduate)
+// Get the user's year of study to display on profile(ex: freshman, sophomore, junior, senior, graduate)
 export const fetchUserYearOfStudy = async (token) => {
   try {
-    const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/studentYearOfStudy`, {
+    const response = await axios.get(`${BASE_URL}/api/students/studentYearOfStudy`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -56,11 +59,11 @@ const studentColleges = [
   "college of natural science & mathematics",
   "college of social sciences & interdisciplinary studies",
 ];
-//update the student's college
+// Update the student's college
 export const updateUserAreaOfStudy = async (token, studentColleges) => {
   try {
     const response = await axios.put(
-      `http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/updateUserAreaOfStudy`,
+      `${BASE_URL}/api/students/updateUserAreaOfStudy`,
       { areaOfStudy: studentColleges[0] }, // Sending the selected area of study in the request body, must change studentColleges[0]
       {
         headers: {
@@ -76,7 +79,7 @@ export const updateUserAreaOfStudy = async (token, studentColleges) => {
   }
 };
 
-//mock data
+// Mock data
 const studentYears = [
   "freshman",
   "sophomore",
@@ -84,11 +87,11 @@ const studentYears = [
   "senior",
   "graduate student",
 ];
-//update the student's year of study
+// Update the student's year of study
 export const updateUserYearOfStudy = async (token, studentYears) => {
   try {
     const response = await axios.put(
-      `http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/updateUserYearOfStudy`,
+      `${BASE_URL}/api/students/updateUserYearOfStudy`,
       { areaOfStudy: studentYears[0] }, // Sending the selected area of study in the request body, must change studentYears[0]
       {
         headers: {
@@ -104,11 +107,11 @@ export const updateUserYearOfStudy = async (token, studentYears) => {
   }
 };
 
-// send to server: student created events
+// Send to server: student created events
 export const sendStudentCreatedEvent = async (createdEvent) => {
   try {
     const token = await AsyncStorage.getItem('token');
-    const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/created-event`, {
+    const response = await fetch(`${BASE_URL}/api/events/created-event`, {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
