@@ -11,59 +11,77 @@ import styles from '../ChatbotStyles/ChatbotStyles';
 const ChatbotScreen = () => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
-    const [loggedInStudentId, setLoggedInStudentId] = useState(null);
     const scrollViewRef = useRef(null);
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
+    const [loggedInStudentId, setLoggedInStudentId] = useState(null);
 
-    const [loggedInUsername, setLoggedInUsername] = useState(null);
-
-    // Fetch student ID when the component mounts
+    // Fetch std_id when the component mounts
     useEffect(() => {
-        const fetchUsername = async () => {
+        const fetchStudentId = async () => {
             try {
-                const storedUsername = await AsyncStorage.getItem('username');
-                if (storedUsername) {
-                    setLoggedInUsername(storedUsername); // Save the username in state
+                const username = await AsyncStorage.getItem('username'); // Retrieve username
+        
+                if (!username) {
+                    console.error(" No username stored in AsyncStorage.");
+                    return;
+                }
+        
+                console.log(" Username retrieved from storage:", username); // Debugging
+        
+                const response = await fetch(`http://10.0.2.2:3000/api/students/getLoggedInUser?username=${username}`);
+        
+                const responseText = await response.text(); // Read response as text first
+                console.log("📥 Raw response:", responseText); // Log raw response
+        
+                if (response.ok) {
+                    const userData = JSON.parse(responseText); // Parse JSON manually
+                    console.log("User data received:", userData);
+        
+                    if (userData.std_id) {
+                        setLoggedInStudentId(userData.std_id); // Store std_id in state
+                        fetchChatHistory(userData.std_id); // Fetch chat history
+                    } else {
+                        console.error(" std_id missing in response.");
+                    }
+                } else {
+                    console.error(` Failed to fetch student ID, status: ${response.status}, body:`, responseText);
                 }
             } catch (error) {
-                console.error('Error fetching username:', error);
+                console.error(" Error fetching student ID:", error);
             }
         };
-    
-        fetchUsername();
+        
+        
+        
+        
+
+        fetchStudentId();
     }, []);
 
-    // Fetch chat history for the logged-in student
+    // Fetch chat history using std_id
     const fetchChatHistory = async (stdId) => {
         try {
+            console.log(" Fetching chat history for stdId:", stdId); // Debugging
+    
             const response = await fetch(`http://10.0.2.2:3000/chat-history/${stdId}`);
+    
             if (response.ok) {
                 const history = await response.json();
+                console.log(" Chat history received:", history);
+    
                 setMessages(history.flatMap(chat => [
                     { text: chat.student_question, sender: 'You' },
                     { text: chat.bot_response, sender: 'SacLifeBot' }
                 ]));
+            } else {
+                console.error(` Failed to fetch chat history, status: ${response.status}`);
             }
         } catch (error) {
-            console.error('Error fetching chat history:', error);
+            console.error("Error fetching chat history:", error);
         }
     };
-
-    useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-            setKeyboardVisible(true);
-        });
-
-        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-            setKeyboardVisible(false);
-        });
-
-        return () => {
-            keyboardDidShowListener.remove();
-            keyboardDidHideListener.remove();
-        };
-    }, []);
+    
 
     useEffect(() => {
         if (scrollViewRef.current) {
@@ -76,46 +94,44 @@ const ChatbotScreen = () => {
             setMessages([...messages, { text: message, sender: 'You' }]);
             setMessage('');
             setIsTyping(true);
-    
-            const requestBody = { message };
-    
-            if (loggedInUsername) {
-                requestBody.username = loggedInUsername; // Attach username to the request
-            }
-    
+
+            const requestBody = { message, 
+                std_id: loggedInStudentId
+            };
+
+            
+
             try {
                 const response = await fetch('http://10.0.2.2:3000/message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
                 });
-    
+
                 if (response.ok) {
                     const data = await response.json();
                     setMessages((prevMessages) => [
                         ...prevMessages,
-                        { text: data.response, sender: 'SacLifeBot' },
+                        { text: data.response, sender: 'HerkyBot' },
                     ]);
                 } else {
                     console.error('Network response was not ok.');
                     setMessages((prevMessages) => [
                         ...prevMessages,
-                        { text: 'Error: Unable to fetch response from server', sender: 'SacLifeBot' },
+                        { text: 'Error: Unable to fetch response from server', sender: 'HerkyBot' },
                     ]);
                 }
             } catch (error) {
                 console.error('Error fetching response:', error);
                 setMessages((prevMessages) => [
                     ...prevMessages,
-                    { text: 'Error: Unable to connect to server', sender: 'SacLifeBot' },
+                    { text: 'Error: Unable to connect to server', sender: 'HerkyBot' },
                 ]);
             } finally {
                 setIsTyping(false);
             }
         }
     };
-    
-    
 
     const handleUrlPress = (url) => {
         Linking.openURL(url);
@@ -123,24 +139,26 @@ const ChatbotScreen = () => {
 
     const handleClearChat = async () => {
         if (!loggedInStudentId) {
-            console.error("No student ID available, can't clear chat.");
+            console.error(" Cannot clear chat — no std_id available.");
             return;
         }
-
+    
         try {
             const response = await fetch(`http://10.0.2.2:3000/clear-chat/${loggedInStudentId}`, {
                 method: 'DELETE',
             });
-
+    
             if (response.ok) {
-                setMessages([]); // Clear chat in UI
+                console.log("Chat history cleared.");
+                setMessages([]); 
             } else {
-                console.error('Error clearing chat history');
+                console.error(` Failed to clear chat history, status: ${response.status}`);
             }
         } catch (error) {
-            console.error('Error clearing chat:', error);
+            console.error(" Error clearing chat:", error);
         }
     };
+    
 
     return (
         <KeyboardAvoidingView 
@@ -177,17 +195,17 @@ const ChatbotScreen = () => {
                     ))}
                     {isTyping && (
                         <View style={styles.botMessage}>
-                            <Text style={styles.senderLabelBot}>SacLifeBot</Text>
+                            <Text style={styles.senderLabelBot}>HerkyBot</Text>
                             <View style={styles.botMessageBubble}>
-                                <Text style={styles.botMessageText}>SacLifeBot is typing...</Text>
+                                <Text style={styles.botMessageText}>HerkyBot is typing...</Text>
                             </View>
                         </View>
                     )}
                 </ScrollView>
-
-                <TouchableOpacity onPress={handleClearChat} style={styles.clearChatButton}>
-                    <Text style={styles.clearChatText}>Clear Chat</Text>
+                <TouchableOpacity onPress={handleClearChat}>
+                    <Text style={{ color: 'rgba(4, 57, 39, 0.8)', alignSelf: 'center', marginBottom: 10 }}>Clear Chat History</Text>
                 </TouchableOpacity>
+                
 
                 <View style={styles.inputContainer}>
                     <MaterialIcons 
