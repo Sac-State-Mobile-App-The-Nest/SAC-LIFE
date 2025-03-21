@@ -117,14 +117,32 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
                 />
             );
         default:
-            return (
-                <TextInput
-                    style={styles.input}
-                    placeholder="Input here"
-                    onChangeText={handleTextInputChange}
-                    value={answers[question.id] || ''}
-                />
-            );
+            // ================== CHANGES START HERE ==================
+            // Make the final question's text box larger and multiline
+            if (question.id === 5) { // Assuming the final question has id 5
+                return (
+                    <TextInput
+                        style={[styles.input, styles.largeInput]} // Apply a larger style
+                        placeholder="Input here"
+                        onChangeText={handleTextInputChange}
+                        value={answers[question.id] || ''}
+                        multiline={true} // Allow multiline input
+                        numberOfLines={5} // Set a minimum number of lines
+                        scrollEnabled={true} // Enable scrolling
+                        textAlignVertical="top" // Align text to the top
+                    />
+                );
+            } else {
+                return (
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Input here"
+                        onChangeText={handleTextInputChange}
+                        value={answers[question.id] || ''}
+                    />
+                );
+            }
+            // ================== CHANGES END HERE ==================
     }
 };
 
@@ -136,16 +154,12 @@ const WellnessCreation = () => {
     const slideAnim = useRef(new Animated.Value(0)).current;
 
     const questions = [
-        //new Question(0, "How many units are you taking?", "checkbox", ["1-2", "3-9", "10-15", "16+"]),
         new Question(0, "Do you feel that you need academic assistance?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        //new Question(2, "Are you looking for help with a resume?", "checkbox", ["Not at the moment", "Yes I am"]),
         new Question(1, "I feel safe on campus.", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        //new Question(4, "How has your overall health been this semester?", "checkbox", ["Very Poor", "Poor", "Fair", "Good", "Very Good"]),
         new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", ["Not at all", "Some days", "Nearly every day"]),
         new Question(3, "Are you happy with how your school life is going?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
         new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", ["Often True", "Sometimes True", "Never True", "Don't Know/Refuse to Answer"]),
-        //new Question(8, "I know where I can get help on campus for health and psychological needs.", "checkbox", ["Strongly Disagree", "Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree", "Strongly Agree"]),
-        new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"),
+        new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
     ];
 
     const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);

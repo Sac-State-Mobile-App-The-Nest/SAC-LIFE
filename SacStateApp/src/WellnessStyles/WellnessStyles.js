@@ -193,6 +193,11 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
+    largeInput: {
+        height: 100, // Adjust height as needed
+        textAlignVertical: 'top', // Align text to the top
+        padding: 10, // Add padding for better readability
+    },
     footerDecoration: {
         position: 'absolute',
         bottom: 0,
