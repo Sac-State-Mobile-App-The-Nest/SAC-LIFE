@@ -64,6 +64,7 @@ const CompletionScreen = ({ onPress }) => (
 
 // NEEDS WORK !!!
 const QuestionRenderer = (question, wellnessCheckInManager) => {
+    console.log("Rendering question: ", question); // Debugging
     switch (question.inputType) {
         case "checkbox":
             return question.options.map((option) => (
@@ -106,6 +107,7 @@ const QuestionRenderer = (question, wellnessCheckInManager) => {
                 />
             );
         default:
+            console.log("Rendering default input"); // Debugging
             return (
                 <TextInput
                     style={styles.input}
