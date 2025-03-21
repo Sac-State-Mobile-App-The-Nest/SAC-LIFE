@@ -75,18 +75,18 @@ app.get('/api/helloMessage', (req, res) => {
 });
 
 // Console debugs to see if all our login routes are mounting correctly
-console.log("✅ Registered Routes:");
-app._router.stack.forEach((middleware) => {
-    if (middleware.route) {
-        console.log(middleware.route.path);
-    } else if (middleware.name === 'router') {
-        middleware.handle.stack.forEach((subMiddleware) => {
-            if (subMiddleware.route) {
-                console.log(subMiddleware.route.path);
-            }
-        });
-    }
-});
+// console.log("Registered Routes:");
+// app._router.stack.forEach((middleware) => {
+//     if (middleware.route) {
+//         console.log(middleware.route.path);
+//     } else if (middleware.name === 'router') {
+//         middleware.handle.stack.forEach((subMiddleware) => {
+//             if (subMiddleware.route) {
+//                 console.log(subMiddleware.route.path);
+//             }
+//         });
+//     }
+// });
 
 
 app.listen(port, ()=>{

@@ -11,7 +11,7 @@
  *  xml2js → Parses SAML XML responses (useful for debugging)
  * 
  * 
-*/
+ */
 
 require('dotenv').config();
 const jwtAuth = require('./jwtAuth');
@@ -38,15 +38,18 @@ const authService = {
 
     callback: async (req, res, next) => {
         try {
-            if (AUTH_METHOD === 'saml') {
-                console.log("Processing SAML authentication callback...");
-                return samlAuth.callback(req, res, next);
-            } else {
-                return res.status(400).json({ message: "SAML authentication is not enabled." });
-            }
+            console.log("SAML callback endpoint hit");
+            passport.authenticate('saml', (err, user, info) => {
+                if (err) {
+                    console.error("SAML Authentication Failed:", err);
+                    return res.status(401).json({ message: "Authentication failed." });
+                }
+                console.log("🔍 SAML Assertion Received:", JSON.stringify(user, null, 2));
+                res.json({ message: "Login successful!", user });
+            })(req, res, next);
         } catch (error) {
             console.error("SAML Callback Error:", error);
-            res.status(500).json({ message: "Internal Server Error during SAML callback." });
+            res.status(500).json({ message: "Error processing SAML callback." });
         }
     },
 
