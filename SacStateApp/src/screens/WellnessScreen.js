@@ -1,3 +1,4 @@
+//to-do:  hp bar, backend implementation, clean up and ui focus
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
