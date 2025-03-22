@@ -16,13 +16,24 @@ class PushNotificationService {
     }
   }
 
-  async getToken() {
+  async getToken(userId) {
     try {
-      const token = await messaging().getToken();
-      console.log("FCM Token:", token);
-      return token;
+        const token = await messaging().getToken();
+        console.log("FCM Token:", token);
+
+        // Send token to backend
+        await fetch('https://<YOUR_BACKEND_URL>/api/notifications/register-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: userId, // Pass the logged-in user's ID
+                fcmToken: token
+            })
+        });
+
+        return token;
     } catch (error) {
-      console.error("Error getting FCM Token:", error);
+        console.error("Error getting FCM Token:", error);
     }
   }
 

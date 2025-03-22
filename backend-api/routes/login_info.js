@@ -121,6 +121,34 @@ router.get('/hasher', async (req, res) => {
     }
 });
 
+// Register FCM Token
+router.post('/register-token', async (req, res) => {
+    const { userId, fcmToken } = req.body;
+
+    if (!userId || !fcmToken) {
+        return res.status(400).json({ message: 'Missing userId or fcmToken' });
+    }
+
+    try {
+        const request = new sql.Request();
+        request.input('userId', sql.Int, userId);
+        request.input('fcmToken', sql.VarChar, fcmToken);
+
+        // Save token into a new column `fcm_token` in login_info (or a new table if you prefer)
+        await request.query(`
+            UPDATE login_info
+            SET fcm_token = @fcmToken
+            WHERE std_id = @userId
+        `);
+
+        res.status(200).json({ message: 'FCM Token saved successfully' });
+    } catch (err) {
+        console.error('Error saving FCM token:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+
 module.exports = router;
 
 
