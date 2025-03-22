@@ -256,20 +256,51 @@ module.exports = function(poolPromise) {
     }
   });
 
-  //a student can change their preferred name
-  //a student can change their expected graduation
-  //a student can change their password
-  //a student can deactivate their account
-  //a student can change font size
-  //a student can download their account data - chatbot logs and students table info
-  //a student can clear their chatbot logs
-  //a student can log out of the app
-  /**Tabs or Sections for Easy Navigation (Profile, Security, Notifications, etc.)
-    Editable Fields with Save/Cancel Options
-    Preview for Profile & Cover Picture
-    Real-time Feedback (e.g., “Username already taken”)
-    Security Confirmation for Sensitive Actions (e.g., Password change)
-  */
+  //Update the student's preferred name
+  router.put('/updatePreferredName', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    const { newPreferredName } = req.body;
+    if(!newPreferredName){
+      return res.status(400).json({ message: "No new preferred name given" });
+    }
+    try{
+      const pool = await poolPromise;
+      await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .input('preferred_name', sql.VarChar, newPreferredName)
+        .query(`UPDATE test_students SET preferred_name = @preferred_name WHERE std_id = @std_id`);
+
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error('SQL error', err);
+      return res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //student can download their chat logs
+  router.get('/requestChatLogs', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    try{
+      const pool = await poolPromise;
+      const userChatData = await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`SELECT session_id, student_question, bot_response, timestamp FROM chat_logs WHERE std_id = @std_id`);
+      if(userChatData.length === 0){
+        return res.status(404).json({ message: "Error, no data found"})
+      }
+      return res.status(200).json(userChatData.recordset);
+    } catch(err){
+      console.error('SQL error', err);
+      return res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //a student can change their preferred name ***done***
+  //a student can change their password ***done***
+  //a student can download their chat logs ***done***
+  //a student can log out of the app ***done***
+  //a student can deactivate their account  
+
 
   // // DELETE a student by studentId
   // router.delete('/:studentId', async (req, res) => {

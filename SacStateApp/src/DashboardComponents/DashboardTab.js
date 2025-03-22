@@ -24,7 +24,11 @@ const DashboardTab = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const data = await fetchUserServices(token);
-        setUserServicesRec(data);
+        const numberedServices = data.map((service, index) => ({
+          index: index + 1,
+          ...service
+        }));
+        setUserServicesRec(numberedServices);
       } catch (error) {
         console.error('Error fetching services recommendations:', error);
       }

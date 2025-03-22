@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { fetchUserAreaOfStudy } from '../DashboardAPI/api';
 import { fetchUserYearOfStudy } from '../DashboardAPI/api';
-import ProfileModals from '../SettingsScreenComponents/ProfileModals';
+import ProfileModals from '../SettingsScreenComponents/ProfileModals'; //when a user clicks on a profile/setting screen button, it'll render this
 
 const SettingsScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -15,7 +15,7 @@ const SettingsScreen = ({ navigation }) => {
   const [userYearOfStudy, setUserYearOfStudy] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState(null);
-  const [newName, setNewName] = useState('');
+  const [newPreferredName, setNewPreferredName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
   const [oldPassword, setOldPassword] = useState('');
@@ -91,17 +91,12 @@ const SettingsScreen = ({ navigation }) => {
     setModalVisible(true);
   }
 
-  const updateNameFunction = () => {
+  const updateNameFunction = async () => {
     //remove spaces from name
-    let trimmedName = newName.trim();
+    let trimmedName = newPreferredName.trim();
     //check if name is empty
     if(!trimmedName) {
       Alert.alert("Error", "Name cannot be empty.");
-      return;
-    }
-    //check if length of name is too long
-    if (trimmedName.length > 20) {
-      Alert.alert("Error", "Name cannot be longer than 20 characters");
       return;
     }
     //check if name contains letters only
@@ -109,13 +104,38 @@ const SettingsScreen = ({ navigation }) => {
       Alert.alert("Error", "Name can only contain letters.");
       return;
     }
+    //check if name isn't same as the current name
+    if(trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase() === userInfo.preferred_name){
+      Alert.alert("Error", "Name cannot be the same.");
+      return;
+    }
+    //check if length of name is too long
+    if (trimmedName.length > 20) {
+      Alert.alert("Error", "Name cannot be longer than 20 characters");
+      return;
+    }
+
     //capitalize first letter, lowercase rest
     let formattedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
-    setNewName(formattedName);
-    //call api to update the name
 
-    Alert.alert("Success", `You have changed your name to ${newName}`);
-    setModalVisible(false);
+    setNewPreferredName(formattedName);
+    //call api to update the name
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/updatePreferredName`,
+        { newPreferredName },
+        { headers: { Authorization: `Bearer ${token}` },}
+      );
+      if (!response.data.success) {
+        Alert.alert("Error", "Unable to update your preferred name.");
+      } else {
+        displayUserPreferredName();
+        Alert.alert("Successs", `You have changed your name to ${newPreferredName}`);
+        setModalVisible(false);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Unable to update your name");
+    }
   };
 
   const updatePasswordFunction = async (oldPassword, newPass1, newPass2) => {
@@ -195,11 +215,11 @@ const SettingsScreen = ({ navigation }) => {
       </View>
       <View style={styles.sectionContainer}>
         <SettingsItem icon="person" text="Logout" onPress={() => logout(navigation)} />
-        <SettingsItem icon="person" text="Edit Username" onPress={() => openModal('editProfileName')} />
+        <SettingsItem icon="person" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
         <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} />
         <SettingsItem icon="notifications-outline" text="Notification Settings" onPress={() => openModal('editNotifitcations')} />
-        <SettingsItem icon="add-circle" text="Increase Font Size" />
-        <SettingsItem icon="remove-circle" text="Decrease Font Size" />
+        {/* <SettingsItem icon="add-circle" text="Increase Font Size" />
+        <SettingsItem icon="remove-circle" text="Decrease Font Size" /> */}
       </View>
 
       {/* Security & Privacy */}
@@ -215,26 +235,25 @@ const SettingsScreen = ({ navigation }) => {
 
       {/* Help & Support */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Help & Support</Text>
+        <Text style={styles.sectionTitle}>Info</Text>
       </View>
       <View style={styles.sectionContainer}>
         <SettingsItem icon="help-circle-outline" text="FAQs" />
-        <SettingsItem icon="chatbubble-ellipses-outline" text="Contact Support" />
       </View>
 
       {/* About & Legal */}
-      <View style={styles.sectionHeader}>
+      {/* <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>About & Legal</Text>
       </View>
       <View style={styles.sectionContainer}>
         <SettingsItem icon="document-text-outline" text="Terms of Service" />
         <SettingsItem icon="shield-checkmark-outline" text="Privacy Policy" />
         <SettingsItem icon="information-circle-outline" text="App Version" />
-      </View>
+      </View> */}
 
       {/* Centered Modal with Blurred Background */}
       <ProfileModals modalVisible={modalVisible} modalContent={modalContent} newPassword={newPassword} 
-        setNewPassword={setNewPassword} newName={newName} setNewName={setNewName} 
+        setNewPassword={setNewPassword} newPreferredName={newPreferredName} setNewPreferredName={setNewPreferredName} 
         updateNameFunction={updateNameFunction} updatePasswordFunction={updatePasswordFunction}
         setModalVisible={setModalVisible} newPassword2={newPassword2} setNewPassword2={setNewPassword2}
         oldPassword={oldPassword} setOldPassword={setOldPassword}

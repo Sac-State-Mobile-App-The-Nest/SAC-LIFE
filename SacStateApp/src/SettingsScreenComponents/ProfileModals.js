@@ -6,54 +6,70 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { mutedDarkGreen, darkGray } from '../SacStateColors/GeneralColors';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword, newName, setNewName, updateNameFunction, 
+const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword, newPreferredName, setNewPreferredName, updateNameFunction, 
   updatePasswordFunction, setModalVisible, newPassword2, setNewPassword2, oldPassword, setOldPassword }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   
-  //sample chatbot logs
-  const chatHistory = [
-    { role: "user", message: "Hello, how are you?" },
-    { role: "bot", message: "I'm doing great! How can I assist you?" },
-    { role: "user", message: "Tell me a joke." },
-    { role: "bot", message: "Why don't skeletons fight each other? Because they don't have the guts!" },
-  ];
-
   //is called when user decides to download their chatbot history
   const downloadHerkyBotHistory = async () => {
-    //converts chat history into html
-    const htmlContent = `
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { text-align: center; }
-            ul { list-style-type: none; padding: 0; }
-            li { margin-bottom: 10px; }
-            strong { color: mutedDarkGreen; }
-          </style>
-        </head>
-        <body>
-          <h1>Chatbot Conversation History</h1>
-          <ul>
-            ${chatHistory.map(chat => `<li><strong>${chat.role}:</strong> ${chat.message}</li>`).join("")}
-          </ul>
-        </body>
-      </html>
-    `;
-    try{
-      //generates pdf file
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/requestChatLogs`,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          } 
+        });
+      const chatHistoryData = response.data;
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { text-align: center; }
+              ul { list-style-type: none; padding: 0; }
+              li { margin-bottom: 10px; }
+              strong { color: darkgreen; }
+            </style>
+          </head>
+          <body>
+            <h1>Chatbot Conversation History</h1>
+            <ul>
+              ${chatHistoryData.map(chat => `
+                <li><strong>Time:</strong> ${new Date(chat.timestamp).toLocaleString()}</li>
+                <li><strong>Student:</strong> ${chat.student_question}</li>
+                <li><strong>Bot:</strong> ${chat.bot_response}</li>
+                <li><strong>Session ID:</strong> ${chat.session_id}</li>
+                <br>
+              `).join("")}
+            </ul>
+          </body>
+        </html>
+      `;
+  
+      //generate a pdf file
       const { uri } = await Print.printToFileAsync({ html: htmlContent });
-
-      //option for user to download or share pdf to their device
-      if (await Sharing.isAvailableAsync()){
+  
+      //let user share the pdf file
+      if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
         Alert.alert("Error", "Sharing not available on this device");
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to generate chat logs.");
+      console.log("Error:", error);
+      Alert.alert("Error", "Failed to retrieve chat logs.");
     }
+  };
+
+  const deactivateAccountPrevent = () => {
+    Alert.alert("Warning", "All of your data will be deleted");
+  }
+  const deactivateAccount = () => {
+    
   }
 
   //when user confirms they want to delete their chatbot history
@@ -74,11 +90,11 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
             <TextInput
               style={styles.input}
               placeholder="Enter new preferred name"
-              value={newName}
-              onChangeText={setNewName}
+              value={newPreferredName}
+              onChangeText={setNewPreferredName}
             />
             <TouchableOpacity style={styles.saveButton} onPress={updateNameFunction}>
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={styles.saveButtonText}>SAVE</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -137,30 +153,38 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
                 />
               </TouchableOpacity>
             </View>
-            <Button title="Change Password" onPress={() => updatePasswordFunction(oldPassword, newPassword, newPassword2)} />
+            <TouchableOpacity style={styles.saveButton} onPress={() => updatePasswordFunction(oldPassword, newPassword, newPassword2)}>
+              <Text style={styles.saveButtonText}>CHANGE PASSWORD</Text>
+            </TouchableOpacity>
           </View>
         )}
         {/*Download their chatbot data*/}
         {modalContent === 'downloadChatbotData' && (
           <View>
-          <Text style={styles.modalTitle}>Are you sure your want to download your HerkyBot chat history?</Text>
-            <Button title="Download" onPress={downloadHerkyBotHistory} />
+            <Text style={styles.modalTitle}>Are you sure your want to download your HerkyBot chat history?</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={downloadHerkyBotHistory}>
+              <Text style={styles.saveButtonText}>DOWNLOAD</Text>
+            </TouchableOpacity>
           </View>
         )}
-        {/*Delete their chatbot data */}
+        {/*Delete their chatbot data - devin working on this in separate task. can move here later*/}
         {modalContent === 'deleteChatbotData' && (
           <View>
-          <Text style={styles.modalTitle}>Are you sure your want to delete your HerkyBot chat history?
+            <Text style={styles.modalTitle}>Are you sure your want to delete your HerkyBot chat history?
             There is no going back.</Text>
-            <Button title="Confirm" onPress={deleteHerkyBotHistory} />
+            <TouchableOpacity style={styles.saveButton} onPress={deleteHerkyBotHistory}>
+              <Text style={styles.saveButtonText}>CONFIRM</Text>
+            </TouchableOpacity>
           </View>
         )}
         {/*Delete their account */}
         {modalContent === 'deactivateAccount' && (
           <View>
-          <Text style={styles.modalTitle}>Are you sure your want to delete your account?
+            <Text style={styles.modalTitle}>Are you sure your want to delete your account?
             There is no going back.</Text>
-            <Button title="Confirm" onPress={deleteHerkyBotHistory} />
+            <TouchableOpacity style={styles.saveButton} onPress={deactivateAccountPrevent}>
+              <Text style={styles.saveButtonText}>YES</Text>
+            </TouchableOpacity>
           </View>
         )}
 
