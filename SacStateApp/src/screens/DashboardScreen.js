@@ -59,6 +59,7 @@ const DashboardScreen = () => {
       <Tab.Screen name="Dashboard" component={DashboardTab} options={{ headerShown: false }} />
       <Tab.Screen name="HerkyBot" component={ChatbotScreen} />
       <Tab.Screen name="Wellness" component={WellnessHomeScreen} />
+      <Tab.Screen name="Wellness" component={WellnessHomeScreen} />
       <Tab.Screen name="Profile" component={SettingsScreen} />
     </Tab.Navigator>
   );
