@@ -157,11 +157,11 @@ const WellnessCreation = () => {
     const questions = [
         new Question(0, "Do you feel that you need academic assistance?", "checkbox", 
             [
-                { label: "Disagree", value: 1 },
-                { label: "Slightly Disagree", value: 2 },
+                { label: "Disagree", value: 5 },
+                { label: "Slightly Disagree", value: 4 },
                 { label: "Neither Agree nor Disagree", value: 3 },
-                { label: "Slightly Agree", value: 4 },
-                { label: "Agree", value: 5 }
+                { label: "Slightly Agree", value: 2 },
+                { label: "Agree", value: 1 }
             ]
         ),
 
@@ -174,11 +174,36 @@ const WellnessCreation = () => {
                 { label: "Agree", value: 5 }
             ]
         ),
-        //new Question(1, "I feel safe on campus.", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        //new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", ["Not at all", "Some days", "Nearly every day"]),
-        //new Question(3, "Are you happy with how your school life is going?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        //new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", ["Often True", "Sometimes True", "Never True", "Don't Know/Refuse to Answer"]),
-        //new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
+
+        new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", 
+            [
+                { label: "Not at all", value: 1 },
+                { label: "Some days", value: 3 },
+                { label: "Nearly every day", value: 5 },
+            ]
+        ),
+
+        new Question(3, "Are you happy with how your school life is going?", "checkbox", 
+            [
+                { label: "Disagree", value: 1 },
+                { label: "Slightly Disagree", value: 2 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 4 },
+                { label: "Agree", value: 5 }
+            ]
+        ),
+
+        new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", 
+            [
+                { label: "Disagree", value: 5 },
+                { label: "Slightly Disagree", value: 4 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 2 },
+                { label: "Agree", value: 1 }
+            ]
+        ),
+
+        new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
     ];
 
     const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
