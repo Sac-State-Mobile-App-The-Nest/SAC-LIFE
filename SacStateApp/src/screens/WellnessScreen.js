@@ -10,6 +10,7 @@ import styles from '../WellnessStyles/WellnessStyles';
 const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
+// Question class to define the structure of each question
 class Question {
     constructor(id, text, inputType, options = [], conditional = null) {
         this.id = id;
@@ -28,6 +29,7 @@ class Question {
     }
 }
 
+// WellnessCheckInManager class to manage the flow of questions and answers
 class WellnessCheckInManager {
     constructor(questions, setCurrentQuestion, setAnswers) {
         this.questions = questions;
@@ -52,18 +54,23 @@ class WellnessCheckInManager {
     }
 }
 
-// Sending profile data to server code goes here !!!
-
-const CompletionScreen = ({ onPress }) => (
+// CompletionScreen component to display after all questions are answered
+const CompletionScreen = ({ onPress, navigation }) => (
     <View style={styles.completionContainer}>
         <Text style={styles.completionText}>Thank you for checking in on yourself!</Text>
-        <TouchableOpacity style={styles.largeButton} onPress={onPress}>
+        <TouchableOpacity
+            style={styles.largeButton}
+            onPress={() => {
+                onPress(); // Call the onPress function (e.g., to save answers)
+                navigation.navigate('WellnessHomeScreen'); // Navigate back to WellnessHomeScreen
+            }}
+        >
             <Text style={styles.largeButtonText}>Complete Check-in!</Text>
         </TouchableOpacity>
     </View>
 );
 
-// Updated QuestionRenderer function to handle user interaction
+// QuestionRenderer component to render different types of questions
 const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, answers }) => {
     const handleCheckboxPress = (option) => {
         wellnessCheckInManager.handleAnswer(question.id, option.value, currentQuestion);
@@ -118,7 +125,6 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
                 />
             );
         default:
-            // ================== CHANGES START HERE ==================
             // Make the final question's text box larger and multiline
             if (question.id === 5) { // Assuming the final question has id 5
                 return (
@@ -143,10 +149,10 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
                     />
                 );
             }
-            // ================== CHANGES END HERE ==================
     }
 };
 
+// Main WellnessCreation component
 const WellnessCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -154,6 +160,7 @@ const WellnessCreation = () => {
     const navigation = useNavigation();
     const slideAnim = useRef(new Animated.Value(0)).current;
 
+    // Define the questions for the wellness check-in
     const questions = [
         new Question(0, "Do you feel that you need academic assistance?", "checkbox", 
             [
@@ -164,7 +171,6 @@ const WellnessCreation = () => {
                 { label: "Agree", value: 1 }
             ]
         ),
-
         new Question(1, "I feel safe on campus.", "checkbox", 
             [
                 { label: "Disagree", value: 1 },
@@ -174,7 +180,6 @@ const WellnessCreation = () => {
                 { label: "Agree", value: 5 }
             ]
         ),
-
         new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", 
             [
                 { label: "Not at all", value: 1 },
@@ -182,7 +187,6 @@ const WellnessCreation = () => {
                 { label: "Nearly every day", value: 5 },
             ]
         ),
-
         new Question(3, "Are you happy with how your school life is going?", "checkbox", 
             [
                 { label: "Disagree", value: 1 },
@@ -192,7 +196,6 @@ const WellnessCreation = () => {
                 { label: "Agree", value: 5 }
             ]
         ),
-
         new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", 
             [
                 { label: "Disagree", value: 5 },
@@ -202,18 +205,19 @@ const WellnessCreation = () => {
                 { label: "Agree", value: 1 }
             ]
         ),
-
         new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
     ];
 
     const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
 
+    // Calculate the total score based on the answers
     const calculateTotalScore = () => {
         const totalScore = Object.values(answers).reduce((sum, value) => sum + value, 0);
         console.log("Total Score:", totalScore); // This prints the sum to the console
         return totalScore;
     };
-    
+
+    // Handle the "Next" button press
     const handleNextPress = () => {
         if (currentQuestion === questions.length - 1) {
             const totalScore = calculateTotalScore();
@@ -245,6 +249,7 @@ const WellnessCreation = () => {
         });
     };
 
+    // Handle the "Previous" button press
     const handlePreviousPress = () => {
         // Start exit animation
         Animated.parallel([
@@ -271,23 +276,24 @@ const WellnessCreation = () => {
         });
     };
 
-    const handleCompletePress = () => {
+    // Handle the "Complete Check-in" button press
+    const handleCompletePress = async () => {
         const totalScore = calculateTotalScore();
         console.log("Check-in complete. Total score:", totalScore);
+
+        try {
+            await AsyncStorage.setItem('wellnessAnswers', JSON.stringify(answers));
+        } catch (error) {
+            console.error('Failed to save answers:', error);
+        }
     };
-
-    if (isCompleted) {
-        return <CompletionScreen onPress={handleCompletePress} />;
-    }
-
 
     return (
         <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
             <View style={styles.overlayContainer}>
                 <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                     {isCompleted ? (
-                        <CompletionScreen />
-                        //<CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                        <CompletionScreen onPress={handleCompletePress} navigation={navigation} />
                     ) : (
                         <>
                             {/* Animated question title */}
