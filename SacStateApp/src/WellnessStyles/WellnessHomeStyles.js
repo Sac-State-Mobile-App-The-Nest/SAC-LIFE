@@ -1,62 +1,98 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import * as colors from '../SacStateColors/GeneralColors'; // Import colors if needed
+
 const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: -550,
-        padding: 20,
-    },
-    heading: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    healthBarContainer: {
-        width: '80%',
-        height: 20,
-        backgroundColor: '#e0e0e0', // Light gray background for the health bar container
-        borderRadius: 10,
-        overflow: 'hidden',
-        marginVertical: 10,
-    },
-    healthBar: {
-        height: '100%',
-    },
-    button: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        backgroundColor: colors.fadedSacGold,
-        borderRadius: 18,
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 5,
-        elevation: 4,
-        borderColor: colors.mutedGold,
-        borderWidth: 1.2,
-    },
-    buttonText: {
-        color: colors.sacGreen,
-        fontSize: 17,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    questionText: {
-        fontSize: 22,
-        fontWeight: '600',
-        color: colors.sacGreen,
-        textAlign: 'center',
-        marginTop: 20,
-        lineheight: 28,
-    },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5', // Light gray background for the entire screen
+  },
+  container: {
+    width: '90%',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF', // White background for the content container
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.sacGreen,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  healthScoreContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  healthScoreText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.sacGreen,
+    marginBottom: 10,
+  },
+  healthBarContainer: {
+    width: '100%',
+    height: 30, // Increased height for the health bar
+    backgroundColor: '#E0E0E0',
+    borderRadius: 15, // Adjusted border radius to match the new height
+    overflow: 'hidden',
+    marginBottom: 10,
+    justifyContent: 'center', // Center the percentage text vertically
+  },
+  healthBar: {
+    height: '100%',
+    justifyContent: 'center', // Center the percentage text horizontally
+    alignItems: 'center', // Center the percentage text horizontally
+  },
+  percentageText: {
+    color: '#FFFFFF', // White text for better visibility
+    fontSize: 14, // Slightly larger font size
+    fontWeight: 'bold',
+  },
+  primaryButton: {
+    width: '100%',
+    backgroundColor: colors.sacGreen,
+    paddingVertical: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  secondaryButton: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 15,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: colors.sacGreen,
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  secondaryButtonText: {
+    color: colors.sacGreen,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
 
 export default styles;
