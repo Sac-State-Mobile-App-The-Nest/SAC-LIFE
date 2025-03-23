@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import ParsedText from 'react-native-parsed-text';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Ensure this is installed
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import styles from '../ChatbotStyles/ChatbotStyles';
 
 const ChatbotScreen = () => {
@@ -20,27 +20,27 @@ const ChatbotScreen = () => {
     useEffect(() => {
         const fetchStudentId = async () => {
             try {
-                const username = await AsyncStorage.getItem('username'); // Retrieve username
+                const username = await AsyncStorage.getItem('username'); 
         
                 if (!username) {
                     console.error(" No username stored in AsyncStorage.");
                     return;
                 }
         
-                console.log(" Username retrieved from storage:", username); // Debugging
+                console.log(" Username retrieved from storage:", username); 
         
                 const response = await fetch(`http://10.0.2.2:3000/api/students/getLoggedInUser?username=${username}`);
         
-                const responseText = await response.text(); // Read response as text first
-                console.log("📥 Raw response:", responseText); // Log raw response
+                const responseText = await response.text(); 
+                console.log("📥 Raw response:", responseText); 
         
                 if (response.ok) {
-                    const userData = JSON.parse(responseText); // Parse JSON manually
+                    const userData = JSON.parse(responseText); 
                     console.log("User data received:", userData);
         
                     if (userData.std_id) {
-                        setLoggedInStudentId(userData.std_id); // Store std_id in state
-                        fetchChatHistory(userData.std_id); // Fetch chat history
+                        setLoggedInStudentId(userData.std_id); 
+                        fetchChatHistory(userData.std_id); 
                     } else {
                         console.error(" std_id missing in response.");
                     }
@@ -62,7 +62,7 @@ const ChatbotScreen = () => {
     // Fetch chat history using std_id
     const fetchChatHistory = async (stdId) => {
         try {
-            console.log(" Fetching chat history for stdId:", stdId); // Debugging
+            console.log(" Fetching chat history for stdId:", stdId); 
     
             const response = await fetch(`http://10.0.2.2:3000/chat-history/${stdId}`);
     
@@ -166,6 +166,7 @@ const ChatbotScreen = () => {
             style={styles.container} 
             keyboardVerticalOffset={keyboardVisible ? (Platform.OS === 'ios' ? 100 : 130) : 0}
         >
+        
             <View style={styles.chatContainer}>
                 <ScrollView
                     ref={scrollViewRef}

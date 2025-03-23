@@ -86,6 +86,7 @@ app.post('/message', async (req, res) => {
               - **Events:** [Campus Events](https://events.csus.edu/)
               - **Sports:** [Hornet Sports](https://hornetsports.com/calendar)
               - **Parking:** [Permit Pricing](https://www.csus.edu/parking-transportation/parking/permit-pricing.html)
+              - **library:** https://library.csus.edu/ 
 
               If unrelated to Sac State, reply: "I'm not sure. Let's get back to campus-related topics!"
             `
@@ -129,7 +130,7 @@ app.post('/message', async (req, res) => {
 
 app.get('/api/students/getLoggedInUser', async (req, res) => {
   try {
-      const { username } = req.query; // Expect username as a query parameter
+      const { username } = req.query; 
       if (!username) {
           console.error("No username provided");
           return res.status(400).json({ error: "Username is required" });
@@ -154,7 +155,7 @@ app.get('/api/students/getLoggedInUser', async (req, res) => {
 
       console.log("User found:", userResult.recordset[0]);
 
-      res.json(userResult.recordset[0]); // { username: "exampleUser", std_id: 123 }
+      res.json(userResult.recordset[0]); 
 
   } catch (err) {
       console.error(' SQL error:', err);
