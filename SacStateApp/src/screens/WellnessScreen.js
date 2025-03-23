@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../WellnessStyles/WellnessStyles';
@@ -160,6 +160,16 @@ const WellnessCreation = () => {
     const navigation = useNavigation();
     const slideAnim = useRef(new Animated.Value(0)).current;
 
+    // Resets it when questionaire is complete.
+    useFocusEffect(
+            React.useCallback(() => {
+                setCurrentQuestion(0);
+                setAnswers({});
+                setIsCompleted(false);
+                slideAnim.setValue(0);
+            }, [])
+    );
+    
     // Define the questions for the wellness check-in
     const questions = [
         new Question(0, "Do you feel that you need academic assistance?", "checkbox", 
@@ -182,9 +192,9 @@ const WellnessCreation = () => {
         ),
         new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", 
             [
-                { label: "Not at all", value: 1 },
+                { label: "Not at all", value: 5 },
                 { label: "Some days", value: 3 },
-                { label: "Nearly every day", value: 5 },
+                { label: "Nearly every day", value: 1 },
             ]
         ),
         new Question(3, "Are you happy with how your school life is going?", "checkbox", 

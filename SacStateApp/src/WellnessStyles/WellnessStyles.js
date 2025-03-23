@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: colors.sacGreen,
         marginBottom: 18,
+        marginTop: 90,
         textAlign: 'center',
         letterSpacing: 1,
         textTransform: 'uppercase',
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: colors.sacGreen,
         textAlign: 'center',
-        marginBottom: 20,
+        marginTop: 20,
         lineheight: 28,
     },
     optionButton: {
