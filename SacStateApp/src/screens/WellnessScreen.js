@@ -66,11 +66,11 @@ const CompletionScreen = ({ onPress }) => (
 // Updated QuestionRenderer function to handle user interaction
 const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, answers }) => {
     const handleCheckboxPress = (option) => {
-        wellnessCheckInManager.handleAnswer(question.id, option, currentQuestion);
+        wellnessCheckInManager.handleAnswer(question.id, option.value, currentQuestion);
     };
 
     const handleDropdownChange = (option) => {
-        wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
+        wellnessCheckInManager.handleAnswer(question.id, option.value, currentQuestion);
     };
 
     const handleTextInputChange = (text) => {
@@ -83,14 +83,14 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
                 <View style={styles.inputContainer}>
                     {question.options.map((option) => (
                         <TouchableOpacity
-                            key={option}
+                            key={option.label}
                             style={[
                                 styles.optionButton,
-                                answers[question.id] === option && styles.selectedOptionButton
+                                answers[question.id] === option.value && styles.selectedOptionButton
                             ]}
                             onPress={() => handleCheckboxPress(option)}
                         >
-                            <Text style={styles.optionText}>{option}</Text>
+                            <Text style={styles.optionText}>{option.label}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -98,7 +98,7 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
         case "dropdown":
             return (
                 <ModalSelector
-                    data={question.options.map((option) => ({ key: option, label: option }))}
+                    data={question.options.map((option) => ({ key: option.value, label: option.label }))}
                     initValue="Select an option"
                     onChange={handleDropdownChange}
                     style={styles.pickerContainer}
@@ -109,7 +109,7 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
         case "multiDropdown":
             return (
                 <ModalSelector
-                    data={question.options.map((option) => ({ key: option, label: option }))}
+                    data={question.options.map((option) => ({ key: option.value, label: option.label }))}
                     initValue="Click to choose"
                     onChange={handleDropdownChange}
                     style={styles.pickerContainer}
@@ -155,18 +155,43 @@ const WellnessCreation = () => {
     const slideAnim = useRef(new Animated.Value(0)).current;
 
     const questions = [
-        new Question(0, "Do you feel that you need academic assistance?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        new Question(1, "I feel safe on campus.", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", ["Not at all", "Some days", "Nearly every day"]),
-        new Question(3, "Are you happy with how your school life is going?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-        new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", ["Often True", "Sometimes True", "Never True", "Don't Know/Refuse to Answer"]),
-        new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
+        new Question(0, "Do you feel that you need academic assistance?", "checkbox", 
+            [
+                { label: "Disagree", value: 1 },
+                { label: "Slightly Disagree", value: 2 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 4 },
+                { label: "Agree", value: 5 }
+            ]
+        ),
+
+        new Question(1, "I feel safe on campus.", "checkbox", 
+            [
+                { label: "Disagree", value: 1 },
+                { label: "Slightly Disagree", value: 2 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 4 },
+                { label: "Agree", value: 5 }
+            ]
+        ),
+        //new Question(1, "I feel safe on campus.", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
+        //new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", ["Not at all", "Some days", "Nearly every day"]),
+        //new Question(3, "Are you happy with how your school life is going?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
+        //new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", ["Often True", "Sometimes True", "Never True", "Don't Know/Refuse to Answer"]),
+        //new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
     ];
 
     const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
 
+    const calculateTotalScore = () => {
+        const totalScore = Object.values(answers).reduce((sum, value) => sum + value, 0);
+        console.log("Total Score:", totalScore); // This prints the sum to the console
+        return totalScore;
+    };
+    
     const handleNextPress = () => {
         if (currentQuestion === questions.length - 1) {
+            const totalScore = calculateTotalScore();
             setIsCompleted(true);
         }
 
@@ -220,6 +245,16 @@ const WellnessCreation = () => {
             ]).start();
         });
     };
+
+    const handleCompletePress = () => {
+        const totalScore = calculateTotalScore();
+        console.log("Check-in complete. Total score:", totalScore);
+    };
+
+    if (isCompleted) {
+        return <CompletionScreen onPress={handleCompletePress} />;
+    }
+
 
     return (
         <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
