@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     },
     completionContainer: {
         alignItems: 'center',
+        marginTop: 90,
         padding: 35,
     },
     completionText: {

@@ -56,7 +56,7 @@ const WellnessHome = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text>Wellness Check-in Progress</Text>
+      <Text style={styles.questionText}>Wellness Check-in Health Score</Text>
       <View
         style={styles.healthBarContainer}
         onLayout={(event) => {
@@ -73,7 +73,7 @@ const WellnessHome = ({ navigation }) => {
       </View>
       <Text>{score} / {maxScore}</Text>
       <Button
-        title="Go to Wellness Questions"
+        title="Check on your Wellness"
         onPress={() => navigation.navigate('WellnessScreen')}
       />
     </View>
