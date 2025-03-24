@@ -62,7 +62,7 @@ const CompletionScreen = ({ onPress, navigation }) => (
             style={styles.largeButton}
             onPress={() => {
                 onPress(); // Call the onPress function (e.g., to save answers)
-                navigation.navigate('WellnessHomeScreen'); // Navigate back to WellnessHomeScreen
+                navigation.navigate('Dashboard'); // Navigate back to WellnessHomeScreen
             }}
         >
             <Text style={styles.largeButtonText}>Complete Check-in!</Text>
