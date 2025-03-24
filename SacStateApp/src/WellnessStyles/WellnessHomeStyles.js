@@ -4,7 +4,14 @@ import * as colors from '../SacStateColors/GeneralColors'; // Import colors if n
 const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+   // added for image background testing
+    backgroundImage: {
+      flex: 1,
+      width: '100%',
+      height: '100%',
+    },
+
+   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',

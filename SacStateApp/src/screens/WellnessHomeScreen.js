@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Dimensions, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Dimensions, ScrollView, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../WellnessStyles/WellnessHomeStyles'; // Ensure this import is correct
 
 const { width: screenWidth } = Dimensions.get('window'); // Get screen width
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); //added for image background testing
 
 const WellnessHome = ({ navigation }) => {
   const [score, setScore] = useState(0);
@@ -69,7 +70,9 @@ const WellnessHome = ({ navigation }) => {
     }).start();
   }, [score, containerWidth]); // Trigger animation when score or container width changes
 
+  // image background currently ruins the page format, uncomment to see.
   return (
+    //<ImageBackground source={backgroundImage} style={styles.backgroundImage}>
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {/* Welcome to Your Wellness Journey Text */}
@@ -113,6 +116,7 @@ const WellnessHome = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+ //</ImageBackground>
   );
 };
 
