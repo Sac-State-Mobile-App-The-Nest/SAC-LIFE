@@ -31,8 +31,6 @@ router.post('/login', async (req, res) => {
 
         // Checks if the username and password input match any fields in the database
         const loginQuery = await request.query('SELECT * FROM login_info WHERE username = @username');
-
-
         
 
         // If there are no matches, recordset.length will be 0
@@ -56,9 +54,13 @@ router.post('/login', async (req, res) => {
                     console.log('Passwords match! User authenticated.');
 
                     // Create JWT after authenticating the user
+                    const user = loginQuery.recordset[0];
                     const accessToken = jwt.sign(loginQuery.recordset[0], JWT_SECRET_TOKEN);
-                    res.json({ accessToken });
-                    // console.log("Username: " + username);
+
+                    res.json({ 
+                        accessToken: accessToken, 
+                        userId: user.std_id 
+                    });
                 } else {
                     // Passwords don't match, authentication failed
                     res.send('Passwords do not match! Authentication failed.');
@@ -118,33 +120,6 @@ router.get('/hasher', async (req, res) => {
     } catch (err) {
         console.error('Error:', err.message);
         res.status(500).send('Server Error.');
-    }
-});
-
-// Register FCM Token
-router.post('/register-token', async (req, res) => {
-    const { userId, fcmToken } = req.body;
-
-    if (!userId || !fcmToken) {
-        return res.status(400).json({ message: 'Missing userId or fcmToken' });
-    }
-
-    try {
-        const request = new sql.Request();
-        request.input('userId', sql.Int, userId);
-        request.input('fcmToken', sql.VarChar, fcmToken);
-
-        // Save token into a new column `fcm_token` in login_info (or a new table if you prefer)
-        await request.query(`
-            UPDATE login_info
-            SET fcm_token = @fcmToken
-            WHERE std_id = @userId
-        `);
-
-        res.status(200).json({ message: 'FCM Token saved successfully' });
-    } catch (err) {
-        console.error('Error saving FCM token:', err);
-        res.status(500).send('Server error');
     }
 });
 

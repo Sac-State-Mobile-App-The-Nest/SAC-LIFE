@@ -1,5 +1,6 @@
 import messaging from "@react-native-firebase/messaging";
 import { Alert } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class PushNotificationService {
   async requestUserPermission() {
@@ -22,7 +23,7 @@ class PushNotificationService {
         console.log("FCM Token:", token);
 
         // Send token to backend
-        await fetch('https://<YOUR_BACKEND_URL>/api/notifications/register-token', {
+        await fetch(`https://${process.env.DEV_BACKEND_SERVER_IP}/api/notifications/register-token`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

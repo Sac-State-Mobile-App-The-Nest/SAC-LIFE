@@ -2,7 +2,6 @@ const express = require('express');
 const sql = require("mssql");
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const port = 5000;
 const config = require('./config'); // server config file
 const { authenticateToken, verifyRole } = require('./middleware/authMiddleware'); // Ensure correct path
 
@@ -49,10 +48,12 @@ app.get('/api/helloMessage', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
 
+const port = process.env.PORT || 5000;
+
 // Only start the server if this file is executed directly
 if (require.main === module) {
   app.listen(port, () => {
-      console.log(`Server running on port http://localhost:${port}`);
+      console.log(`Server running on port ${port}`);
   });
 }
 
