@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: colors.fadedGold,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -79,12 +79,12 @@ blurBackground: {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.4)', // Slight dark overlay
+  backgroundColor: 'rgba(0, 0, 0, 0.4)',
 },
 
 centeredModal: {
   width: '85%',
-  backgroundColor: 'white',
+  backgroundColor: colors.whiteSmoke,
   padding: 20,
   borderRadius: 12,
   shadowColor: '#000',
@@ -99,25 +99,25 @@ modalTitle: {
   fontSize: 20,
   fontWeight: 'bold',
   marginBottom: 15,
-  color: '#333',
+  color: colors.sacGreen,
 },
 
 modalCloseButton: {
+  width: '50%',
   marginTop: 15,
-  backgroundColor: colors.mutedSacGreen,
+  backgroundColor: colors.pomegranite,
   paddingVertical: 12, 
-  paddingHorizontal: 20, 
-  borderRadius: 10, 
-  alignItems: 'center',  //
+  paddingHorizontal: 25, 
+  borderRadius: 12, 
+  alignItems: 'center',
   justifyContent: 'center',  
   fontSize: 16, 
-  fontWeight: 'bold', 
-  color: 'white',
   textAlign: 'center',
   shadowColor: '#000', 
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.15,
+  shadowRadius: 6,
+  elevation: 3,
 },
 modalButtonText: {
   color: colors.white,
@@ -125,16 +125,19 @@ modalButtonText: {
   fontWeight: 'bold',
 },
 saveButton: {
-  backgroundColor: colors.mutedSacGreen, 
+  backgroundColor: colors.mutedSacStateGreen,
   paddingVertical: 12, 
-  paddingHorizontal: 20,
-  borderRadius: 10, 
+  paddingHorizontal: 25,
+  borderRadius: 12, 
   alignItems: 'center',
   justifyContent: 'center', 
   shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 }, 
-  shadowOpacity: 0.1,
-  shadowRadius: 5,  
+  textAlign: 'center',
+  fontSize: 16, 
+  shadowOffset: { width: 0, height: 3 }, 
+  shadowOpacity: 0.15,
+  shadowRadius: 6,
+  elevation: 3,
 },
 saveButtonText: {
   color: colors.white,
@@ -159,7 +162,18 @@ inputPassword: {
 eyeIconContainer: {
   position: 'absolute',
   right: 10,
-}
+},
+subtitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  marginBottom: 10,
+  color: colors.mutedSacStateGreen,
+},
+teamMembers: {
+  fontSize: 14,
+  lineHeight: 22,
+  color: colors.darkGray,
+},
 });
 
 export default styles;

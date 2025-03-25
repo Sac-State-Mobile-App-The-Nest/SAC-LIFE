@@ -295,11 +295,8 @@ module.exports = function(poolPromise) {
     }
   });
 
-  //a student can change their preferred name ***done***
-  //a student can change their password ***done***
-  //a student can download their chat logs ***done***
-  //a student can log out of the app ***done***
-  //a student can deactivate their account  
+  //a student can deactivate their account - set is_active = 1 when they create account, if is_active = 0, account is deactivated
+  //and they cant sign in
 
 
   // // DELETE a student by studentId

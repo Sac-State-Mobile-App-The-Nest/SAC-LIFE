@@ -136,6 +136,7 @@ const SettingsScreen = ({ navigation }) => {
     } catch (error) {
       Alert.alert("Error", "Unable to update your name");
     }
+    setNewPreferredName('');
   };
 
   const updatePasswordFunction = async (oldPassword, newPass1, newPass2) => {
@@ -192,7 +193,7 @@ const SettingsScreen = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
-      <TouchableOpacity style={styles.profileBox} >
+      <View style={styles.profileBox} >
         <Ionicons name="person-circle-outline" size={50} color={styles.iconColor.color} style={styles.profileIcon} />
         <View>
           <Text style={styles.profileName}>
@@ -207,17 +208,18 @@ const SettingsScreen = ({ navigation }) => {
           <Text style={styles.profileEmail}>{userAreaOfStudy}</Text>
           <Text style={styles.profileEmail}>Grade: {userYearOfStudy}</Text>
         </View>
-      </TouchableOpacity>
+      </View>
 
       {/* General Settings */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>General</Text>
       </View>
       <View style={styles.sectionContainer}>
-        <SettingsItem icon="person" text="Logout" onPress={() => logout(navigation)} />
-        <SettingsItem icon="person" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
+        
+        <SettingsItem icon="pencil" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
         <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} />
         <SettingsItem icon="notifications-outline" text="Notification Settings" onPress={() => openModal('editNotifitcations')} />
+        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => logout(navigation)} />
         {/* <SettingsItem icon="add-circle" text="Increase Font Size" />
         <SettingsItem icon="remove-circle" text="Decrease Font Size" /> */}
       </View>
@@ -228,35 +230,29 @@ const SettingsScreen = ({ navigation }) => {
       </View>
       <View style={styles.sectionContainer}>
         <SettingsItem icon="key-outline" text="Change Password" onPress={() => openModal('editPassword')} />
-        <SettingsItem icon="cloud-download" text="Download my chatbot history" onPress={() => openModal('downloadChatbotData')} />
-        <SettingsItem icon="close" text="Delete my chatbot history" onPress={() => openModal('deleteChatbotData')} />
+        <SettingsItem icon="cloud-download-outline" text="Download my chatbot history" onPress={() => openModal('downloadChatbotData')} />
+        <SettingsItem icon="remove-circle-outline" text="Delete my chatbot history" onPress={() => openModal('deleteChatbotData')} />
         <SettingsItem icon="trash-outline" text="Deactivate Account" onPress={() => openModal('deactivateAccount')} />
       </View>
 
-      {/* Help & Support */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Info</Text>
-      </View>
-      <View style={styles.sectionContainer}>
-        <SettingsItem icon="help-circle-outline" text="FAQs" />
-      </View>
-
       {/* About & Legal */}
-      {/* <View style={styles.sectionHeader}>
+      <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>About & Legal</Text>
       </View>
       <View style={styles.sectionContainer}>
-        <SettingsItem icon="document-text-outline" text="Terms of Service" />
+        {/* <SettingsItem icon="document-text-outline" text="Terms of Service" />
         <SettingsItem icon="shield-checkmark-outline" text="Privacy Policy" />
-        <SettingsItem icon="information-circle-outline" text="App Version" />
-      </View> */}
+        <SettingsItem icon="information-circle-outline" text="App Version" /> */}
+        <SettingsItem icon="information-circle-outline" text="Sac State LIFE App" onPress={() => openModal('about')} />
+      </View>
 
       {/* Centered Modal with Blurred Background */}
       <ProfileModals modalVisible={modalVisible} modalContent={modalContent} newPassword={newPassword} 
         setNewPassword={setNewPassword} newPreferredName={newPreferredName} setNewPreferredName={setNewPreferredName} 
         updateNameFunction={updateNameFunction} updatePasswordFunction={updatePasswordFunction}
         setModalVisible={setModalVisible} newPassword2={newPassword2} setNewPassword2={setNewPassword2}
-        oldPassword={oldPassword} setOldPassword={setOldPassword}
+        oldPassword={oldPassword} setOldPassword={setOldPassword} setModalContent={setModalContent}
+        navigation={navigation} logout={logout}
         />
     </ScrollView>
   );

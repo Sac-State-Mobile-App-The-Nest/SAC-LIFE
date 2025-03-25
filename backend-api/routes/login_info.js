@@ -38,8 +38,14 @@ router.post('/login', async (req, res) => {
         // If there are no matches, recordset.length will be 0
         if (loginQuery.recordset.length == 0) {
             res.send('Login failed.')
-        } else {    // If the user exists, compare input password with the corresponding hashed password in the database
-                    // Get the hashed password from the database result
+        } else {
+            //check if the user account is inactive, return
+            console.log(loginQuery.recordset[0].is_active);
+            if (loginQuery.recordset[0].is_active === false){
+                return res.status(403).json({message: "Account Inactive"});
+            }
+            // If the user exists, compare input password with the corresponding hashed password in the database
+            // Get the hashed password from the database result
             const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
             // Function call to compare password
             bcrypt.compare(userInputPassword, storedHashedPassword, (err, result) => {
@@ -117,6 +123,29 @@ router.put('/updatePassword', authenticateToken, async (req, res) => {
         res.status(500).send('Server error.');
     }
 });
+
+//student deactivates their account - sets is_active = 0
+router.put('/deactivateAccount', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    try{
+        //get the is_active
+        const request = new sql.Request();
+        await request
+            .input('std_id', sql.Int, std_id)
+            .query(`UPDATE login_info SET is_active = 0 WHERE std_id = @std_id`);
+        
+        //if is_active = false, return status deactivated: true
+        const result = await request.query(`SELECT is_active FROM login_info WHERE std_id = @std_id`);
+        if (!result.recordset[0].is_active){
+            return res.json({ deactivated: true });
+        } else {
+            return res.json({ deactivated: false });
+        }
+    } catch (err) {
+        console.error('SQL error', err);
+        return res.status(500).send('Server error.');
+    }
+})
 
 // Protected route
 // router.get('/protected', authenticateToken, async (req, res) => {

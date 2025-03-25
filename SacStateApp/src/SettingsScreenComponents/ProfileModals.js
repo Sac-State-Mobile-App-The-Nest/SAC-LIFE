@@ -10,9 +10,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword, newPreferredName, setNewPreferredName, updateNameFunction, 
-  updatePasswordFunction, setModalVisible, newPassword2, setNewPassword2, oldPassword, setOldPassword }) => {
+  updatePasswordFunction, setModalVisible, newPassword2, setNewPassword2, oldPassword, setOldPassword, setModalContent, navigation, logout}) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  
+
   //is called when user decides to download their chatbot history
   const downloadHerkyBotHistory = async () => {
     try {
@@ -65,11 +65,28 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
     }
   };
 
-  const deactivateAccountPrevent = () => {
-    Alert.alert("Warning", "All of your data will be deleted");
-  }
-  const deactivateAccount = () => {
-    
+  const deactivateAccountConfirm = async () => {
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/deactivateAccount`,
+        {}, 
+        { 
+          headers: { Authorization: `Bearer ${token}` } 
+        }
+      );
+      //if deactivated was set to true in the database, account should be logged out
+      let result = response.data.deactivated;
+      console.log(result);
+      if (result) {
+        setModalVisible(false);
+        Alert.alert("Success", "Your account has been deactivated.");
+        logout(navigation);
+      } else {
+        Alert.alert("Error", "Unable to deactivate your account.");
+      }
+    } catch (error){
+      Alert.alert("Error", error);
+    }
   }
 
   //when user confirms they want to delete their chatbot history
@@ -180,16 +197,45 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
         {/*Delete their account */}
         {modalContent === 'deactivateAccount' && (
           <View>
-            <Text style={styles.modalTitle}>Are you sure your want to delete your account?
-            There is no going back.</Text>
-            <TouchableOpacity style={styles.saveButton} onPress={deactivateAccountPrevent}>
+            <Text style={styles.modalTitle}>
+              Are you sure your want to delete your account? There is no going back.
+            </Text>
+            <TouchableOpacity style={styles.saveButton} onPress={() => setModalContent('confirmDeactivation')}>
               <Text style={styles.saveButtonText}>YES</Text>
             </TouchableOpacity>
           </View>
         )}
+        {/* Second Confirmation Modal */}
+        {modalContent === 'confirmDeactivation' && (
+          <View>
+            <Text style={styles.modalTitle}>
+              This is your final confirmation. Are you absolutely sure?
+            </Text>
+            <TouchableOpacity style={styles.saveButton} onPress={deactivateAccountConfirm}>
+              <Text style={styles.saveButtonText}>CONFIRM</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {modalContent === 'about' && (
+          <View>
+            <Text style={styles.modalTitle}>Sac State LIFE is your all-in-one app for navigating campus life. From chatbot assistance to event updates, we've got you covered!</Text>
+            <Text style={styles.subtitle}>Developed by The Nest Team at Sac State:</Text>
+            <Text style={styles.teamMembers}>        
+              Nicholas Lewis{"\n"}
+              Christian Buco{"\n"}
+              Bryce Chao{"\n"}
+              Randy Pham{"\n"}
+              Justin Rivera{"\n"}
+              Devin Grace{"\n"}
+              Vinny Thai{"\n"}
+              Darryl Nguyen{"\n"}
+              Aaron Jumawan
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.modalCloseButton} onPress={() => setModalVisible(false)}>
-          <Text style={styles.modalButtonText}>Close</Text>
+          <Text style={styles.modalButtonText}>CLOSE</Text>
         </TouchableOpacity>
       </View>
     </BlurView>
