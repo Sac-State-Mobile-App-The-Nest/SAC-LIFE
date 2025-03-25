@@ -15,10 +15,12 @@ function AdminRoles() {
   const [password, setPassword] = useState('');
   const [editAdmin, setEditAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ username: '', role: '', is_active: true });
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
   const [createAdminModal, setCreateAdminModal] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "super-admin" });
   const [auditLogs, setAuditLogs] = useState([]);
   const [showLogs, setShowLogs] = useState(false);
+  const [createError, setCreateError] = useState("");
   const navigate = useNavigate();
 
   const fetchAuditLogs = useCallback(async () => {
@@ -128,48 +130,50 @@ function AdminRoles() {
   };
 
   const handleCreateAdmin = async () => {
+    setCreateError(""); // reset previous error
+  
     if (!newAdmin.username || !newAdmin.password) {
-      alert("Please fill in all fields.");
+      setCreateError("Please fill in all fields.");
       return;
     }
-    
+  
     try {
       let token = sessionStorage.getItem('token');
       if (!token) {
-        alert("You must be logged in.");
         logoutAdmin(navigate);
         return;
       }
   
       let response;
       try {
-        response = await api.post("/adminRoutes/create", { ...newAdmin }, {
+        response = await api.post("/adminRoutes/create", newAdmin, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (error) {
         if (error.response?.status === 401) {
-          console.warn("Access token expired. Trying refresh...");
           token = await refreshAccessToken();
           if (!token) return;
-          response = await api.post("/adminRoutes/create", { ...newAdmin }, {
+          response = await api.post("/adminRoutes/create", newAdmin, {
             headers: { Authorization: `Bearer ${token}` },
           });
+        } else if (error.response?.status === 409) {
+          setCreateError("An admin with that username already exists.");
+          return;
         } else {
           throw error;
         }
       }
   
       if (response.status === 201) {
-        alert("Admin created successfully!");
-        fetchAdmins();
         setCreateAdminModal(false);
-        setNewAdmin({ username: "", password: "", role: "admin" });
+        setNewAdmin({ username: "", password: "", role: "read-only" });
+        fetchAdmins();
       } else {
-        alert("Failed to create admin.");
+        setCreateError("Failed to create admin.");
       }
     } catch (error) {
       console.error("Error creating admin:", error);
-      alert("Error: Unable to create admin.");
+      setCreateError("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -253,14 +257,18 @@ function AdminRoles() {
   };
 
   const handleSaveEdit = async () => {
+    setShowEditConfirm(true);
+  };
+
+  const confirmSaveEdit = async () => {
     try {
       let token = sessionStorage.getItem('token');
       if (!token) {
         alert("You must be logged in.");
-        logoutAdmin();
+        logoutAdmin(navigate);
         return;
       }
-    
+  
       let response;
       try {
         response = await api.put(`/adminRoutes/admin/${editAdmin.username}`, {
@@ -291,6 +299,8 @@ function AdminRoles() {
     } catch (error) {
       console.error('Error updating admin:', error);
       alert(`Error: ${error.message}`);
+    } finally {
+      setShowEditConfirm(false); // hide confirmation
     }
   };
 
@@ -323,10 +333,10 @@ const handleToggleActive = async () => {
     if (response.status === 200) {
       alert(`Admin ${updatedStatus ? 'activated' : 'deactivated'} successfully!`);
 
-      // ✅ Wait for latest admins list first
+      // Wait for latest admins list first
       const refreshedAdmins = await fetchAdmins();
 
-      // ✅ Then use the freshly updated data
+      // Then use the freshly updated data
       const refreshed = refreshedAdmins.find((a) => a.username === editForm.username);
       if (refreshed) {
         setEditForm({
@@ -544,11 +554,26 @@ return (
       </div>
     )}
 
+    {showEditConfirm && (
+      <div className="modal">
+        <div className="modal-content">
+          <h3>Confirm Changes</h3>
+          <p>Are you sure you want to save these changes to <strong>{editForm.username}</strong>?</p>
+          <div className="modal-actions">
+            <button className="modal-button confirm" onClick={confirmSaveEdit}>Yes, Save</button>
+            <button className="modal-button cancel" onClick={() => setShowEditConfirm(false)}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+
      {/* Create Admin Modal */}
      {createAdminModal && (
         <div className="edit-modal">
           <div className="edit-modal-content">
             <h3>Create New Admin</h3>
+
+            {createError && <div className="error-message">{createError}</div>}
 
             <label>Username:</label>
             <input type="text" name="username" value={newAdmin.username} onChange={handleInputChange} />

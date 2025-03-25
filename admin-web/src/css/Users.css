@@ -526,3 +526,52 @@ input:checked + .slider:before {
     cursor: pointer;
     border-radius: 4px;
   }
+
+  .error-message {
+    color: red;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000; /* Ensure it's above the edit modal */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 3100;
+  }
+  
+  .modal-button.confirm {
+    background-color: #198754;
+    color: white;
+  }
+  .modal-button.cancel {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+  .modal-button.confirm:hover {
+    background-color: #157347;
+  }
+  .modal-button.cancel:hover {
+    background-color: #cfcfcf;
+  }
+
+  .edit-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 15px;
+  }
