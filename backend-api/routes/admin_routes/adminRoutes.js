@@ -21,6 +21,10 @@ module.exports = function (poolPromise) {
     }
   });
 
+   /**
+   * GET: Retrieves all audit logs of admins
+   * Only accessible by super-admins.
+   */
   router.get('/audit-logs', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     try {
       const pool = await poolPromise;
@@ -116,7 +120,8 @@ module.exports = function (poolPromise) {
         return res.status(401).json({ message: 'Admin not found' });
       }
 
-      const isMatch = await bcrypt.compare(password, admin.password);
+      const hashedPassword = result.recordset[0].password;
+      const isMatch = await bcrypt.compare(password, hashedPassword);
       if (!isMatch) {
         return res.status(401).json({ message: 'Invalid password' });
       }
@@ -232,39 +237,6 @@ module.exports = function (poolPromise) {
   });
 
   /**
-   * GET: Fetch all available tags
-   * Only super-admins can access this route.
-   */
-  router.get('/tags', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
-    try {
-      const pool = await poolPromise;
-      // Assuming test_tags holds tag_id and tag_name
-      const result = await pool.request().query('SELECT tag_id, tag_name FROM test_tags');
-      res.json(result.recordset);
-    } catch (err) {
-      console.error('SQL error (fetching tags):', err.message);
-      res.status(500).json({ message: 'Internal Server Error', error: err.message });
-    }
-  });
-
-  /**
-   * GET: Fetch tags assigned to a specific student
-   */
-  router.get('/studentTags/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
-    const { studentId } = req.params;
-    try {
-      const pool = await poolPromise;
-      const result = await pool.request()
-        .input('studentId', sql.Int, studentId)
-        .query('SELECT tag_id FROM test_tag_service WHERE std_id = @studentId');
-      res.json(result.recordset);
-    } catch (err) {
-      console.error('SQL error (fetching student tags):', err.message);
-      res.status(500).json({ message: 'Internal Server Error', error: err.message });
-    }
-  });
-
-  /**
  * POST: Creates a new admin account
  * Only super-admins can perform this action.
  */
@@ -310,7 +282,10 @@ module.exports = function (poolPromise) {
     }
   });
 
-
+  /**
+ * PUT: deactivates or activates a admin
+ * Only super-admins can perform this action.
+ */
   router.put('/admin/deactivate/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { username } = req.params;
     const { is_active } = req.body; 

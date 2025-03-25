@@ -14,8 +14,7 @@ function Students() {
   const [searchTerm, setSearchTerm] = useState("");
   const [password, setPassword] = useState('');
   const [editUser, setEditUser] = useState(null);
-  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '', service_ids: [] });
-  const [availableServices, setAvailableServices] = useState([]);
+  const [editForm, setEditForm] = useState({ std_id: '', preferred_name: '', expected_grad: '' });
   const navigate = useNavigate();
 
   const fetchStudents = useCallback(async () => {
@@ -45,47 +44,11 @@ function Students() {
         }
       }
   
-      let studentsData = response.data;
-  
-      // Fetch service IDs for each student
-      const studentsWithServices = await Promise.all(
-        studentsData.map(async (student) => {
-          try {
-            let serviceResponse = await api.get(
-              `/campus_services/studentServices/${student.std_id}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-  
-            return { ...student, service_ids: serviceResponse.data.map(s => s.service_id) };
-          } catch (error) {
-            return { ...student, service_ids: [] };
-          }
-        })
-      );
-  
-      setStudents(studentsWithServices);
+      setStudents(response.data);
     } catch (error) {
       console.error('Error fetching students:', error);
     }
   }, [navigate]);
-
-  // Fetch all available services for dropdown
-  const fetchAvailableServices = useCallback(async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch('http://localhost:5000/api/campus_services/getServIDAndName', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch services');
-      const services = await response.json();
-      setAvailableServices(services);
-    } catch (error) {
-      console.error('Error fetching services:', error);
-    }
-  }, []);
 
   // Get admin role from token
   const getAdminRole = useCallback(() => {
@@ -106,8 +69,7 @@ function Students() {
   useEffect(() => {
     fetchStudents();
     getAdminRole();
-    fetchAvailableServices();
-  }, [fetchStudents, getAdminRole, fetchAvailableServices]);
+  }, [fetchStudents, getAdminRole]);
 
   // Toggle checkbox for a single student
   const handleCheckboxChange = (id) => {
@@ -136,29 +98,43 @@ function Students() {
     }
   
     try {
-      await Promise.all(
-        selectedStudents.map(async (stdId) => {
-          try {
-            const response = await api.delete(`/students/${stdId}`, {
+      // 🔁 First attempt to delete with current token
+      try {
+        await Promise.all(
+          selectedStudents.map(async (stdId) => {
+            return api.request({
+              url: `adminRoutes/students/${stdId}`,
+              method: 'delete',
               headers: { Authorization: `Bearer ${token}` },
-              data: { password }
+              data: { password }, // ✅ Pass the password in the body
             });
-            return response;
-          } catch (error) {
-            if (error.response?.status === 401) {
-              console.warn("Access token expired. Refreshing...");
-              token = await refreshAccessToken();
-              if (!token) return;
-              return api.delete(`/students/${stdId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-                data: { password }
-              });
-            } else {
-              throw error;
-            }
+          })
+        );
+      } catch (error) {
+        // 🔁 Refresh token if the error is 401 (unauthorized)
+        if (error.response?.status === 401) {
+          console.warn("Token expired, attempting refresh...");
+          token = await refreshAccessToken();
+          token = sessionStorage.getItem('token');
+          if (!token) {
+            throw new Error("Token refresh failed.");
           }
-        })
-      );
+  
+          // ✅ Retry the deletions with the refreshed token
+          await Promise.all(
+            selectedStudents.map(async (stdId) => {
+              return api.request({
+                url: `adminRoutes/students/${stdId}`,
+                method: 'delete',
+                headers: { Authorization: `Bearer ${token}` },
+                data: { password },
+              });
+            })
+          );
+        } else {
+          throw error;
+        }
+      }
   
       alert("Selected students deleted successfully.");
       setStudents((prev) => prev.filter((student) => !selectedStudents.includes(student.std_id)));
@@ -173,37 +149,12 @@ function Students() {
     }
   };
 
-  // Open edit modal with user data
   const openEditModal = async (user) => {
     setEditUser(user);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert("You must be logged in.");
-        logoutAdmin(navigate);
-        return;
-      }
-      const response = await fetch(`http://localhost:5000/api/campus_services/studentServices/${user.std_id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch student tags');
-      }
-      const serviceData = await response.json();
-      // Assume serviceData is an array of objects with a tag_id property
-      setEditForm({
-        preferred_name: user.preferred_name,
-        expected_grad: user.expected_grad,
-        service_ids: serviceData.map(service => service.service_id)
-      });
-    } catch (error) {
-      console.error("Error fetching student's tags:", error);
-      setEditForm({
-        preferred_name: user.preferred_name,
-        expected_grad: user.expected_grad,
-        service_ids: []
-      });
-    }
+    setEditForm({
+      preferred_name: user.preferred_name,
+      expected_grad: user.expected_grad
+    });
   };
 
   // Handle form input changes
@@ -223,7 +174,10 @@ function Students() {
   
       let response;
       try {
-        response = await api.put(`/campus_services/studentTags/${editUser.std_id}`, editForm, {
+        response = await api.put(`/adminRoutes/student/${editUser.std_id}`, {
+          preferred_name: editForm.preferred_name,
+          expected_grad: editForm.expected_grad
+        }, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (error) {
@@ -231,7 +185,10 @@ function Students() {
           console.warn("Access token expired. Refreshing...");
           token = await refreshAccessToken();
           if (!token) return;
-          response = await api.put(`/campus_services/studentTags/${editUser.std_id}`, editForm, {
+          response = await api.put(`/adminRoutes/student/${editUser.std_id}`, {
+            preferred_name: editForm.preferred_name,
+            expected_grad: editForm.expected_grad
+          }, {
             headers: { Authorization: `Bearer ${token}` }
           });
         } else {
@@ -403,31 +360,12 @@ function Students() {
             onChange={handleEditChange}
           >
             <option value="">Select Year</option>
-            <option value="2024">2024</option>
             <option value="2025">2025</option>
             <option value="2026">2026</option>
             <option value="2027">2027</option>
+            <option value="2028">2028</option>
           </select>
 
-            <label>Service Subscriptions:</label>
-            <div className="service-checkbox-container">
-              {availableServices.map((service) => (
-                <label key={service.service_id} className="service-checkbox">
-                  <input
-                    type="checkbox"
-                    value={service.service_id}
-                    checked={editForm.service_ids.includes(service.service_id)}
-                    onChange={(e) => {
-                      const updatedServices = e.target.checked
-                        ? [...editForm.service_ids, service.service_id]
-                        : editForm.service_ids.filter((id) => id !== service.service_id);
-                      setEditForm({ ...editForm, service_ids: updatedServices });
-                    }}
-                  />
-                  {service.serv_name}
-                </label>
-              ))}
-            </div>
 
             <div className="edit-modal-actions">
               <button className="save-button" onClick={handleSaveEdit}>

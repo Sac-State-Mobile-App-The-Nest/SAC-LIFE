@@ -88,11 +88,11 @@ module.exports = function (poolPromise) {
         return res.status(403).json({ message: "Invalid refresh token." });
       }
 
+      const user = result.recordset[0];
+
       if (!user.is_active) {
         return res.status(403).json({ message: "Your account has been deactivated." });
       }
-
-      const user = result.recordset[0];
 
       // Verify refresh token
       jwt.verify(refreshToken, JWT_REFRESH_SECRET, (err) => {
