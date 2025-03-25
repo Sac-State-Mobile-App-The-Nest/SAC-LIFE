@@ -25,6 +25,7 @@ async function insertChatLog(stdId, studentQuestion, botResponse) {
   try {
       let pool = await sql.connect(config);
       let request = pool.request()
+          
           .input('student_question', sql.NVarChar(sql.MAX), studentQuestion)
           .input('bot_response', sql.NVarChar(sql.MAX), botResponse);
 
@@ -57,54 +58,40 @@ async function insertChatLog(stdId, studentQuestion, botResponse) {
 
 app.post('/message', async (req, res) => {
   try {
-    const { message, username } = req.body;
+    const { message, std_id } = req.body;
 
-    let pool = await sql.connect(config);
-    let stdId = null;
-
-    if (username) {
-        // Fetch std_id from login_info based on username
-        let stdIdResult = await pool.request()
-            .input('username', sql.NVarChar(255), username)
-            .query('SELECT std_id FROM login_info WHERE username = @username');
-
-        if (stdIdResult.recordset.length > 0) {
-            stdId = stdIdResult.recordset[0].std_id;
-        }
+    if (!message || !std_id) {
+      return res.status(400).json({ error: 'Message and std_id are required.' });
     }
-   
 
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4o', 
+        model: 'gpt-4o',
         messages: [
-          { 
-            role: "system", 
+          {
+            role: 'system',
             content: `
-            You are SacLifeBot, a helpful chatbot for Sac State students. 
-            You assist students in navigating campus, finding resources, and answering common university-related questions. 
-            Keep responses friendly, concise, and helpful. 
-            If possible provide a link to your source you got your information. 
-            When asked about restaurants on campus, ensure the restaurant exists on campus and isn't a random one and give this link: https://www.dining.csus.edu/campus-eateries-2/. 
-            When giving a date regarding the academic affair calendar, provide this link: https://events.csus.edu/sac-state-academic-calendar#/?i=6. 
-            For requests regarding graduation applications give this link https://www.csus.edu/student-life/records-transcripts/graduation-advising/apply-to-graduate.html . 
-            requets involving building or location and directions  give this link as well https://www.csus.edu/campusmap/ . 
-            requests on registering for or adding classes give this link https://www.csus.edu/student-life/class-schedules/registration/ . 
-            questions regarding the well give this website unless its directions then give the map https://thewellatsacstate.com/# . 
-            questions regarding the union give the union website https://theuniversityunion.com/ . 
-            questions regarding clubs give this link https://csus.campusgroups.com/club_signup .
-            regarding the athletic center questions give this link https://www.csus.edu/student-affairs/centers-programs/student-athlete-resource-center/ . 
-            if someone wants to know whats going on on campus event wise give this link to show all events https://events.csus.edu/ .
+              You are HerkyBot, an AI assistant for Sac State students. Answer campus-related questions concisely and helpfully. Provide links where applicable.
 
-            for sport schedule questions give this link and tell them that you can filter home and away game along with the sport in question https://hornetsports.com/calendar .
-            If a request has nothing to do with Sac State, respond  with 'I'm not sure' and guide the conversation back to Sacramento State." 
-          `
+              - **Dining:** [Dining Info](https://www.dining.csus.edu/campus-eateries-2/)
+              - **Academic Calendar:** [Events Calendar](https://events.csus.edu/sac-state-academic-calendar#/?i=6)
+              - **Graduation:** [Apply to Graduate](https://www.csus.edu/student-life/records-transcripts/graduation-advising/apply-to-graduate.html)
+              - **Campus Map:** [Campus Map](https://www.csus.edu/campusmap/)
+              - **Registration:** [Class Schedules](https://www.csus.edu/student-life/class-schedules/registration/)
+              - **The WELL:** [The WELL](https://thewellatsacstate.com/#)
+              - **Union:** [University Union](https://theuniversityunion.com/)
+              - **Clubs:** [Club Signup](https://csus.campusgroups.com/club_signup)
+              - **Athletics:** [Athletic Center](https://www.csus.edu/student-affairs/centers-programs/student-athlete-resource-center/)
+              - **Events:** [Campus Events](https://events.csus.edu/)
+              - **Sports:** [Hornet Sports](https://hornetsports.com/calendar)
+              - **Parking:** [Permit Pricing](https://www.csus.edu/parking-transportation/parking/permit-pricing.html)
+              - **library:** https://library.csus.edu/ 
+
+              If unrelated to Sac State, reply: "I'm not sure. Let's get back to campus-related topics!"
+            `
           },
-          { 
-            role: "user", 
-            content: message 
-          }
+          { role: 'user', content: message }
         ],
       },
       {
@@ -115,47 +102,118 @@ app.post('/message', async (req, res) => {
       }
     );
 
-    // Extract the bot response
     const botResponse = response.data.choices[0].message.content;
+
+    // Insert chat log
+    let pool = await sql.connect(config);
+    await pool.request()
+      .input('stdId', sql.Int, std_id)
+      .input('student_question', sql.NVarChar(sql.MAX), message)
+      .input('bot_response', sql.NVarChar(sql.MAX), botResponse)
+      .query(`
+        INSERT INTO chat_logs (std_id, student_question, bot_response)
+        VALUES (@stdId, @student_question, @bot_response)
+      `);
+
     res.json({ response: botResponse });
 
-    // Log the chat into the SQL database
-    insertChatLog(stdId, message, botResponse);
- 
   } catch (error) {
     console.error('OpenAI API Error:', error.response ? error.response.data : error.message);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Failed to fetch response from OpenAI' });
+      res.status(500).json({ error: 'Failed to process message.' });
     }
   }
 });
+
+
+
+
 app.get('/api/students/getLoggedInUser', async (req, res) => {
   try {
-      const token = req.headers.authorization?.split(' ')[1]; // Extract JWT token
-      if (!token) return res.status(401).json({ error: "Unauthorized" });
+      const { username } = req.query; 
+      if (!username) {
+          console.error("No username provided");
+          return res.status(400).json({ error: "Username is required" });
+      }
+
+      console.log("Received username:", username);
 
       let pool = await sql.connect(config);
 
-      // Assuming JWT token is associated with a user in login_info
       let userResult = await pool.request()
-          .input('token', sql.NVarChar(255), token)
+          .input('username', sql.NVarChar(255), username)
           .query(`
-              SELECT username 
+              SELECT username, std_id 
               FROM login_info
-              WHERE token = @token
+              WHERE username = @username
           `);
 
       if (userResult.recordset.length === 0) {
+          console.error("No user found for username:", username);
           return res.status(404).json({ error: "User not found" });
       }
 
-      res.json(userResult.recordset[0]); // Return { username: "exampleUser" }
+      console.log("User found:", userResult.recordset[0]);
+
+      res.json(userResult.recordset[0]); 
 
   } catch (err) {
-      console.error('SQL error:', err);
+      console.error(' SQL error:', err);
       res.status(500).json({ error: "Failed to retrieve logged-in user" });
   }
 });
+
+app.get('/chat-history/:stdId', async (req, res) => {
+  try {
+      const stdId = req.params.stdId;
+      console.log(" Fetching chat history for std_id:", stdId);
+
+      let pool = await sql.connect(config);
+
+      let chatResult = await pool.request()
+          .input('stdId', sql.Int, stdId)
+          .query(`
+              SELECT student_question, bot_response 
+              FROM chat_logs 
+              WHERE std_id = @stdId
+              ORDER BY id ASC
+          `);
+
+      if (chatResult.recordset.length === 0) {
+          console.error(` No chat history found for std_id: ${stdId}`);
+          return res.status(404).json({ error: "No chat history found" });
+      }
+
+      console.log("Chat history retrieved:", chatResult.recordset);
+      res.json(chatResult.recordset);
+
+  } catch (err) {
+      console.error(" SQL error fetching chat history:", err);
+      res.status(500).json({ error: "Failed to fetch chat history" });
+  }
+});
+
+app.delete('/clear-chat/:stdId', async (req, res) => {
+  try {
+      const stdId = req.params.stdId;
+      const pool = await sql.connect(config);
+
+      await pool.request()
+          .input('stdId', sql.Int, stdId)
+          .query('DELETE FROM chat_logs WHERE std_id = @stdId');
+
+      res.json({ message: 'Chat history cleared successfully.' });
+  } catch (err) {
+      console.error('Error clearing chat history:', err);
+      res.status(500).json({ error: 'Failed to clear chat history.' });
+  }
+});
+
+
+
+
+
+
 
 
 
