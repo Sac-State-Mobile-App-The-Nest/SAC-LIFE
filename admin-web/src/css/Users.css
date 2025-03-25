@@ -517,3 +517,12 @@ input:checked + .slider {
 input:checked + .slider:before {
     transform: translateX(18px);
 }
+
+.audit-toggle-button {
+    margin-top: 1rem;
+    padding: 8px 12px;
+    background-color: #eee;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }

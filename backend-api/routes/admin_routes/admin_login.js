@@ -17,7 +17,7 @@ module.exports = function (poolPromise) {
       const pool = await poolPromise;
       const result = await pool.request()
         .input('username', sql.VarChar, username)
-        .query('SELECT username, password, role FROM admin_login WHERE username = @username');
+        .query('SELECT username, password, role, is_active FROM admin_login WHERE username = @username');
 
       if (result.recordset.length === 0) {
         console.log('Admin username not found');
@@ -30,6 +30,11 @@ module.exports = function (poolPromise) {
       if (!isMatch) {
         console.log('Invalid password');
         return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      if (!user.is_active) {
+        console.log('Account is deactivated');
+        return res.status(403).json({ message: 'Your account has been deactivated. Please contact support.' });
       }
 
       if (!VALID_ROLES.includes(user.role)) {
@@ -77,10 +82,14 @@ module.exports = function (poolPromise) {
       const pool = await poolPromise;
       const result = await pool.request()
         .input('refreshToken', sql.VarChar, refreshToken)
-        .query('SELECT username, role FROM admin_login WHERE refresh_token = @refreshToken');
+        .query('SELECT username, role, is_active FROM admin_login WHERE refresh_token = @refreshToken');
 
       if (result.recordset.length === 0) {
         return res.status(403).json({ message: "Invalid refresh token." });
+      }
+
+      if (!user.is_active) {
+        return res.status(403).json({ message: "Your account has been deactivated." });
       }
 
       const user = result.recordset[0];
