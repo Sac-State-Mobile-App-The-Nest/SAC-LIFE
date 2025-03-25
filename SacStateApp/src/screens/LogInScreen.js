@@ -39,12 +39,16 @@ const LogInScreen = () => {
                 navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
-        // Handle the error case
-        if (error.response && error.response.data) {
-            Alert.alert('Login failed', error.response.data);
-        } else {
-            Alert.alert('Login failed', 'An unexpected error occurred.');
-        }
+            if (error.response.status === 403){
+                Alert.alert("Error", error.response.data.message);
+                return;
+            }
+            // Handle the error case
+            if (error.response && error.response.data) {
+                Alert.alert('Login failed', error.response.data);
+            } else {
+                Alert.alert('Login failed', 'An unexpected error occurred.');
+            }
         console.error("Error logging in:", error.message);
     }
 };
