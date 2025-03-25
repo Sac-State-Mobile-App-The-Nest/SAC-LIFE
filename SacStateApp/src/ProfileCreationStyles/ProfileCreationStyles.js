@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
         position: 'relative', 
     },
     logoImage: {
-        opacity: 0.4, // Subtle logo effect
+        opacity: 0.68, // Subtle logo effect
         resizeMode: 'cover',
     },
     logoContainer: {
@@ -31,7 +31,8 @@ const styles = StyleSheet.create({
         fontSize: 30, // Increased font size for emphasis
         fontWeight: 'bold',
         color: colors.sacGreen,
-        marginBottom: 18,
+        marginBottom: 50,
+        marginTop: 120,
         textAlign: 'center',
         letterSpacing: 1, // Slightly increased spacing for a sleek look
         textTransform: 'uppercase', // Gives it a refined style
@@ -43,22 +44,19 @@ const styles = StyleSheet.create({
         paddingBottom: 6,
     },
     box: {
-        backgroundColor: colors.white,
-        borderRadius: 18,
-        padding: 24,
-        width: '92%', 
-        minHeight: height * 0.25,
+        backgroundColor: colors.goldenWhite,
+        borderRadius: 20,
+        padding: 25,
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'center',
         shadowColor: colors.black,
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.15,
-        shadowRadius: 6,
-        elevation: 4,
-        marginVertical: 12,
+        shadowRadius: 20,
         borderColor: colors.mutedGold,
-        borderWidth: 1.2,
+        borderWidth: 5,
+
     },
     questionText: {
         fontSize: 22,
@@ -68,6 +66,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         lineHeight: 28,
     },
+
     optionButton: {
         paddingVertical: 16,
         paddingHorizontal: 10,
@@ -252,6 +251,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 30,
         width: '100%', // Ensures proper alignment
+        marginTop: 75,
     },
     tutorialImage: {
         width: width * 3,  // Makes it larger, but still responsive
@@ -260,20 +260,59 @@ const styles = StyleSheet.create({
         resizeMode: 'contain', // Ensures no stretching
         marginVertical: height * 0.02, // Dynamic margin for different screens
         alignSelf: 'center',
+        marginBottom: 50,
     },
     tutorialTitle: {
-        fontSize: 28, 
+        fontSize: 40,
         fontWeight: 'bold',
         color: colors.sacGreen,
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 50,
+        borderWidth: 1.5,
+        padding: 20,
+        borderRadius: 30,
+        backgroundColor: colors.whiteGold,
     },
     tutorialText: {
-        fontSize: 18, 
-        color: colors.darkGray, 
+        fontSize: 20,  
+        fontWeight: '700', 
+        color: colors.sacGreen,
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 10,
+        marginBottom: 30,  
+        borderWidth: 1.5,  
+        borderColor: colors.darkGray,  
+        backgroundColor: colors.whiteGold,  
+        paddingVertical: 14,  
+        paddingHorizontal: 16,  
+        borderRadius: 15,  
+        shadowColor: '#000',  
+        shadowOpacity: 0.15,  
+        shadowOffset: { width: 0, height: 4 },  
+        shadowRadius: 8,  
+        elevation: 5,  
+        maxWidth: width * 0.9,  
+        flexWrap: 'wrap',  
+        overflow: 'hidden',  
+    },
+    finishTutorial: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: 'white',
+        backgroundColor: colors.sacGreen,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        marginTop: 20,
+        width: '80%',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        textTransform: 'uppercase',
     },
 });
 
