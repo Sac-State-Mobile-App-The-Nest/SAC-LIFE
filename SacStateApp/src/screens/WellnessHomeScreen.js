@@ -13,13 +13,20 @@ const WellnessHome = ({ navigation }) => {
   const healthBarAnim = useRef(new Animated.Value(0)).current; // Animated value for health bar width
   const [containerWidth, setContainerWidth] = useState(0); // Width of the health bar container
 
-  // Array of welcome messages
+  // Expanded array of welcome messages focused on mental wellness
   const welcomeMessages = [
     "Welcome back! How are you feeling today?",
     "Hello! Ready to check on your wellness?",
     "Hi there! Let's see how you're doing.",
     "Good to see you! How's your wellness today?",
     "Welcome! Time for a quick wellness check.",
+    "Your mental health matters. How are you really doing?",
+    "Checking in on yourself is an act of self-care. How are you feeling?",
+    "Welcome! Let's take a moment to reflect on your wellbeing.",
+    "Hello! Remember to be kind to yourself today.",
+    "Your wellness journey is important. How can we support you today?",
+    "Taking time for self-reflection shows strength. How are you?",
+    "Welcome back! Your mental health is just as important as your physical health."
   ];
 
   // Function to determine the health bar color based on the score
@@ -38,28 +45,45 @@ const WellnessHome = ({ navigation }) => {
     return matchingRange ? matchingRange.color : '#76c7c0'; // Default color
   };
 
+  // Function to get a random welcome message
+  const getRandomWelcomeMessage = () => {
+    const randomIndex = Math.floor(Math.random() * welcomeMessages.length);
+    return welcomeMessages[randomIndex];
+  };
+
   useEffect(() => {
     const fetchAnswers = async () => {
       try {
-        const storedAnswers = await AsyncStorage.getItem('wellnessAnswers');
-        if (storedAnswers) {
-          const answers = JSON.parse(storedAnswers);
-          const totalScore = Object.values(answers).reduce((sum, value) => sum + (Number(value) || 0), 0); // Ensure values are numbers
-          setScore(totalScore);
+        const storedData = await AsyncStorage.getItem('wellnessAnswers');
+        if (storedData) {
+          const { answers, score } = JSON.parse(storedData);
+          // Use stored score if available, otherwise calculate from answers
+          const calculatedScore = score || Object.values(answers).reduce((sum, value) => sum + (Number(value) || 0), 0);
+          setScore(calculatedScore);
         }
       } catch (error) {
         console.error('Failed to fetch answers: ', error);
       }
     };
-    fetchAnswers();
 
-    // Set a random welcome message
-    const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-    setWelcomeMessage(randomMessage);
-  }, []);
+    // Set up focus listener to refresh data when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchAnswers();
+      // Update welcome message each time the screen comes into focus
+      setWelcomeMessage(getRandomWelcomeMessage());
+    });
+    
+    // Initial fetch
+    fetchAnswers();
+    
+    // Set initial random welcome message
+    setWelcomeMessage(getRandomWelcomeMessage());
+
+    return unsubscribe;
+  }, [navigation]);
 
   const healthBarWidth = (score / maxScore) * containerWidth; // Calculate the width in pixels
-  const percentage = ((score / maxScore) * 100).toFixed(0); // Calculate the percentage
+  const percentage = Math.min(100, Math.max(0, ((score / maxScore) * 100).toFixed(0))); // Calculate the percentage (0-100)
 
   useEffect(() => {
     console.log("Score:", score, "Health Bar Width (px):", healthBarWidth); // Debugging
@@ -70,14 +94,12 @@ const WellnessHome = ({ navigation }) => {
     }).start();
   }, [score, containerWidth]); // Trigger animation when score or container width changes
 
-  // image background currently ruins the page format, uncomment to see.
   return (
-    //<ImageBackground source={backgroundImage} style={styles.backgroundImage}>
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {/* Welcome to Your Wellness Journey Text */}
         <Text style={styles.welcomeTitle}>Welcome to Your Wellness Journey</Text>
-        <Text style={styles.welcomeSubtitle}>You're not alone. Let's check in on your well-being today.</Text>
+        <Text style={styles.welcomeSubtitle}>{welcomeMessage}</Text>
 
         {/* Health Score Section */}
         <View style={styles.healthScoreContainer}>
@@ -94,9 +116,11 @@ const WellnessHome = ({ navigation }) => {
                 styles.healthBar,
                 { width: healthBarAnim, backgroundColor: getHealthBarColor(score) }, // Dynamic width and color
               ]}
-            >
+            />
+            {/* Percentage text positioned absolutely in the middle */}
+            <View style={styles.percentageContainer}>
               <Text style={styles.percentageText}>{percentage}%</Text>
-            </Animated.View>
+            </View>
           </View>
         </View>
 
@@ -116,7 +140,6 @@ const WellnessHome = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
- //</ImageBackground>
   );
 };
 

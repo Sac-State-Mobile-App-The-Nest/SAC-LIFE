@@ -60,15 +60,13 @@ const CompletionScreen = ({ onPress, navigation }) => (
         <Text style={styles.completionText}>Thank you for checking in on yourself!</Text>
         <TouchableOpacity
             style={styles.largeButton}
-            onPress={() => {
-                onPress(); // Call the onPress function (e.g., to save answers)
-                navigation.navigate('Dashboard'); // Navigate back to WellnessHomeScreen
-            }}
+            onPress={onPress}
         >
             <Text style={styles.largeButtonText}>Complete Check-in!</Text>
         </TouchableOpacity>
     </View>
 );
+
 
 // QuestionRenderer component to render different types of questions
 const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, answers }) => {
@@ -292,9 +290,15 @@ const WellnessCreation = () => {
         console.log("Check-in complete. Total score:", totalScore);
 
         try {
-            await AsyncStorage.setItem('wellnessAnswers', JSON.stringify(answers));
+            // Store both answers and the calculated score
+            await AsyncStorage.setItem('wellnessAnswers', JSON.stringify({
+                answers: answers,
+                score: totalScore
+            }));
+            navigation.navigate('WellnessHomeScreen');
         } catch (error) {
             console.error('Failed to save answers:', error);
+            Alert.alert('Error', 'Failed to save your answers. Please try again.');
         }
     };
 
