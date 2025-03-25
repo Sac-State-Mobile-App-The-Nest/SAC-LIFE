@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import DashboardTab from '../DashboardComponents/DashboardTab';
 import SettingsScreen from './SettingsScreen';
-import WellnessScreen from './WellnessScreen'; 
+import WellnessHomeScreen from './WellnessHomeScreen'; 
 import ChatbotScreen from './ChatbotScreen';
 
 const Tab = createBottomTabNavigator();
@@ -58,7 +58,7 @@ const DashboardScreen = () => {
     >
       <Tab.Screen name="Dashboard" component={DashboardTab} options={{ headerShown: false }} />
       <Tab.Screen name="HerkyBot" component={ChatbotScreen} />
-      <Tab.Screen name="Wellness" component={WellnessScreen} />
+      <Tab.Screen name="Wellness" component={WellnessHomeScreen} />
       <Tab.Screen name="Profile" component={SettingsScreen} />
     </Tab.Navigator>
   );
