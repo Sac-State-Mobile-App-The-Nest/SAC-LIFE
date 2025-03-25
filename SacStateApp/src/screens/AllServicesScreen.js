@@ -11,16 +11,18 @@ const AllServicesScreen = ({ route }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     //Sort the services alphabetically. UseMemory makes it so that the services will automatically be sorted the next time you open this page
-    const sortedServices = useMemo(() => {
-        return [...services].sort((a, b) => a.serv_name.localeCompare(b.serv_name));
-    }, [services]);
+    //but not needed anymore since it is already sorted before
+    // const sortedServices = useMemo(() => {
+    //     return [...services].sort((a, b) => a.serv_name.localeCompare(b.serv_name));
+    // }, [services]);
 
-    //Filter services based on search query
+    //Filter services based on search query number or name1
     const filteredServices = useMemo(() => {
-        return sortedServices.filter(service => 
-        service.serv_name.toLowerCase().includes(searchQuery.toLowerCase())
+        return services.filter(service => 
+            service.serv_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            service.index.toString().includes(searchQuery)
         );
-    }, [sortedServices, searchQuery]);
+    }, [services, searchQuery]);
 
     const handlePress = (link) => {
         if (link && typeof link === 'string' && link.startsWith('http')) {
@@ -32,10 +34,10 @@ const AllServicesScreen = ({ route }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-        <TouchableOpacity 
-            style={styles.backButton} 
+        <TouchableOpacity
+            style={styles.backButton}
             onPress={() => navigation.goBack()}
-            activeOpacity={0.7} 
+            activeOpacity={0.7}
             accessibilityRole="button"
         >
             <Ionicons name="arrow-back" size={40} color={sacGreen}/>
@@ -55,13 +57,13 @@ const AllServicesScreen = ({ route }) => {
         {/* shows all of the services recommended and by search*/}
         <FlatList
             data={filteredServices}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, index) => (item.index ? item.index.toString() : index.toString())}
             numColumns={2}
             columnWrapperStyle={styles.row}
-            renderItem={({ item,index }) => (
-            <TouchableOpacity style={styles.serviceBox} onPress={() => handlePress(item.service_link)}>
-                <Text style={styles.serviceTitle}>{index+1}. {item.serv_name}</Text>
-            </TouchableOpacity>
+            renderItem={({ item }) => (
+                <TouchableOpacity style={styles.serviceBox} onPress={() => handlePress(item.service_link)}>
+                <Text style={styles.serviceTitle}>{item.index}. {item.serv_name}</Text>
+                </TouchableOpacity>
             )}
         />
         </SafeAreaView>

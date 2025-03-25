@@ -59,14 +59,14 @@ module.exports = function(poolPromise) {
       const pool = await poolPromise;
       const studentInfo = await pool.request()
         .input('std_id', sql.Int, std_id)
-        .query(`SELECT f_name, m_name, l_name FROM test_students WHERE std_id = @std_id`);
+        .query(`SELECT f_name, m_name, l_name, preferred_name FROM test_students WHERE std_id = @std_id`);
 
       if (studentInfo.recordset.length === 0) {
         return res.status(404).json({ message: 'Student not found in database' });
       }
 
-      const { f_name, m_name, l_name } = studentInfo.recordset[0];
-      res.json({ f_name, m_name, l_name });
+      const { f_name, m_name, l_name, preferred_name } = studentInfo.recordset[0];
+      res.json({ f_name, m_name, l_name, preferred_name });
     } catch (err) {
       console.error('SQL error', err);
       res.status(500).json({ message: 'Backend server error' });
@@ -255,6 +255,49 @@ module.exports = function(poolPromise) {
       res.status(500).json({ message: 'Backend server error' });
     }
   });
+
+  //Update the student's preferred name
+  router.put('/updatePreferredName', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    const { newPreferredName } = req.body;
+    if(!newPreferredName){
+      return res.status(400).json({ message: "No new preferred name given" });
+    }
+    try{
+      const pool = await poolPromise;
+      await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .input('preferred_name', sql.VarChar, newPreferredName)
+        .query(`UPDATE test_students SET preferred_name = @preferred_name WHERE std_id = @std_id`);
+
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error('SQL error', err);
+      return res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //student can download their chat logs
+  router.get('/requestChatLogs', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    try{
+      const pool = await poolPromise;
+      const userChatData = await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`SELECT session_id, student_question, bot_response, timestamp FROM chat_logs WHERE std_id = @std_id`);
+      if(userChatData.length === 0){
+        return res.status(404).json({ message: "Error, no data found"})
+      }
+      return res.status(200).json(userChatData.recordset);
+    } catch(err){
+      console.error('SQL error', err);
+      return res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  //a student can deactivate their account - set is_active = 1 when they create account, if is_active = 0, account is deactivated
+  //and they cant sign in
+
 
   // // DELETE a student by studentId
   // router.delete('/:studentId', async (req, res) => {
