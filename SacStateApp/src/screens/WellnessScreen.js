@@ -295,7 +295,7 @@ const WellnessCreation = () => {
                 answers: answers,
                 score: totalScore
             }));
-            navigation.navigate('WellnessHomeScreen');
+            navigation.navigate('Dashboard');
         } catch (error) {
             console.error('Failed to save answers:', error);
             Alert.alert('Error', 'Failed to save your answers. Please try again.');
