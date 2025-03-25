@@ -5,6 +5,8 @@ import styles from '../WellnessStyles/WellnessHomeStyles'; // Ensure this import
 
 const { width: screenWidth } = Dimensions.get('window'); // Get screen width
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); //added for image background testing
+const BACKGROUND_IMAGE = require('../assets/WellnessBackGround.jpg');
+
 
 const WellnessHome = ({ navigation }) => {
   const [score, setScore] = useState(0);
@@ -95,6 +97,11 @@ const WellnessHome = ({ navigation }) => {
   }, [score, containerWidth]); // Trigger animation when score or container width changes
 
   return (
+    <ImageBackground 
+    source={BACKGROUND_IMAGE} 
+    style={styles.backgroundImage}
+    imageStyle={styles.backgroundImageStyle}
+  >
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {/* Welcome to Your Wellness Journey Text */}
@@ -140,6 +147,7 @@ const WellnessHome = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </ImageBackground>
   );
 };
 
