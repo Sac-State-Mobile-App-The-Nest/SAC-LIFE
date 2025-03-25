@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-//import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground } from 'react-native';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground } from 'react-native';
+//to-do:  hp bar, backend implementation, clean up and ui focus
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import styles from '../WellnessStyles/WellnessStyles';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
-// Ensure the Sac State logo is stored in your assets directory
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // Replace with the correct path to your logo file
-
-
-//What kind of questions are needed? Not text most likely, so just multiple choice and check boxes? (Leaving all setup for now)
+// Question class to define the structure of each question
 class Question {
     constructor(id, text, inputType, options = [], conditional = null) {
         this.id = id;
@@ -32,198 +29,341 @@ class Question {
     }
 }
 
+// WellnessCheckInManager class to manage the flow of questions and answers
 class WellnessCheckInManager {
-  constructor(questions, setCurrentQuestion, setAnswers) {
-      this.questions = questions;
-      this.setCurrentQuestion = setCurrentQuestion;
-      this.setAnswers = setAnswers;
-  }
+    constructor(questions, setCurrentQuestion, setAnswers) {
+        this.questions = questions;
+        this.setCurrentQuestion = setCurrentQuestion;
+        this.setAnswers = setAnswers;
+    }
 
-  goToNext(currentQuestion) {
-      this.setCurrentQuestion(Math.min(currentQuestion + 1, this.questions.length - 1));
-  }
+    goToNext(currentQuestion) {
+        this.setCurrentQuestion(Math.min(currentQuestion + 1, this.questions.length - 1));
+    }
 
-  goToPrevious(currentQuestion) {
-      this.setCurrentQuestion(Math.max(currentQuestion - 1, 0));
-  }
+    goToPrevious(currentQuestion) {
+        this.setCurrentQuestion(Math.max(currentQuestion - 1, 0));
+    }
 
-  skipQuestion(currentQuestion) {
-      this.setCurrentQuestion(Math.min(currentQuestion + 2, this.questions.length - 1));
-  }
+    skipQuestion(currentQuestion) {
+        this.setCurrentQuestion(Math.min(currentQuestion + 2, this.questions.length - 1));
+    }
 
-  handleAnswer(questionId, answer, currentQuestion) {
-      this.setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-      this.questions[questionId].handleCondition(answer, this.getActions(currentQuestion));
-  }
-
-  getActions(currentQuestion) {
-      return {
-          goToNext: () => this.goToNext(currentQuestion),
-          goToPrevious: () => this.goToPrevious(currentQuestion),
-          skipQuestion: () => this.skipQuestion(currentQuestion)
-      };
-  }
+    handleAnswer(questionId, answer, currentQuestion) {
+        this.setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+    }
 }
 
-
-const WellnessCreation = () => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [isCompleted, setIsCompleted] = useState(false);
-  const navigation = useNavigation();
-
-  const questions = [
-    //new Question(0, "How many units are you taking?", "checkbox", ["1-2", "3-9", "10-15", "16+"]),
-    new Question(0, "Do you feel that you need academic assistance?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-    //new Question(2, "Are you looking for help with a resume?", "checkbox", ["Not at the moment", "Yes I am"]),
-    new Question(1, "I feel safe on campus.", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-    //new Question(4, "How has your overall health been this semester?", "checkbox", ["Very Poor", "Poor", "Fair", "Good", "Very Good"]),
-    new Question(2, "Over the last few weeks, have you been feeling nervious, easily irritable, tired, worried and/or restless?", "checkbox", ["Not at all", "Some days", "Nearly every day"]),
-    new Question(3, "Are you happy with how your school life is going?", "checkbox", ["Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree"]),
-    new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial  situations?", "checkbox", ["Often True", "Sometimes True", "Never True", "Don't Know/Refuse to Answer"]),
-    //new Question(8, "I know where I can get help on campus for health and psychological needs.", "checkbox", ["Strongly Disagree", "Disagree", "Slightly Disagree", "Neither Agree nor Disagree", "Slightly Agree", "Agree", "Strongly Agree"]),
-    new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"),
-];
-
-  const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
-
-  const completeWellnessCheckIn = () => {
-      setIsCompleted(true);
-      console.log(answers);
-      //sendProfileDataToServer();
-  };
-
-  // NEED TO SEND DATA TO SERVER HERE
-
-  const renderQuestion = (question) => {
-      switch (question.inputType) {
-          case "checkbox":
-              return question.options.map((option) => (
-                  <TouchableOpacity
-                      key={option}
-                      style={styles.optionButton}
-                      onPress={() => wellnessCheckInManager.handleAnswer(question.id, option, currentQuestion)}
-                  >
-                      <Text style={styles.optionText}>{option}</Text>
-                  </TouchableOpacity>
-              ));
-          case "dropdown":
-              return (
-                  <ModalSelector
-                      data={question.options}
-                      initValue="Select your unit count"
-                      onChange={(option) => {
-                          setSelectedMajor(option.label);
-                          wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
-                      }}
-                      style={styles.pickerContainer}
-                      initValueTextStyle={styles.pickerText}
-                      selectTextStyle={styles.pickerText}
-                  />
-              );
-          case "multiDropdown":
-              return (
-                  <ModalSelector
-                      data={question.options}
-                      initValue="Click to choose"
-                      onChange={(option) => {
-                          setSelectedClub(option.label);
-                          wellnessCheckInManager.handleAnswer(question.id, option.label, currentQuestion);
-                      }}
-                      style={styles.pickerContainer}
-                      initValueTextStyle={styles.pickerText}
-                      selectTextStyle={styles.pickerText}
-                  />
-              );
-          default:
-              return (
-                  <TextInput
-                      style={styles.input}
-                      placeholder="Input here"
-                      onChangeText={(text) => wellnessCheckInManager.handleAnswer(question.id, text, currentQuestion)}
-                  />
-              );
-      }
-  };
-
-  const handleNextPress = () => {  
-      if (currentQuestion === questions.length - 1) {
-          setIsCompleted(true);
-      } else {
-        wellnessCheckInManager.goToNext(currentQuestion);
-      }
-  };
-  
-  const renderCompletionScreen = () => (
+// CompletionScreen component to display after all questions are answered
+const CompletionScreen = ({ onPress, navigation }) => (
     <View style={styles.completionContainer}>
-        <Text style={styles.completionText}>Thank you for checking in!</Text>
+        <Text style={styles.completionText}>Thank you for checking in on yourself!</Text>
         <TouchableOpacity
             style={styles.largeButton}
-            onPress={async () => {
-                try {
-                    //await sendProfileDataToServer();
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: "Dashboard" }],
-                    });
-                } catch (error) {
-                    console.error("Error submitting Wellness data:", error);
-                    Alert.alert("Error", "Failed to submit Wellness data. Please try again.");
-                }
-            }}
+            onPress={onPress}
         >
-            <Text style={styles.largeButtonText}>Finish Check-in!</Text>
+            <Text style={styles.largeButtonText}>Complete Check-in!</Text>
         </TouchableOpacity>
     </View>
 );
 
-  return (
-      <ImageBackground
-          source={SAC_STATE_LOGO}
-          style={styles.background}
-          imageStyle={styles.logoImage}
-      >
-          <View style={styles.logoContainer}>
-              <ScrollView contentContainerStyle={styles.container}>
-                  {isCompleted ? (
-                      renderCompletionScreen()
-                  ) : (
-                      <>
-                          <Text style={styles.heading}>Question {currentQuestion + 1} of {questions.length}</Text>
-                          <View style={styles.box}>
-                              <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
-                              {renderQuestion(questions[currentQuestion])}
-                          </View>
-                          <View style={styles.navigationButtons}>
-                              {currentQuestion !== 0 ? (
-                                  <TouchableOpacity
-                                      style={[styles.button, styles.previousButton]}
-                                      onPress={() => wellnessCheckInManager.goToPrevious(currentQuestion)}
-                                  >
-                                      <Text style={styles.buttonText}>Previous</Text>
-                                  </TouchableOpacity>
-                              ) : (
-                                  <View style={styles.placeholderButton} />
-                              )}
-                              <TouchableOpacity
-                                  style={[styles.button, styles.nextButton]}
-                                  onPress={() => {
-                                      if (currentQuestion === questions.length - 1) {
-                                        completeWellnessCheckIn();
-                                      } else {
-                                          handleNextPress();
-                                      }
-                                  }}
-                              >
-                                  <Text style={styles.buttonText}>Next</Text>
-                              </TouchableOpacity>
-                          </View>
-                      </>
-                  )}
-              </ScrollView>
-          </View>
-      </ImageBackground>
-  );
+
+// QuestionRenderer component to render different types of questions
+const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, answers }) => {
+    const handleCheckboxPress = (option) => {
+        wellnessCheckInManager.handleAnswer(question.id, option.value, currentQuestion);
+    };
+
+    const handleDropdownChange = (option) => {
+        wellnessCheckInManager.handleAnswer(question.id, option.value, currentQuestion);
+    };
+
+    const handleTextInputChange = (text) => {
+        wellnessCheckInManager.handleAnswer(question.id, text, currentQuestion);
+    };
+
+    switch (question.inputType) {
+        case "checkbox":
+            return (
+                <View style={styles.inputContainer}>
+                    {question.options.map((option) => (
+                        <TouchableOpacity
+                            key={option.label}
+                            style={[
+                                styles.optionButton,
+                                answers[question.id] === option.value && styles.selectedOptionButton
+                            ]}
+                            onPress={() => handleCheckboxPress(option)}
+                        >
+                            <Text style={styles.optionText}>{option.label}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            );
+        case "dropdown":
+            return (
+                <ModalSelector
+                    data={question.options.map((option) => ({ key: option.value, label: option.label }))}
+                    initValue="Select an option"
+                    onChange={handleDropdownChange}
+                    style={styles.pickerContainer}
+                    initValueTextStyle={styles.pickerText}
+                    selectTextStyle={styles.pickerText}
+                />
+            );
+        case "multiDropdown":
+            return (
+                <ModalSelector
+                    data={question.options.map((option) => ({ key: option.value, label: option.label }))}
+                    initValue="Click to choose"
+                    onChange={handleDropdownChange}
+                    style={styles.pickerContainer}
+                    initValueTextStyle={styles.pickerText}
+                    selectTextStyle={styles.pickerText}
+                />
+            );
+        default:
+            // Make the final question's text box larger and multiline
+            if (question.id === 5) { // Assuming the final question has id 5
+                return (
+                    <TextInput
+                        style={[styles.input, styles.largeInput]} // Apply a larger style
+                        placeholder="Input here"
+                        onChangeText={handleTextInputChange}
+                        value={answers[question.id] || ''}
+                        multiline={true} // Allow multiline input
+                        numberOfLines={5} // Set a minimum number of lines
+                        scrollEnabled={true} // Enable scrolling
+                        textAlignVertical="top" // Align text to the top
+                    />
+                );
+            } else {
+                return (
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Input here"
+                        onChangeText={handleTextInputChange}
+                        value={answers[question.id] || ''}
+                    />
+                );
+            }
+    }
+};
+
+// Main WellnessCreation component
+const WellnessCreation = () => {
+    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [answers, setAnswers] = useState({});
+    const [isCompleted, setIsCompleted] = useState(false);
+    const navigation = useNavigation();
+    const slideAnim = useRef(new Animated.Value(0)).current;
+
+    // Resets it when questionaire is complete.
+    useFocusEffect(
+            React.useCallback(() => {
+                setCurrentQuestion(0);
+                setAnswers({});
+                setIsCompleted(false);
+                slideAnim.setValue(0);
+            }, [])
+    );
+    
+    // Define the questions for the wellness check-in
+    const questions = [
+        new Question(0, "Do you feel that you need academic assistance?", "checkbox", 
+            [
+                { label: "Disagree", value: 5 },
+                { label: "Slightly Disagree", value: 4 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 2 },
+                { label: "Agree", value: 1 }
+            ]
+        ),
+        new Question(1, "I feel safe on campus.", "checkbox", 
+            [
+                { label: "Disagree", value: 1 },
+                { label: "Slightly Disagree", value: 2 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 4 },
+                { label: "Agree", value: 5 }
+            ]
+        ),
+        new Question(2, "Over the last few weeks, have you been feeling nervous, easily irritable, tired, worried and/or restless?", "checkbox", 
+            [
+                { label: "Not at all", value: 5 },
+                { label: "Some days", value: 3 },
+                { label: "Nearly every day", value: 1 },
+            ]
+        ),
+        new Question(3, "Are you happy with how your school life is going?", "checkbox", 
+            [
+                { label: "Disagree", value: 1 },
+                { label: "Slightly Disagree", value: 2 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 4 },
+                { label: "Agree", value: 5 }
+            ]
+        ),
+        new Question(4, "In the last twelve months did you ever eat less or skip meals due to financial situations?", "checkbox", 
+            [
+                { label: "Disagree", value: 5 },
+                { label: "Slightly Disagree", value: 4 },
+                { label: "Neither Agree nor Disagree", value: 3 },
+                { label: "Slightly Agree", value: 2 },
+                { label: "Agree", value: 1 }
+            ]
+        ),
+        new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
+    ];
+
+    const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
+
+    // Calculate the total score based on the answers
+    const calculateTotalScore = () => {
+        const totalScore = Object.values(answers).reduce((sum, value) => sum + value, 0);
+        console.log("Total Score:", totalScore); // This prints the sum to the console
+        return totalScore;
+    };
+
+    // Handle the "Next" button press
+    const handleNextPress = () => {
+        if (currentQuestion === questions.length - 1) {
+            const totalScore = calculateTotalScore();
+            setIsCompleted(true);
+        }
+
+        // Start exit animation
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: -width, // Slide left
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            // Change question
+            setCurrentQuestion(prev => prev + 1);
+
+            // Reset animation position
+            slideAnim.setValue(width);
+
+            // Start enter animation
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0, // Slide back in
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        });
+    };
+
+    // Handle the "Previous" button press
+    const handlePreviousPress = () => {
+        // Start exit animation
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: width, // Slide right
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            // Change question
+            setCurrentQuestion(prev => prev - 1);
+
+            // Reset animation position
+            slideAnim.setValue(-width);
+
+            // Start enter animation
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0, // Slide back in
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        });
+    };
+
+    // Handle the "Complete Check-in" button press
+    const handleCompletePress = async () => {
+        const totalScore = calculateTotalScore();
+        console.log("Check-in complete. Total score:", totalScore);
+
+        try {
+            // Store both answers and the calculated score
+            await AsyncStorage.setItem('wellnessAnswers', JSON.stringify({
+                answers: answers,
+                score: totalScore
+            }));
+            navigation.navigate('Dashboard');
+        } catch (error) {
+            console.error('Failed to save answers:', error);
+            Alert.alert('Error', 'Failed to save your answers. Please try again.');
+        }
+    };
+
+    return (
+        <ImageBackground source={SAC_STATE_LOGO} style={styles.background} imageStyle={styles.logoImage}>
+            <View style={styles.overlayContainer}>
+                <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+                    {isCompleted ? (
+                        <CompletionScreen onPress={handleCompletePress} navigation={navigation} />
+                    ) : (
+                        <>
+                            {/* Animated question title */}
+                            <Animated.Text
+                                style={[
+                                    styles.heading,
+                                    { transform: [{ translateX: slideAnim }] }
+                                ]}
+                            >
+                                Question {currentQuestion + 1} of {questions.length}
+                            </Animated.Text>
+
+                            {/* Animated question box */}
+                            <Animated.View
+                                style={[styles.questionContainer, { transform: [{ translateX: slideAnim }] }]}
+                            >
+                                <View style={styles.box}>
+                                    <Text style={styles.questionText}>{questions[currentQuestion].text}</Text>
+                                    <QuestionRenderer
+                                        question={questions[currentQuestion]}
+                                        wellnessCheckInManager={wellnessCheckInManager}
+                                        currentQuestion={currentQuestion}
+                                        answers={answers}
+                                    />
+                                </View>
+                            </Animated.View>
+
+                            {/* Animated navigation buttons */}
+                            <Animated.View
+                                style={[styles.navigationButtons, { transform: [{ translateX: slideAnim }] }]}
+                            >
+                                {currentQuestion !== 0 && (
+                                    <TouchableOpacity
+                                        style={[styles.button, styles.previousButton]}
+                                        onPress={handlePreviousPress}
+                                    >
+                                        <Text style={styles.buttonText}>Previous</Text>
+                                    </TouchableOpacity>
+                                )}
+                                <TouchableOpacity
+                                    style={[
+                                        styles.button,
+                                        styles.nextButton,
+                                        currentQuestion === 0 && { marginLeft: 'auto' }
+                                    ]}
+                                    onPress={handleNextPress}
+                                >
+                                    <Text style={styles.buttonText}>Next</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
+                        </>
+                    )}
+                </ScrollView>
+            </View>
+        </ImageBackground>
+    );
 };
 
 export default WellnessCreation;
