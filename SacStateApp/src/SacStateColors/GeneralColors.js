@@ -28,5 +28,8 @@ export const white = "#fff";
 export const whiteGold = '#F7F2E7';
 export const whiteGreen = '#E8F4EA';
 export const whiteSmoke = '#F5F5F5';
-export const whiteSmokeLight = 'F4F4F4';
+export const whiteSmokeLight = '#F4F4F4';
+export const pomegranite = '#840029';
+export const mulberry = '#8b346d';
+export const roseGardenRed = 'rgb(191, 13, 62)';
 

@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../ProfileCreationStyles/ProfileCreationStyles';
 
 const { width, height } = Dimensions.get('window');
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
+const SAC_STATE_LOGO = require('../assets/sac-state-logo1.png');
 
 class Question {
     constructor(id, text, inputType, options = [], placeholder = null) {
@@ -97,7 +97,7 @@ const sendProfileDataToServer = async (answers, navigation) => {
             question9: answers["9"]     //veteran check
         };
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
+        const response = await fetch(`https://${process.env.DEV_BACKEND_SERVER_IP}/api/students/profile-answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -234,35 +234,35 @@ const TutorialScreen = ({ onPressNext }) => (
         <Text style={styles.tutorialTitle}>Tutorial</Text>
 
         <Text style={styles.tutorialText}>
-            Welcome! In this process, you'll learn how to navigate the app and its features.
+            Welcome! In this guide, you'll discover how to effortlessly navigate the app and explore its key features.
         </Text>
 
         <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
 
         <Text style={styles.tutorialText}>
-            The Dashboard is where you'll see the calendar with the ability to create your own by expanding the calendar and double-tapping on a date.
+            The Dashboard is your central hub, featuring a calendar where you can easily create your own events. {"\n"}{"\n"}Simply expand the calendar and double-tap on any date to get started.
         </Text>
 
         <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
 
         <Text style={styles.tutorialText}>
-            Next, we have our own AI chatbot, HerkyBot! Ask it questions when you're stuck or need information.
+            Next up, meet HerkyBot, our very own AI chatbot! {"\n"}{"\n"}Reach out to HerkyBot whenever you need help, have questions, or require information. {"\n"}{"\n"}It's here to assist you!
         </Text>
 
         <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
 
         <Text style={styles.tutorialText}>
-            Next, we have our wellness questions, which will be used to personalize your services.
+            Next, you'll find our wellness questions, designed to help personalize your services and tailor your experience to your unique needs.
         </Text>
 
         <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
 
         <Text style={styles.tutorialText}>
-            Continue to browse around the app, and if you have any questions, you can ask HerkyBot!
+            Feel free to continue exploring the app. {"\n"}{"\n"} If you have any questions along the way, just ask HerkyBot – it's here to help!
         </Text>
 
-        <TouchableOpacity style={styles.largeButton} onPress={onPressNext}>
-            <Text style={styles.largeButtonText}>Finish Tutorial</Text>
+        <TouchableOpacity onPress={onPressNext}>
+            <Text style={styles.finishTutorial}>Finish Tutorial</Text>
         </TouchableOpacity>
     </ScrollView>
 );

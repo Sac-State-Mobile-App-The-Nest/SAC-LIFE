@@ -2,8 +2,10 @@ const express = require('express');
 const sql = require('mssql');
 const router = express.Router();
 const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware');
+const bcrypt = require('bcrypt');
 
 module.exports = function (poolPromise) {
+
   /**
    * GET: Retrieves all admin accounts from the database
    * Only accessible by super-admins.
@@ -11,7 +13,7 @@ module.exports = function (poolPromise) {
   router.get('/', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     try {
       const pool = await poolPromise;
-      const result = await pool.request().query('SELECT username, role FROM admin_login');
+      const result = await pool.request().query('SELECT username, role, is_active FROM admin_login');
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
@@ -19,34 +21,58 @@ module.exports = function (poolPromise) {
     }
   });
 
-  /**
-   * DELETE: Removes an admin from the database
-   * Only super-admins can perform this action.
+   /**
+   * GET: Retrieves all audit logs of admins
+   * Only accessible by super-admins.
    */
+  router.get('/audit-logs', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT * FROM admin_audit_log ORDER BY timestamp DESC');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error (audit logs):', err.message);
+      res.status(500).json({ message: 'Failed to fetch audit logs' });
+    }
+  });
+
+  /**
+ * DELETE: Removes an admin from the database
+ * Only super-admins can perform this action.
+ */
   router.delete('/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { username } = req.params;
     const { password } = req.body;
+    const requestingAdmin = req.user.username;
 
     if (!password) {
       return res.status(400).json({ message: 'Password is required for deleting an admin' });
     }
 
+    if (username === requestingAdmin) {
+      return res.status(403).json({ message: "You can't delete yourself." });
+    }
+
     try {
       const pool = await poolPromise;
 
-      // Fetch requesting admin's details
+      // Fetch the requesting admin's credentials
       const adminResult = await pool.request()
-        .input('username', sql.VarChar, decoded.username)
-        .query('SELECT password, role FROM admin_login WHERE username = @username');
+        .input('username', sql.VarChar, requestingAdmin)
+        .query('SELECT password FROM admin_login WHERE username = @username');
 
-      // Verify the password before deletion
-      const isMatch = await bcrypt.compare(password, requestingAdmin.password);
-      if (!isMatch) {
-         return res.status(401).json({ message: 'Invalid password' });
+      if (adminResult.recordset.length === 0) {
+        return res.status(404).json({ message: 'Requesting admin not found' });
       }
 
-      // Perform admin deletion
-       const deleteResult = await pool.request()
+      const hashedPassword = adminResult.recordset[0].password;
+      const isMatch = await bcrypt.compare(password, hashedPassword);
+
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid password' });
+      }
+
+      const deleteResult = await pool.request()
         .input('username', sql.VarChar, username)
         .query('DELETE FROM admin_login WHERE username = @username');
 
@@ -54,11 +80,17 @@ module.exports = function (poolPromise) {
         return res.status(404).json({ message: 'Admin not found' });
       }
 
-      res.json({ message: `Admin ${username} deleted successfully` });
+      // 🕵️ Log audit entry
+      await pool.request()
+        .input("actor_username", sql.VarChar, requestingAdmin)
+        .input("action", sql.VarChar, 'delete_admin')
+        .input("target_username", sql.VarChar, username)
+        .query("INSERT INTO admin_audit_log (actor_username, action, target_username) VALUES (@actor_username, @action, @target_username)");
 
+      res.json({ message: `Admin ${username} deleted successfully` });
     } catch (error) {
       console.error('SQL error:', error.message);
-       res.status(500).json({ message: 'Internal Server Error', error: error.message });
+      res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
   });
 
@@ -69,6 +101,7 @@ module.exports = function (poolPromise) {
   router.delete('/students/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { studentId } = req.params;
     const { password } = req.body;
+    const requestingAdmin = req.user.username;
 
     if (!password) {
       return res.status(400).json({ message: 'Password is required for deleting a student' });
@@ -80,14 +113,15 @@ module.exports = function (poolPromise) {
       const pool = await poolPromise;
 
       const result = await pool.request()
-        .input('username', sql.VarChar, decoded.username)
+        .input('username', sql.VarChar,  requestingAdmin)
         .query('SELECT password, role FROM admin_login WHERE username = @username');
 
       if (result.recordset.length === 0) {
         return res.status(401).json({ message: 'Admin not found' });
       }
 
-      const isMatch = await bcrypt.compare(password, admin.password);
+      const hashedPassword = result.recordset[0].password;
+      const isMatch = await bcrypt.compare(password, hashedPassword);
       if (!isMatch) {
         return res.status(401).json({ message: 'Invalid password' });
       }
@@ -113,6 +147,13 @@ module.exports = function (poolPromise) {
         return res.status(404).json({ message: 'Student not found' });
       }
 
+      await pool.request()
+      .input("actor_username", sql.VarChar, requestingAdmin)
+      .input("action", sql.VarChar, 'delete_student')
+      .input("target_username", sql.VarChar, `student_id:${studentId}`)
+      .query("INSERT INTO admin_audit_log (actor_username, action, target_username) VALUES (@actor_username, @action, @target_username)");
+
+
       res.json({ message: 'Student and related records deleted successfully' });
     } catch (error) {
       if (transaction) {
@@ -137,10 +178,17 @@ module.exports = function (poolPromise) {
         .input('newUsername', sql.VarChar, newUsername) 
         .input('role', sql.VarChar, role)
         .query('UPDATE admin_login SET username = @newUsername, role = @role WHERE username = @username');
+
   
       if (result.rowsAffected[0] === 0) {
         return res.status(404).json({ message: 'Admin not found' });
       }
+
+      await pool.request()
+      .input("actor_username", sql.VarChar, req.user.username)
+      .input("action", sql.VarChar, 'update_admin')
+      .input("target_username", sql.VarChar, newUsername)
+      .query("INSERT INTO admin_audit_log (actor_username, action, target_username) VALUES (@actor_username, @action, @target_username)");
   
       res.json({ message: 'Admin updated successfully' });
     } catch (err) {
@@ -173,6 +221,13 @@ module.exports = function (poolPromise) {
       if (result.rowsAffected[0] === 0) {
         return res.status(404).json({ message: 'Student not found' });
       }
+
+      await pool.request()
+      .input("actor_username", sql.VarChar, req.user.username)
+      .input("action", sql.VarChar, 'update_student')
+      .input("target_username", sql.VarChar, `student_id:${studentId}`)
+      .query("INSERT INTO admin_audit_log (actor_username, action, target_username) VALUES (@actor_username, @action, @target_username)");
+
   
       res.json({ message: 'Student updated successfully' });
     } catch (err) {
@@ -182,44 +237,12 @@ module.exports = function (poolPromise) {
   });
 
   /**
-   * GET: Fetch all available tags
-   * Only super-admins can access this route.
-   */
-  router.get('/tags', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
-    try {
-      const pool = await poolPromise;
-      // Assuming test_tags holds tag_id and tag_name
-      const result = await pool.request().query('SELECT tag_id, tag_name FROM test_tags');
-      res.json(result.recordset);
-    } catch (err) {
-      console.error('SQL error (fetching tags):', err.message);
-      res.status(500).json({ message: 'Internal Server Error', error: err.message });
-    }
-  });
-
-  /**
-   * GET: Fetch tags assigned to a specific student
-   */
-  router.get('/studentTags/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
-    const { studentId } = req.params;
-    try {
-      const pool = await poolPromise;
-      const result = await pool.request()
-        .input('studentId', sql.Int, studentId)
-        .query('SELECT tag_id FROM test_tag_service WHERE std_id = @studentId');
-      res.json(result.recordset);
-    } catch (err) {
-      console.error('SQL error (fetching student tags):', err.message);
-      res.status(500).json({ message: 'Internal Server Error', error: err.message });
-    }
-  });
-
-  /**
-   * POST: Creates a new admin account
-   * Only super-admins can perform this action.
-   */
+ * POST: Creates a new admin account
+ * Only super-admins can perform this action.
+ */
   router.post("/create", authenticateToken, verifyRole(["super-admin"]), async (req, res) => {
     const { username, password, role } = req.body;
+    const actor = req.user.username;
 
     if (!username || !password || !role) {
       return res.status(400).json({ message: "All fields are required" });
@@ -227,6 +250,16 @@ module.exports = function (poolPromise) {
 
     try {
       const pool = await poolPromise;
+
+      // Check if username already exists
+      const check = await pool.request()
+        .input("username", sql.VarChar, username)
+        .query("SELECT username FROM admin_login WHERE username = @username");
+
+      if (check.recordset.length > 0) {
+        return res.status(409).json({ message: "Admin with that username already exists." });
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await pool.request()
@@ -235,6 +268,13 @@ module.exports = function (poolPromise) {
         .input("role", sql.VarChar, role)
         .query("INSERT INTO admin_login (username, password, role) VALUES (@username, @password, @role)");
 
+      // Insert audit log
+      await pool.request()
+        .input("actor_username", sql.VarChar, actor)
+        .input("action", sql.VarChar, 'create_admin')
+        .input("target_username", sql.VarChar, username)
+        .query("INSERT INTO admin_audit_log (actor_username, action, target_username) VALUES (@actor_username, @action, @target_username)");
+
       res.status(201).json({ message: "Admin created successfully" });
     } catch (error) {
       console.error("SQL error:", error.message);
@@ -242,6 +282,10 @@ module.exports = function (poolPromise) {
     }
   });
 
+  /**
+ * PUT: deactivates or activates a admin
+ * Only super-admins can perform this action.
+ */
   router.put('/admin/deactivate/:username', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
     const { username } = req.params;
     const { is_active } = req.body; 
@@ -256,13 +300,19 @@ module.exports = function (poolPromise) {
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ message: 'Admin not found' });
         }
+
+        await pool.request()
+          .input("actor_username", sql.VarChar, req.user.username)
+          .input("action", sql.VarChar, is_active ? 'activate_admin' : 'deactivate_admin')
+          .input("target_username", sql.VarChar, username)
+          .query("INSERT INTO admin_audit_log (actor_username, action, target_username) VALUES (@actor_username, @action, @target_username)");
   
         res.json({ message: `Admin ${is_active ? 'activated' : 'deactivated'} successfully!` });
     } catch (err) {
         console.error('SQL error:', err.message);
         res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
-});
+  });
 
   return router;
 };
