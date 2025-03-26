@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
         color: colors.white,
         textDecorationLine: 'underline',
         fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
