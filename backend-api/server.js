@@ -1,29 +1,16 @@
 const express = require('express');
-const sql = require("mssql");
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const config = require('./config'); // server config file
-const { authenticateToken, verifyRole } = require('./middleware/authMiddleware'); // Ensure correct path
-
-
 require('dotenv').config();
+
+const { poolPromise } = require('./db'); // Use the shared db module
+const { authenticateToken, verifyRole } = require('./middleware/authMiddleware');
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use(cors());
 app.use(bodyParser.json());
-
-// Initialize SQL connection pool once
-const poolPromise = sql.connect(config)
-  .then(pool => {
-    console.log('Connected to SQL Database');
-    return pool;
-  })
-  .catch(err => {
-    console.error('Database connection error:', err);
-    process.exit(1); // Exit if connection fails
-  });
 
 const studentsRoute = require('./routes/students')(poolPromise);
 const campus_servicesRoute = require('./routes/campus_services')(poolPromise);
