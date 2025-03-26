@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-
+const sql = require('mssql');
+const { poolPromise } = require('../db');
 // Define the list of valid roles for admin users
 const VALID_ROLES = ['super-admin', 'content-manager', 'support-admin', 'read-only'];
 
@@ -7,32 +8,42 @@ const VALID_ROLES = ['super-admin', 'content-manager', 'support-admin', 'read-on
  * Middleware to authenticate an access token.
  * Ensures that only requests with a valid token can proceed.
  */
-const authenticateToken = (req, res, next) => {
-    // Extract the token from the Authorization header (Bearer token format)
+const authenticateToken = async (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
-    
+
     if (!token) {
         console.log("No token found in request.");
         return res.status(401).json({ message: 'Access Denied. No token provided.' });
     }
 
-    // Verify the JWT token using the secret key
-    jwt.verify(token, process.env.JWT_SECRET_ADMIN, (err, user) => {
-        if (err) {
-            if (err.name === "TokenExpiredError") {
-                console.log("Token expired:", err.message);
-                return res.status(401).json({ message: 'Token Expired' }); // Expired token respons
-            }
-            console.log("Token verification failed:", err.message);
-            return res.status(403).json({ message: 'Invalid Token' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
+        console.log("Token successfully verified:", decoded);
+
+        // Check if the user is still active
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('username', sql.VarChar, decoded.username)
+            .query('SELECT is_active FROM admin_login WHERE username = @username');
+
+        if (
+            result.recordset.length === 0 ||
+            result.recordset[0].is_active !== true // Handles false and 0
+        ) {
+            console.log(`Admin "${decoded.username}" is inactive or not found.`);
+            return res.status(403).json({ message: 'Your account has been deactivated.' });
         }
 
-        console.log(" Token successfully verified!");
-        console.log(" Decoded token data:", user);
-
-        req.user = user; // Attach the decoded user information to the request object
+        req.user = decoded;
         next();
-    });
+    } catch (err) {
+        if (err.name === "TokenExpiredError") {
+            console.log("Token expired:", err.message);
+            return res.status(401).json({ message: 'Token Expired' });
+        }
+        console.log("Token verification failed:", err.message);
+        return res.status(403).json({ message: 'Invalid Token' });
+    }
 };
 
 /**
