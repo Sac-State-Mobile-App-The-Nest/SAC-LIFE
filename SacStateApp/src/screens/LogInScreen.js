@@ -8,9 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
 import styles from '../LoginStyles/LoginStyles';
-import PushNotificationService from '../notifications/PushNotificationService';
+//import PushNotificationService from '../notifications/PushNotificationService';
 
-import styles from '../LoginStyles/LoginStyles.js';
 import BASE_URL from '../apiConfig.js';
 
 const LogInScreen = () => {
