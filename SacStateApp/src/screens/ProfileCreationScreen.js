@@ -97,7 +97,7 @@ const sendProfileDataToServer = async (answers, navigation) => {
             question9: answers["9"]     //veteran check
         };
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/profile-answers`, {
+        const response = await fetch(`https://${process.env.DEV_BACKEND_SERVER_IP}/api/students/profile-answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

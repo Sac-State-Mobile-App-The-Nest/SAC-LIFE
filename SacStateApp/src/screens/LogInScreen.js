@@ -7,6 +7,9 @@ import backgroundImage from '../assets/logInBackground.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
+import styles from '../LoginStyles/LoginStyles';
+import PushNotificationService from '../notifications/PushNotificationService';
+
 import styles from '../LoginStyles/LoginStyles.js';
 import BASE_URL from '../apiConfig.js';
 
@@ -23,6 +26,7 @@ const LogInScreen = () => {
         try {
             const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
+            const userId = response.data.userId; 
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
