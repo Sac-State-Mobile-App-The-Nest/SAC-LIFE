@@ -111,9 +111,15 @@ const LogInScreen = () => {
                     {loading ? (
                         <ActivityIndicator size="large" color="#043927" />
                     ) : (
+                        <>
                         <TouchableOpacity style={styles.button} onPress={handleLogin}>
                             <Text style={styles.buttonText}>Log In</Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                            <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
+                        </TouchableOpacity>
+                        </>
                     )}
                 </View>
                 <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>

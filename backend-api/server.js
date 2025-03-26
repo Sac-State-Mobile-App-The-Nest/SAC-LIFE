@@ -19,7 +19,9 @@ const login_infoRoute = require('./routes/login_info');
 const adminLoginRoute = require('./routes/admin_routes/admin_login')(poolPromise);
 const adminRoutes = require('./routes/admin_routes/adminRoutes')(poolPromise);
 const eventRoute = require('./routes/events')(poolPromise);
+const signUpRoute = require('./routes/signup');
 const notificationRoutes = require('./routes/notifications'); 
+
 
 app.use('/api/students', studentsRoute);
 app.use('/api/campus_services', campus_servicesRoute);
@@ -28,6 +30,7 @@ app.use('/api/login_info', login_infoRoute);
 app.use('/api', adminLoginRoute);
 app.use('/api/adminRoutes', adminRoutes);
 app.use('/api/events', eventRoute);
+app.use('/signup', signUpRoute);
 app.use('/api/notifications', notificationRoutes);
 
 
