@@ -38,8 +38,14 @@ router.post('/login', async (req, res) => {
         // If there are no matches, recordset.length will be 0
         if (loginQuery.recordset.length == 0) {
             res.send('Login failed.')
-        } else {    // If the user exists, compare input password with the corresponding hashed password in the database
-                    // Get the hashed password from the database result
+        } else {
+            //check if the user account is inactive, return
+            console.log(loginQuery.recordset[0].is_active);
+            if (loginQuery.recordset[0].is_active === false){
+                return res.status(403).json({message: "Account Inactive"});
+            }
+            // If the user exists, compare input password with the corresponding hashed password in the database
+            // Get the hashed password from the database result
             const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
             // Function call to compare password
             bcrypt.compare(userInputPassword, storedHashedPassword, (err, result) => {
@@ -79,6 +85,67 @@ router.get('/check-login-bool', authenticateToken, (req, res) => {
     console.log(firstLogin);
     res.send(firstLogin);
 });
+
+//updates the user password - takes in an old password and new password. Then checks if the new password(hashed) is in
+//the database for that userid, if it isn't then it will update the password and return true
+//otherwise doesn't update password and returns false
+router.put('/updatePassword', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    const { oldPassword, newPassword } = req.body;//oldPassword is what the user typed, not actual oldPassword
+    
+    try{
+        //get hashed password for user
+        const request = new sql.Request();
+        const result = await request
+            .input('std_id', sql.Int, std_id)
+            .query(`SELECT hashed_pwd FROM login_info WHERE std_id=@std_id`);
+        if (result.recordset.length === 0){
+            return res.status(404).json({ success: false, message: "User not found"});
+        }
+        const hashed_pwd = result.recordset[0].hashed_pwd;
+        //console.log("Hashed Password:", hashed_pwd);
+
+        //check if hash of oldPassword == to hashed_pwd, if it is then hash newPassword and change the database
+        const oldAndNewMatch = await bcrypt.compare(oldPassword, hashed_pwd);
+        if(!oldAndNewMatch){
+            console.log("User inputted password does not match hashed_pwd in database");
+            return res.json({ success: false, message: "Incorrect password"});
+        }
+        //hash the new password and update database
+        const salt = await bcrypt.genSalt(10);
+        const newHashedPwd = await bcrypt.hash(newPassword, salt);
+        await request
+            .input('hashed_pwd', sql.VarChar, newHashedPwd)
+            .query(`UPDATE login_info SET hashed_pwd=@hashed_pwd WHERE std_id=@std_id`);
+        return res.json({ success: true, message: "Password updated"});
+    } catch (err) {
+        console.error('SQL error', err);
+        res.status(500).send('Server error.');
+    }
+});
+
+//student deactivates their account - sets is_active = 0
+router.put('/deactivateAccount', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    try{
+        //get the is_active
+        const request = new sql.Request();
+        await request
+            .input('std_id', sql.Int, std_id)
+            .query(`UPDATE login_info SET is_active = 0 WHERE std_id = @std_id`);
+        
+        //if is_active = false, return status deactivated: true
+        const result = await request.query(`SELECT is_active FROM login_info WHERE std_id = @std_id`);
+        if (!result.recordset[0].is_active){
+            return res.json({ deactivated: true });
+        } else {
+            return res.json({ deactivated: false });
+        }
+    } catch (err) {
+        console.error('SQL error', err);
+        return res.status(500).send('Server error.');
+    }
+})
 
 // Protected route
 // router.get('/protected', authenticateToken, async (req, res) => {
