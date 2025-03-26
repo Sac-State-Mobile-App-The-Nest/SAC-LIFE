@@ -272,6 +272,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center', // Centers content horizontally
   },
+  modalTimeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10
+  },
   modalTitle: {
     fontSize: 24,
     marginBottom: 20,

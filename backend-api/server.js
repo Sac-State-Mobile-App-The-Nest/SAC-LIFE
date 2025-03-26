@@ -48,13 +48,14 @@ app.get('/api/helloMessage', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT;
+
 
 // Only start the server if this file is executed directly
 if (require.main === module) {
-  app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-  });
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
+});
 }
 
 // Export app for testing
