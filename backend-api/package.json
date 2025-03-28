@@ -13,10 +13,14 @@
     "jsonwebtoken": "^9.0.2",
     "mssql": "^11.0.1",
     "node-fetch": "^2.7.0",
+    "playwright": "^1.51.1",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }

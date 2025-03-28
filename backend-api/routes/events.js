@@ -91,10 +91,9 @@ module.exports = function(poolPromise) {
     router.post('/created-event', authenticateToken, async (req, res) => {
         const std_id = req.user.std_id;
         const { createdEvent }  = req.body;
-        const { title, description, event_date, time } = createdEvent;
-        const sqlDatetime = event_date + " " + time;
+        const { title, description, event_start_date, event_end_date } = createdEvent;
         console.log(createdEvent);
-        console.log("Data: ", {std_id, title, description, event_date, time});
+        console.log("Data: ", {std_id, title, description, event_start_date, event_end_date});
         try {
             const pool = await poolPromise;
 
@@ -102,10 +101,11 @@ module.exports = function(poolPromise) {
                 .input('std_id', sql.Int, std_id)
                 .input('event_title', sql.NVarChar(255), title)
                 .input('event_description', sql.NVarChar(sql.MAX), description)
-                .input('event_date', sql.DateTime, sqlDatetime)
+                .input('event_start_date', sql.DateTime, event_start_date)
+                .input('event_end_date', sql.DateTime, event_end_date)
                 .query(`
-                   INSERT INTO student_created_events (std_id, event_title, event_description, event_date)
-                   VALUES (@std_id, @event_title, @event_description, @event_date) 
+                   INSERT INTO student_created_events (std_id, event_title, event_description, event_start_date, event_end_date)
+                   VALUES (@std_id, @event_title, @event_description, @event_start_date, @event_end_date) 
                 `);
             res.status(200).json({ message: 'Student Event stored successfully', createdEvent});
             
@@ -115,6 +115,25 @@ module.exports = function(poolPromise) {
         }
     });
   
+    //get all the events that a user created
+    router.get('/getAllStudentEvents', authenticateToken, async(req, res) => {
+        const std_id = req.user.std_id;
+        try{
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input('std_id', sql.Int, std_id)
+                .query(`
+                    SELECT event_id, event_title, event_description, event_start_date, event_end_date FROM student_created_events WHERE
+                    @std_id = std_id
+                `);
+            res.json(result.recordset);
+        } catch (err) {
+            console.error('SQL error', err);
+            res.status(500).send('Server Error');
+        }
+    });
+
+
     //get all of the sac state events to send to the app 
     router.get('/getAllCampusEvents', authenticateToken, async(req, res) => {
         try{
@@ -122,8 +141,8 @@ module.exports = function(poolPromise) {
             //only get the new events that haven't happened yet and order them by the date
             const result = await sql.query(`
                 SELECT * FROM sac_events WHERE 
-                event_date >= GETDATE() ORDER BY 
-                event_date ASC`);
+                event_start_date >= GETDATE() ORDER BY 
+                event_start_date ASC`);
             console.log(result.recordset);
             res.json(result.recordset);
         } catch (err){
@@ -131,6 +150,7 @@ module.exports = function(poolPromise) {
             res.status(500).send('Server Error');
         }
     });
+
 
     return router;
 };

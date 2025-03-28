@@ -15,9 +15,45 @@ function AdminRoles() {
   const [password, setPassword] = useState('');
   const [editAdmin, setEditAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ username: '', role: '', is_active: true });
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
   const [createAdminModal, setCreateAdminModal] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "admin" });
+  const [newAdmin, setNewAdmin] = useState({ username: "", password: "", role: "super-admin" });
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [showLogs, setShowLogs] = useState(false);
+  const [createError, setCreateError] = useState("");
   const navigate = useNavigate();
+
+  const fetchAuditLogs = useCallback(async () => {
+    try {
+      let token = sessionStorage.getItem("token");
+      if (!token) {
+        logoutAdmin(navigate);
+        return;
+      }
+  
+      let response;
+      try {
+        response = await api.get("/adminRoutes/audit-logs", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (error) {
+        if (error.response?.status === 401) {
+          token = await refreshAccessToken();
+          if (!token) return;
+          response = await api.get("/adminRoutes/audit-logs", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else {
+          throw error;
+        }
+      }
+  
+      setAuditLogs(response.data);
+    } catch (err) {
+      console.error("Error fetching audit logs:", err);
+      alert("Failed to load audit logs.");
+    }
+  }, [navigate]);
 
   const fetchAdmins = useCallback(async () => {
     try {
@@ -47,8 +83,7 @@ function AdminRoles() {
       }
   
       setAdmins(response.data);
-      setRole(response.data.length > 0 ? response.data[0].role : response.data.role || '');
-  
+      return response.data;
     } catch (error) {
       console.error('Error fetching admins:', error);
     }
@@ -75,6 +110,12 @@ function AdminRoles() {
     getAdminRole();
   }, [fetchAdmins, getAdminRole]);
 
+  useEffect(() => {
+    if (showLogs) {
+      fetchAuditLogs();
+    }
+  }, [showLogs, fetchAuditLogs]);
+
    // Handles form input change
    const handleInputChange = (e) => {
     setNewAdmin({ ...newAdmin, [e.target.name]: e.target.value });
@@ -89,48 +130,50 @@ function AdminRoles() {
   };
 
   const handleCreateAdmin = async () => {
+    setCreateError(""); // reset previous error
+  
     if (!newAdmin.username || !newAdmin.password) {
-      alert("Please fill in all fields.");
+      setCreateError("Please fill in all fields.");
       return;
     }
   
     try {
       let token = sessionStorage.getItem('token');
       if (!token) {
-        alert("You must be logged in.");
         logoutAdmin(navigate);
         return;
       }
   
       let response;
       try {
-        response = await api.post("/adminRoutes/create", { ...newAdmin }, {
+        response = await api.post("/adminRoutes/create", newAdmin, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (error) {
         if (error.response?.status === 401) {
-          console.warn("Access token expired. Trying refresh...");
           token = await refreshAccessToken();
           if (!token) return;
-          response = await api.post("/adminRoutes/create", { ...newAdmin }, {
+          response = await api.post("/adminRoutes/create", newAdmin, {
             headers: { Authorization: `Bearer ${token}` },
           });
+        } else if (error.response?.status === 409) {
+          setCreateError("An admin with that username already exists.");
+          return;
         } else {
           throw error;
         }
       }
   
       if (response.status === 201) {
-        alert("Admin created successfully!");
-        fetchAdmins();
         setCreateAdminModal(false);
-        setNewAdmin({ username: "", password: "", role: "admin" });
+        setNewAdmin({ username: "", password: "", role: "read-only" });
+        fetchAdmins();
       } else {
-        alert("Failed to create admin.");
+        setCreateError("Failed to create admin.");
       }
     } catch (error) {
       console.error("Error creating admin:", error);
-      alert("Error: Unable to create admin.");
+      setCreateError("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -214,11 +257,15 @@ function AdminRoles() {
   };
 
   const handleSaveEdit = async () => {
+    setShowEditConfirm(true);
+  };
+
+  const confirmSaveEdit = async () => {
     try {
       let token = sessionStorage.getItem('token');
       if (!token) {
         alert("You must be logged in.");
-        logoutAdmin();
+        logoutAdmin(navigate);
         return;
       }
   
@@ -252,6 +299,8 @@ function AdminRoles() {
     } catch (error) {
       console.error('Error updating admin:', error);
       alert(`Error: ${error.message}`);
+    } finally {
+      setShowEditConfirm(false); // hide confirmation
     }
   };
 
@@ -266,30 +315,49 @@ const filteredAdmins = admins.filter((admin) => {
 
 const handleToggleActive = async () => {
   try {
-      let token = sessionStorage.getItem('token');
-      if (!token) {
-          alert("You must be logged in.");
-          logoutAdmin(navigate);
-          return;
-      }
+    let token = sessionStorage.getItem('token');
+    if (!token) {
+      alert("You must be logged in.");
+      logoutAdmin(navigate);
+      return;
+    }
 
-      const updatedStatus = !editForm.is_active; // Toggle status
-      const response = await api.put(`/adminRoutes/admin/deactivate/${editAdmin.username}`, {
-          is_active: updatedStatus
-      }, {
-          headers: { Authorization: `Bearer ${token}` }
-      });
+    const updatedStatus = !editForm.is_active;
 
-      if (response.status === 200) {
-          alert(`Admin ${updatedStatus ? 'activated' : 'deactivated'} successfully!`);
-          setEditForm({ ...editForm, is_active: updatedStatus });
-          fetchAdmins();
+    const response = await api.put(`/adminRoutes/admin/deactivate/${editAdmin.username}`, {
+      is_active: updatedStatus
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 200) {
+      alert(`Admin ${updatedStatus ? 'activated' : 'deactivated'} successfully!`);
+
+      // Wait for latest admins list first
+      const refreshedAdmins = await fetchAdmins();
+
+      // Then use the freshly updated data
+      const refreshed = refreshedAdmins.find((a) => a.username === editForm.username);
+      if (refreshed) {
+        setEditForm({
+          username: refreshed.username,
+          role: refreshed.role,
+          is_active: refreshed.is_active
+        });
       } else {
-          alert('Failed to update admin status.');
+        // fallback if not found
+        setEditForm(prev => ({
+          ...prev,
+          is_active: updatedStatus
+        }));
       }
+
+    } else {
+      alert('Failed to update admin status.');
+    }
   } catch (error) {
-      console.error('Error updating admin status:', error);
-      alert('An error occurred. Please try again.');
+    console.error('Error updating admin status:', error);
+    alert('An error occurred. Please try again.');
   }
 };
 
@@ -340,6 +408,7 @@ return (
           </th>
           <th>Username</th>
           <th>Role</th>
+          <th>Account Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -357,8 +426,10 @@ return (
             </td>
             <td>{admin.username}</td>
             <td>{admin.role}</td>
+            <td style={{ color: admin.is_active ? "green" : "red" }}>
+              {admin.is_active ? "Active" : "Inactive"}
+            </td>
             <td>
-              {/* Show Edit button for super-admins and content managers */}
               {(role === 'super-admin' || role === 'content-manager') && (
                 <button className="edit-button" onClick={() => openEditModal(admin)}>Edit</button>
               )}
@@ -368,6 +439,51 @@ return (
       </tbody>
     </table>
   </div>
+
+  {/* Audit Logs Section (visible to super-admins only) */}
+  {role === "super-admin" && (
+      <>
+        <button
+          className="audit-toggle-button"
+          onClick={() => setShowLogs((prev) => !prev)}
+          style={{ marginTop: "1rem" }}
+        >
+          {showLogs ? "Hide Audit Logs" : "View Audit Logs"}
+        </button>
+
+        {showLogs && (
+          <div style={{ marginTop: "1rem", maxHeight: "300px", overflowY: "auto" }}>
+            <h3>Audit Logs</h3>
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditLogs.length > 0 ? (
+                  auditLogs.map((log, index) => (
+                    <tr key={index}>
+                      <td>{log.actor_username}</td>
+                      <td>{log.action}</td>
+                      <td>{log.target_username}</td>
+                      <td>{new Date(log.timestamp).toLocaleString()}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No audit logs found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </>
+    )}
 
     {/* Bulk Deletion Confirmation Modal */}
     {showBulkConfirmModal && (
@@ -421,7 +537,7 @@ return (
             onChange={handleEditChange}
           />
 
-          <label>Deactivate Admin:</label>
+          <label>Account Status:</label>
           <div className="toggle-container">
               <span>{editForm.is_active ? "Active" : "Inactive"}</span>
               <label className="switch">
@@ -438,11 +554,26 @@ return (
       </div>
     )}
 
+    {showEditConfirm && (
+      <div className="modal">
+        <div className="modal-content">
+          <h3>Confirm Changes</h3>
+          <p>Are you sure you want to save these changes to <strong>{editForm.username}</strong>?</p>
+          <div className="modal-actions">
+            <button className="modal-button confirm" onClick={confirmSaveEdit}>Yes, Save</button>
+            <button className="modal-button cancel" onClick={() => setShowEditConfirm(false)}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+
      {/* Create Admin Modal */}
      {createAdminModal && (
         <div className="edit-modal">
           <div className="edit-modal-content">
             <h3>Create New Admin</h3>
+
+            {createError && <div className="error-message">{createError}</div>}
 
             <label>Username:</label>
             <input type="text" name="username" value={newAdmin.username} onChange={handleInputChange} />
@@ -452,9 +583,10 @@ return (
 
             <label>Role:</label>
             <select name="role" value={newAdmin.role} onChange={handleInputChange}>
-              <option value="super-admin">Admin</option>
+              <option value="super-admin">Super Admin</option>
               <option value="content-manager">Content Manager</option>
-              <option value="read-only">Super Admin</option>
+              <option value="support-admin">Support Admin</option>
+              <option value="read-only">Read Only</option>
             </select>
 
             <div className="edit-modal-actions">

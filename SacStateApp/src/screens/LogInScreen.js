@@ -8,6 +8,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
 import styles from '../LoginStyles/LoginStyles';
+//import PushNotificationService from '../notifications/PushNotificationService';
+
+import BASE_URL from '../apiConfig.js';
 
 const LogInScreen = () => {
     const navigation = useNavigation(); 
@@ -20,13 +23,14 @@ const LogInScreen = () => {
     // Login function
     const login = async () => {
         try {
-            const response = await axios.post(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
+            const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
+            const userId = response.data.userId; 
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
 
-            const booleanResponse = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/check-login-bool`, {
+            const booleanResponse = await axios.get(`${BASE_URL}/api/login_info/check-login-bool`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -38,12 +42,16 @@ const LogInScreen = () => {
                 navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
-        // Handle the error case
-        if (error.response && error.response.data) {
-            Alert.alert('Login failed', error.response.data);
-        } else {
-            Alert.alert('Login failed', 'An unexpected error occurred.');
-        }
+            if (error.response.status === 403){
+                Alert.alert("Error", error.response.data.message);
+                return;
+            }
+            // Handle the error case
+            if (error.response && error.response.data) {
+                Alert.alert('Login failed', error.response.data);
+            } else {
+                Alert.alert('Login failed', 'An unexpected error occurred.');
+            }
         console.error("Error logging in:", error.message);
     }
 };
@@ -59,11 +67,7 @@ const LogInScreen = () => {
         }
         
         setLoading(true);
-        // Simulate a login process
-        setTimeout(() => {
-            setLoading(false);
-            login();
-        }, 2000);
+        login();
     };
 
     const handleSkip = () => {
@@ -107,9 +111,15 @@ const LogInScreen = () => {
                     {loading ? (
                         <ActivityIndicator size="large" color="#043927" />
                     ) : (
+                        <>
                         <TouchableOpacity style={styles.button} onPress={handleLogin}>
                             <Text style={styles.buttonText}>Log In</Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                            <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
+                        </TouchableOpacity>
+                        </>
                     )}
                 </View>
                 <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>

@@ -24,7 +24,11 @@ const DashboardTab = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const data = await fetchUserServices(token);
-        setUserServicesRec(data);
+        const numberedServices = data.map((service, index) => ({
+          index: index + 1,
+          ...service
+        }));
+        setUserServicesRec(numberedServices);
       } catch (error) {
         console.error('Error fetching services recommendations:', error);
       }
@@ -105,13 +109,13 @@ const DashboardTab = () => {
             {/* Weekly Calendar - Transparent Background */}
             <View style={[styles.weeklyViewContainer, { backgroundColor: 'transparent', paddingVertical: 10 }]}>
               {currentWeek.map((item, index) => (
-                <TouchableOpacity key={index} onPress={() => handleDayPress(item)} style={{ alignItems: 'center', paddingHorizontal: 10 }}>
+                <View key={index} style={{ alignItems: 'center', paddingHorizontal: 10 }}>
                   <Text style={[styles.dayOfWeek, { color: colors.mutedGold }]}>
                     {item.dateObject.toLocaleDateString('en-US', { weekday: 'short' })}
                   </Text>
                   <Text style={[styles.dateText, { color: colors.mutedGold }]}>{item.day}</Text>
                   {item.isToday && <View style={[styles.currentDayDot, { backgroundColor: colors.mutedGold }]} />}
-                </TouchableOpacity>
+                </View>
               ))}
             </View>
           </Animated.View>

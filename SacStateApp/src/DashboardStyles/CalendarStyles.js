@@ -149,13 +149,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  eventsHeader: {
+    marginTop: 14,
+    marginLeft: 15,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.sacGreen,
+  },
   eventsContainer: {
     maxHeight: 300,
     width: '100%',
-    marginTop: 20,
-    paddingHorizontal: 15,
+    marginTop: 10,
+    paddingHorizontal: 10,
     backgroundColor: colors.white,
-
   },
   scrollContainer: {
     maxHeight: 280,  
@@ -185,6 +191,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.sacGreen,
+  },
+  expandedEventTile: {
+    backgroundColor: colors.sacGreen,
+  },
+  eventDescription: {
+    fontSize: 15,
+    color: colors.smokeGray,
+  },
+  eventLink: {
+    fontSize: 14,
+    color: colors.subtleGreen,
+    textDecorationLine: 'underline',
+    marginTop: 5,
   },
   eventTime: {
     fontSize: 14,
@@ -252,6 +271,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     alignItems: 'center', // Centers content horizontally
+  },
+  modalTimeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10
   },
   modalTitle: {
     fontSize: 24,
