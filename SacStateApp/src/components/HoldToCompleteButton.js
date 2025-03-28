@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Easing, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, Easing, Dimensions, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import * as colors from '../SacStateColors/GeneralColors';
@@ -9,7 +9,9 @@ const { width } = Dimensions.get('window');
 const HoldToCompleteButton = ({ onComplete }) => {
   const progress = useRef(new Animated.Value(0)).current;
   const rippleScale = useRef(new Animated.Value(0)).current;
-  const glowOpacity = useRef(new Animated.Value(0)).current;
+  const pulseOpacity = useRef(new Animated.Value(0.5)).current;
+  const glowScale = useRef(new Animated.Value(1)).current;
+  const textScale = useRef(new Animated.Value(1)).current;
   const [isComplete, setIsComplete] = useState(false);
   const [percent, setPercent] = useState(0);
 
@@ -22,30 +24,54 @@ const HoldToCompleteButton = ({ onComplete }) => {
 
   const startFill = () => {
     Haptics.selectionAsync();
-    glowOpacity.setValue(1);
 
-    Animated.parallel([
-      Animated.timing(progress, {
-        toValue: 1,
-        duration: 4000,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      }),
-      Animated.loop(
+    Animated.loop(
+      Animated.parallel([
         Animated.sequence([
-          Animated.timing(glowOpacity, {
-            toValue: 0.3,
-            duration: 600,
-            useNativeDriver: false,
+          Animated.timing(glowScale, {
+            toValue: 1.08,
+            duration: 500,
+            useNativeDriver: true,
           }),
-          Animated.timing(glowOpacity, {
+          Animated.timing(glowScale, {
             toValue: 1,
-            duration: 600,
-            useNativeDriver: false,
+            duration: 500,
+            useNativeDriver: true,
+          })
+        ]),
+        Animated.sequence([
+          Animated.timing(pulseOpacity, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
           }),
+          Animated.timing(pulseOpacity, {
+            toValue: 0.5,
+            duration: 500,
+            useNativeDriver: true,
+          })
+        ]),
+        Animated.sequence([
+          Animated.timing(textScale, {
+            toValue: 1.03,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(textScale, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          })
         ])
-      ),
-    ]).start(({ finished }) => {
+      ])
+    ).start();
+
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: 2500,
+      easing: Easing.linear,
+      useNativeDriver: false,
+    }).start(({ finished }) => {
       if (finished) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setIsComplete(true);
@@ -60,6 +86,9 @@ const HoldToCompleteButton = ({ onComplete }) => {
       duration: 300,
       useNativeDriver: false,
     }).start();
+    glowScale.setValue(1);
+    pulseOpacity.setValue(0.5);
+    textScale.setValue(1);
   };
 
   const triggerRipple = () => {
@@ -74,11 +103,6 @@ const HoldToCompleteButton = ({ onComplete }) => {
     });
   };
 
-  const borderWidth = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [2, 20],
-  });
-
   const rippleOpacity = rippleScale.interpolate({
     inputRange: [0, 4],
     outputRange: [0.4, 0],
@@ -87,35 +111,43 @@ const HoldToCompleteButton = ({ onComplete }) => {
   return (
     <View style={styles.wrapper}>
       <Animated.View
-        style={[styles.ring, { borderWidth, opacity: glowOpacity }]}>
-        <LinearGradient
-          colors={['#66bb6a', '#43a047']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-
-      <Pressable
-        onPressIn={!isComplete ? startFill : null}
-        onPressOut={!isComplete ? cancelFill : null}
-        style={styles.button}
-      >
-        <Text style={styles.buttonText}>
-          {isComplete ? 'Profile Created' : 'Hold to Complete Your Profile!'}
-        </Text>
-        {!isComplete && percent > 0 && (
-          <Text style={styles.percentText}>{percent}%</Text>
-        )}
-      </Pressable>
-
-      <Animated.View
-        pointerEvents="none"
         style={[styles.rippleEffect, {
           transform: [{ scale: rippleScale }],
           opacity: rippleOpacity,
         }]}
       />
+
+      <Animated.View
+        style={[styles.pulseOverlay, { opacity: pulseOpacity }]}
+      />
+
+      <Animated.View
+        style={[styles.button, { transform: [{ scale: glowScale }] }]}
+      >
+        <LinearGradient
+          colors={[colors.sacGreen, '#206C45', '#2A6F4D']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <Pressable
+          onPressIn={!isComplete ? startFill : null}
+          onPressOut={!isComplete ? cancelFill : null}
+          style={StyleSheet.absoluteFill}
+        >
+          <View style={styles.innerContent}>
+            <Animated.Text style={[styles.buttonText, { transform: [{ scale: textScale }] }]}> 
+              {isComplete ? 'Profile Created' : 'Hold to Complete Your Profile!'}
+            </Animated.Text>
+            {!isComplete && percent > 0 && (
+              <Text style={styles.percentText}>{percent}%</Text>
+            )}
+          </View>
+        </Pressable>
+      </Animated.View>
+
+      {/* Optional Leaf Particles Placeholder */}
+      {/* You can add animated leaf SVGs or images here */}
     </View>
   );
 };
@@ -127,49 +159,52 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   button: {
-    paddingVertical: 18,
-    paddingHorizontal: 30,
-    backgroundColor: colors.sacGreen,
-    borderRadius: 30,
+    paddingVertical: 50,
+    paddingHorizontal: 50,
+    borderRadius: 50,
     zIndex: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 250,
+    minWidth: 340,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 7,
+    elevation: 6,
+    overflow: 'hidden',
+  },
+  innerContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#F5F1DF',
     fontWeight: 'bold',
-    fontSize: 17,
+    fontSize: 20,
     textAlign: 'center',
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   percentText: {
-    color: '#fff',
-    fontSize: 14,
-    marginTop: 4,
+    color: '#FBF8EF',
+    fontSize: 18,
+    marginTop: 12,
     fontWeight: '600',
-  },
-  ring: {
-    position: 'absolute',
-    width: width * 0.5,
-    height: width * 0.5,
-    borderRadius: width * 0.25,
-    borderColor: '#81C784',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
   },
   rippleEffect: {
     position: 'absolute',
-    width: width * 0.5,
-    height: width * 0.5,
-    borderRadius: width * 0.25,
-    backgroundColor: '#A5D6A7',
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: (width * 0.8) / 2,
+    backgroundColor: colors.subtleGreen,
+    zIndex: 0,
+  },
+  pulseOverlay: {
+    position: 'absolute',
+    width: width * 0.9,
+    height: width * 0.9,
+    borderRadius: (width * 0.9) / 2,
+    backgroundColor: colors.mutedSacStateGreen,
     zIndex: 0,
   },
 });
