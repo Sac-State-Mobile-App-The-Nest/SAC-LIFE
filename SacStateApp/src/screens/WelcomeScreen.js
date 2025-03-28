@@ -1,7 +1,7 @@
 // WelcomeScreen.js
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Animated, Image, Dimensions } from 'react-native';
-import styles from '../WelcomeStyles/WelcomeStyles';
+import styles from '../styles/WelcomeStyles';
 
 const WelcomeScreen = ({ navigation }) => {  // <-- Destructure navigation here
   const { width } = Dimensions.get('window');
