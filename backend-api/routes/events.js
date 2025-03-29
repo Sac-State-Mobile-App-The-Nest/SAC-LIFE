@@ -2,10 +2,9 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config'); //server config file
-// const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fetch = require('node-fetch');
 const { parseStringPromise } = require('xml2js');
-const { authenticateToken } = require('../authMiddleware');
+const { authenticateToken } = require('../middleware/studentAuthMiddleware');
 
 module.exports = function(poolPromise) {
 
