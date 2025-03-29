@@ -31,8 +31,6 @@ router.post('/login', async (req, res) => {
 
         // Checks if the username and password input match any fields in the database
         const loginQuery = await request.query('SELECT * FROM login_info WHERE username = @username');
-
-
         
 
         // If there are no matches, recordset.length will be 0
@@ -62,9 +60,13 @@ router.post('/login', async (req, res) => {
                     console.log('Passwords match! User authenticated.');
 
                     // Create JWT after authenticating the user
+                    const user = loginQuery.recordset[0];
                     const accessToken = jwt.sign(loginQuery.recordset[0], JWT_SECRET_TOKEN);
-                    res.json({ accessToken });
-                    // console.log("Username: " + username);
+
+                    res.json({ 
+                        accessToken: accessToken, 
+                        userId: user.std_id 
+                    });
                 } else {
                     // Passwords don't match, authentication failed
                     res.send('Passwords do not match! Authentication failed.');
@@ -187,6 +189,7 @@ router.get('/hasher', async (req, res) => {
         res.status(500).send('Server Error.');
     }
 });
+
 
 module.exports = router;
 

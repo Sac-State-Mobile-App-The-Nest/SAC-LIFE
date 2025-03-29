@@ -153,6 +153,16 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 
+
+    linkText: {
+        marginTop: 15,
+        color: colors.white,
+        textDecorationLine: 'underline',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    
     inputFocus: {
         borderColor: colors.mutedGold, // Gold border on focus for better contrast
         backgroundColor: colors.opaqueGold, // Gold background when focused for clearer visibility

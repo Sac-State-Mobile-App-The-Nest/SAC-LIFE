@@ -7,7 +7,9 @@ import backgroundImage from '../assets/logInBackground.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
-import styles from '../LoginStyles/LoginStyles.js';
+import styles from '../LoginStyles/LoginStyles';
+//import PushNotificationService from '../notifications/PushNotificationService';
+
 import BASE_URL from '../apiConfig.js';
 
 const LogInScreen = () => {
@@ -23,6 +25,7 @@ const LogInScreen = () => {
         try {
             const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
+            const userId = response.data.userId; 
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
@@ -108,9 +111,15 @@ const LogInScreen = () => {
                     {loading ? (
                         <ActivityIndicator size="large" color="#043927" />
                     ) : (
+                        <>
                         <TouchableOpacity style={styles.button} onPress={handleLogin}>
                             <Text style={styles.buttonText}>Log In</Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                            <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
+                        </TouchableOpacity>
+                        </>
                     )}
                 </View>
                 <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
