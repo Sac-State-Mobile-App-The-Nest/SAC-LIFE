@@ -1,8 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Easing, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, Easing, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
+import LottieView from 'lottie-react-native';
 import * as colors from '../SacStateColors/GeneralColors';
+import leavesAnimation from '../assets/leaves.json';
+import confettiAnimation from '../assets/confetti.json';
 
 const { width } = Dimensions.get('window');
 
@@ -14,6 +18,7 @@ const HoldToCompleteButton = ({ onComplete }) => {
   const textScale = useRef(new Animated.Value(1)).current;
   const [isComplete, setIsComplete] = useState(false);
   const [percent, setPercent] = useState(0);
+  const sound = useRef(null);
 
   useEffect(() => {
     const listener = progress.addListener(({ value }) => {
@@ -21,6 +26,18 @@ const HoldToCompleteButton = ({ onComplete }) => {
     });
     return () => progress.removeListener(listener);
   }, []);
+
+  const playSuccessSound = async () => {
+    try {
+      const { sound: playbackObject } = await Audio.Sound.createAsync(
+        require('../assets/success.wav')
+      );
+      sound.current = playbackObject;
+      await playbackObject.playAsync();
+    } catch (error) {
+      console.warn('Could not play sound:', error);
+    }
+  };
 
   const startFill = () => {
     Haptics.selectionAsync();
@@ -74,6 +91,7 @@ const HoldToCompleteButton = ({ onComplete }) => {
     }).start(({ finished }) => {
       if (finished) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        playSuccessSound();
         setIsComplete(true);
         triggerRipple();
       }
@@ -118,12 +136,10 @@ const HoldToCompleteButton = ({ onComplete }) => {
       />
 
       <Animated.View
-        style={[styles.pulseOverlay, { opacity: pulseOpacity }]}
-      />
+        style={[styles.pulseOverlay, { opacity: pulseOpacity }]} />
 
       <Animated.View
-        style={[styles.button, { transform: [{ scale: glowScale }] }]}
-      >
+        style={[styles.button, { transform: [{ scale: glowScale }] }]}>
         <LinearGradient
           colors={[colors.sacGreen, '#206C45', '#2A6F4D']}
           start={{ x: 0, y: 0 }}
@@ -146,8 +162,25 @@ const HoldToCompleteButton = ({ onComplete }) => {
         </Pressable>
       </Animated.View>
 
-      {/* Optional Leaf Particles Placeholder */}
-      {/* You can add animated leaf SVGs or images here */}
+      {/* Optional Leaf Animation using Lottie */}
+      <View style={styles.lottieContainer}>
+        {leavesAnimation && (
+          <LottieView
+            source={leavesAnimation}
+            autoPlay
+            loop
+            style={styles.leaves}
+          />
+        )}
+        {isComplete && (
+          <LottieView
+            source={confettiAnimation}
+            autoPlay
+            loop={false}
+            style={styles.confetti}
+          />
+        )}
+      </View>
     </View>
   );
 };
@@ -206,6 +239,26 @@ const styles = StyleSheet.create({
     borderRadius: (width * 0.9) / 2,
     backgroundColor: colors.mutedSacStateGreen,
     zIndex: 0,
+  },
+  lottieContainer: {
+    position: 'absolute',
+    top: -40,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: -1,
+  },
+  leaves: {
+    width: 200,
+    height: 200,
+  },
+  confetti: {
+    position: 'absolute',
+    width: 400,
+    height: 400,
+    top: -100,
+    zIndex: 5, // or something above everything else
   },
 });
 

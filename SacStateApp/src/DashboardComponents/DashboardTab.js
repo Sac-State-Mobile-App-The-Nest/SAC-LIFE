@@ -7,7 +7,7 @@ import { fetchUserServices } from '../DashboardAPI/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../DashboardStyles/CalendarStyles';
-import * as colors from '../SacStateColors/GeneralColors'; // ✅ Import colors for customization
+import * as colors from '../SacStateColors/GeneralColors'; 
 
 
 const DashboardTab = () => {
