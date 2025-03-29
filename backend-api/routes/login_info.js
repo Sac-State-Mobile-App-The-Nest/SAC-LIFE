@@ -4,8 +4,8 @@ const sql = require('mssql');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const { authenticateToken } = require('../authMiddleware')
-const JWT_SECRET_TOKEN = 'eea7a9c77a0ee1b50710563929964c15631e1e898871c90fe32784c5e9b925fc882554a81e3695d5cd3a919a6203a31c4371ad82c920a5257f03db3d635f0301';
+const { authenticateToken } = require('../middleware/studentAuthMiddleware')
+const JWT_SECRET_TOKEN = process.env.JWT_SECRET_TOKEN;
 
 // Get request for the whole login_info table from SQL
 router.get('/', async (req, res) => {

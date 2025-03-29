@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 
-const { authenticateToken } = require('../authMiddleware');
+const { authenticateToken } = require('../middleware/studentAuthMiddleware');
 
 // Export a function that accepts the poolPromise
 module.exports = function(poolPromise) {

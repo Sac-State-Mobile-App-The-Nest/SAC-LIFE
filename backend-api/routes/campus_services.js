@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../config'); // server config file
-const { authenticateToken } = require('../authMiddleware');
-const { verifyRole,  authenticateToken: adminAuthToken } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/studentAuthMiddleware');
+const { verifyRole,  authenticateToken: adminAuthToken } = require('../middleware/adminAuthMiddleware');
 
 module.exports = function(poolPromise) {
 
