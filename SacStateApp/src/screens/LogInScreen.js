@@ -7,7 +7,7 @@ import backgroundImage from '../assets/logInBackground.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
-import styles from '../LoginStyles/LoginStyles';
+import styles from '../styles/LoginStyles';
 //import PushNotificationService from '../notifications/PushNotificationService';
 
 import BASE_URL from '../apiConfig.js';

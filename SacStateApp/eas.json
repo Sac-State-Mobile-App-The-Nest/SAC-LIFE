@@ -7,7 +7,7 @@
     "production": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "developmentClient": false
     },

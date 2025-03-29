@@ -6,7 +6,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import ParsedText from 'react-native-parsed-text';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import styles from '../ChatbotStyles/ChatbotStyles';
+import styles from '../styles/ChatbotStyles';
 
 const ChatbotScreen = () => {
     const [message, setMessage] = useState('');

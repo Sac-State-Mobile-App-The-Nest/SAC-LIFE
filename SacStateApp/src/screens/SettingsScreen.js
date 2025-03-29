@@ -2,7 +2,7 @@
 import React, {useState, useEffect} from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, Button, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import styles from '../SettingsStyles/SettingsStyles'; // Import styles
+import styles from '../styles/SettingsStyles'; // Import styles
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { fetchUserAreaOfStudy } from '../DashboardAPI/api';

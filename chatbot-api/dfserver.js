@@ -54,8 +54,6 @@ async function insertChatLog(stdId, studentQuestion, botResponse) {
 }
 
 
-
-
 app.post('/message', async (req, res) => {
   try {
     const { message, std_id } = req.body;
@@ -124,8 +122,6 @@ app.post('/message', async (req, res) => {
     }
   }
 });
-
-
 
 
 app.get('/api/students/getLoggedInUser', async (req, res) => {

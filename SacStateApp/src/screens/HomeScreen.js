@@ -1,7 +1,7 @@
 // screens/Dashboard.js
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import styles from '../HomeStyles/HomeStyles'; //new
+import styles from '../styles/HomeStyles'; //new
 
 const Dashboard = ({ navigation }) => {
   return (
