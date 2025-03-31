@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
 import styles from '../styles/LoginStyles';
-//import PushNotificationService from '../notifications/PushNotificationService';
+import PushNotificationService from '../notifications/PushNotificationService';
 
 import BASE_URL from '../apiConfig.js';
 
@@ -23,6 +23,7 @@ const LogInScreen = () => {
     // Login function
     const login = async () => {
         try {
+            console.log("BASE_URL:", BASE_URL);
             const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
             const userId = response.data.userId; 
@@ -30,9 +31,17 @@ const LogInScreen = () => {
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
 
+            const fcmToken = await PushNotificationService.getToken(userId);
+            if (!fcmToken) {
+                console.error("FCM token was not saved to backend.");
+              } else {
+                console.log("FCM token registered successfully.");
+              }
             const booleanResponse = await axios.get(`${BASE_URL}/api/login_info/check-login-bool`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
+            setLoading(false);
 
             Alert.alert('Login successful');
             // If login is successful, navigate to homescreen
@@ -42,6 +51,7 @@ const LogInScreen = () => {
                 navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
+            setLoading(false);
             if (error.response.status === 403){
                 Alert.alert("Error", error.response.data.message);
                 return;

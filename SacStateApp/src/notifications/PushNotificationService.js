@@ -1,5 +1,5 @@
 import messaging from "@react-native-firebase/messaging";
-import { Alert } from "react-native";
+import { Alert,  Platform } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class PushNotificationService {
@@ -19,22 +19,28 @@ class PushNotificationService {
 
   async getToken(userId) {
     try {
-        const token = await messaging().getToken();
-        console.log("FCM Token:", token);
+      const token = await messaging().getToken();
+      console.log("FCM Token:", token);
 
-        // Send token to backend
-        await fetch(`https://${process.env.DEV_BACKEND_SERVER_IP}/api/notifications/register-token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: userId, // Pass the logged-in user's ID
-                fcmToken: token
-            })
-        });
-
-        return token;
+      const deviceInfo = `${Platform.OS} - ${Platform.Version}`;
+  
+      const response = await fetch(`${process.env.PROD_BACKEND_URL}/api/notifications/register-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, fcmToken: token, deviceInfo })
+      });
+  
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Failed to register FCM token on backend:", response.status, data);
+        return null;
+      }
+  
+      console.log("FCM Token saved to backend:", data);
+      return token;
     } catch (error) {
-        console.error("Error getting FCM Token:", error);
+      console.error("Error getting or registering FCM Token:", error);
+      return null;
     }
   }
 

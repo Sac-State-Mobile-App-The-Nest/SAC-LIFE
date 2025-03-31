@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// import PushNotificationService from "./src/notifications/PushNotificationService";
+import PushNotificationService from "./src/notifications/PushNotificationService";
 
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -13,7 +13,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LogInScreen from './src/screens/LogInScreen';
 import ProfileCreationScreen from './src/screens/ProfileCreationScreen';
-import WelcomeScreen from './src/screens/WelcomeScreen'; // Your welcome screen
+import WelcomeScreen from './src/screens/WelcomeScreen'; 
 import AllServicesScreen from './src/screens/AllServicesScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import WellnessScreen from './src/screens/WellnessScreen';
