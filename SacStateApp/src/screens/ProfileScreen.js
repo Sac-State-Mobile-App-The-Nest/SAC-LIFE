@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'r
 import defaultPFP from '../assets/defaultPFP.png'; // Profile picture
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import styles from '../ProfileStyles/ProfileStyles'; //new
+import styles from '../styles/ProfileStyles'; //new
 
 const ProfileScreen = () => {
   const [userInfo, setUserInfo] = useState(null);

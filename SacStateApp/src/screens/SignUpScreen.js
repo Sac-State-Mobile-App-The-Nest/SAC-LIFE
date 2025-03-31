@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import styles from '../SignUpStyles/SignUpStyles';
+import styles from '../styles/SignUpStyles';
 import backgroundImage from '../assets/logInBackground.jpg';
 import axios from 'axios';
 
