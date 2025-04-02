@@ -1,9 +1,10 @@
 import messaging from "@react-native-firebase/messaging";
 import { Alert,  Platform } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BASE_URL from "../apiConfig";
 
 class PushNotificationService {
-  async requestUserPermission() {
+  async requestUserPermission(userId) {
     const authStatus = await messaging().requestPermission();
     const enabled =
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -11,7 +12,7 @@ class PushNotificationService {
 
     if (enabled) {
       console.log("Notification permission granted.");
-      return this.getToken();
+      return this.getToken(userId);
     } else {
       console.log("Notification permission denied.");
     }
@@ -24,19 +25,21 @@ class PushNotificationService {
 
       const deviceInfo = `${Platform.OS} - ${Platform.Version}`;
   
-      const response = await fetch(`${process.env.PROD_BACKEND_URL}/api/notifications/register-token`, {
+      const response = await fetch(`${BASE_URL}/api/notifications/register-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, fcmToken: token, deviceInfo })
       });
   
-      const data = await response.json();
+      const result = await response.json();
+      console.log("📡 JSON response from token register:", result);
+
       if (!response.ok) {
-        console.error("Failed to register FCM token on backend:", response.status, data);
+        console.error("Failed to register FCM token on backend:", response.status, result);
         return null;
       }
   
-      console.log("FCM Token saved to backend:", data);
+      console.log("FCM Token saved to backend:", result);
       return token;
     } catch (error) {
       console.error("Error getting or registering FCM Token:", error);

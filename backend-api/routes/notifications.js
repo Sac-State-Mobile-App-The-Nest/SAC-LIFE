@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
+const admin = require('../firebaseAdmin');
 
 // Endpoint to register FCM token
 router.post('/register-token', async (req, res) => {
@@ -25,6 +26,77 @@ router.post('/register-token', async (req, res) => {
         res.status(200).json({ message: 'FCM Token saved successfully' });
     } catch (err) {
         console.error('Error saving FCM token:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+// DELETE endpoint to remove FCM token
+router.delete('/remove-token', async (req, res) => {
+    const { userId, fcmToken } = req.body;
+
+    if (!userId || !fcmToken) {
+        return res.status(400).json({ message: 'Missing userId or fcmToken' });
+    }
+
+    try {
+        const request = new sql.Request();
+        request.input('userId', sql.Int, userId);
+        request.input('fcmToken', sql.VarChar, fcmToken);
+
+        await request.query(`
+            DELETE FROM fcm_tokens
+            WHERE std_id = @userId AND fcm_token = @fcmToken
+        `);
+
+        res.status(200).json({ message: 'FCM Token removed successfully' });
+    } catch (err) {
+        console.error('Error deleting FCM token:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+router.post('/welcome', async (req, res) => {
+    const { userId, title, body } = req.body;
+    console.log('/welcome hit with userId:', userId);
+
+    if (!userId || !title || !body) {
+        return res.status(400).json({ message: 'Missing userId, title, or body' });
+    }
+
+    try {
+        const request = new sql.Request();
+        request.input('userId', sql.Int, userId);
+
+        const result = await request.query(`
+            SELECT fcm_token FROM fcm_tokens WHERE std_id = @userId
+        `);
+
+        const tokens = result.recordset.map(row => row.fcm_token);
+
+        console.log("🔍 Raw FCM tokens from DB:", result.recordset); // ✅ after the query
+        console.log("Tokens found:", tokens.length, tokens);
+
+        if (tokens.length === 0) {
+            console.warn("⚠️ No FCM tokens found for user:", userId);
+            return res.status(404).json({ message: 'No FCM tokens found for user' });
+        }
+
+        const message = {
+            notification: { title, body },
+            tokens,
+        };
+
+        const response = await admin.messaging().sendMulticast(message);
+
+        console.log("Firebase sendMulticast response:", response);
+
+        if (response.failureCount > 0) {
+            console.warn("Some notifications failed:", response.responses);
+        }
+
+        res.status(200).json({ message: 'Notification sent', successCount: response.successCount });
+    } catch (err) {
+        console.error('Error sending welcome notification:', err);
         res.status(500).send('Server error');
     }
 });

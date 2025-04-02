@@ -30,6 +30,7 @@ const LogInScreen = () => {
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
+            await AsyncStorage.setItem('userId', userId.toString());
 
             const fcmToken = await PushNotificationService.getToken(userId);
             if (!fcmToken) {

@@ -41,7 +41,8 @@ export default function App() {
         }
 
         // Initialize push notifications only AFTER checking AsyncStorage
-        await PushNotificationService.requestUserPermission();
+        const userId = await AsyncStorage.getItem("userId");
+        await PushNotificationService.requestUserPermission(userId);
         PushNotificationService.listenForNotifications();
       } catch (error) {
         console.error("Error initializing app:", error);

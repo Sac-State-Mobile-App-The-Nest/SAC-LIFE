@@ -7,6 +7,7 @@ import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/ProfileCreationStyles';
 import HoldToCompleteButton from '../components/HoldToCompleteButton';
+import BASE_URL from '../apiConfig.js';
 
 const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo1.png');
@@ -84,6 +85,8 @@ const getMinimumGraduationYear = (selectedYear) => {
 };
 
 const sendProfileDataToServer = async (answers, navigation) => {
+    const userId = await AsyncStorage.getItem('userId');
+    console.log("📤 Sending profile for userId:", userId);
     try {
         const specificAnswers = {
             question0: answers["0"],    //name
@@ -98,7 +101,7 @@ const sendProfileDataToServer = async (answers, navigation) => {
             question9: answers["9"]     //veteran check
         };
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch(`https://${process.env.DEV_BACKEND_SERVER_IP}/api/students/profile-answers`, {
+        const response = await fetch(`${BASE_URL}/api/students/profile-answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -110,6 +113,18 @@ const sendProfileDataToServer = async (answers, navigation) => {
         if (!response.ok) {
             throw new Error('Error sending profile data to server');
         }
+
+         // Send welcome push notification
+         console.log("Sending welcome notification for userId:", userId);
+         await fetch(`${BASE_URL}/api/notifications/welcome`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: parseInt(userId),
+                title: "Welcome to Sac LIFE!",
+                body: "Thanks for completing your profile. Let’s make this semester amazing!"
+            })
+        });
 
         navigation.reset({
             index: 0,
@@ -395,7 +410,12 @@ const ProfileCreation = () => {
                                 <TutorialScreen onPressNext={handleTutorialFinish} />
                             </View>
                         ) : (
-                            <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
+                            <CompletionScreen
+                                onPress={() => {
+                                    console.log("CompletionScreen button pressed — sending profile data");
+                                    sendProfileDataToServer(answers, navigation);
+                                }}
+                                />
                         )
                     ) : (
                         <>

@@ -34,6 +34,7 @@
     "expo-sharing": "~13.0.1",
     "expo-status-bar": "~2.0.0",
     "express": "^4.21.1",
+    "firebase-admin": "^13.2.0",
     "latest": "^0.2.0",
     "leo-profanity": "^1.7.0",
     "lottie-react-native": "7.1.0",
