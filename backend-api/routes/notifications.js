@@ -71,13 +71,13 @@ router.post('/welcome', async (req, res) => {
             SELECT fcm_token FROM fcm_tokens WHERE std_id = @userId
         `);
 
-        const tokens = result.recordset.map(row => row.fcm_token);
+        const tokens = [...new Set(result.recordset.map(row => row.fcm_token))];
 
-        console.log("🔍 Raw FCM tokens from DB:", result.recordset); // ✅ after the query
+        console.log(" Raw FCM tokens from DB:", result.recordset); 
         console.log("Tokens found:", tokens.length, tokens);
 
         if (tokens.length === 0) {
-            console.warn("⚠️ No FCM tokens found for user:", userId);
+            console.warn(" No FCM tokens found for user:", userId);
             return res.status(404).json({ message: 'No FCM tokens found for user' });
         }
 
@@ -91,14 +91,39 @@ router.post('/welcome', async (req, res) => {
         console.log("Firebase sendMulticast response:", response);
 
         if (response.failureCount > 0) {
-            console.warn("Some notifications failed:", response.responses);
+            response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                    console.warn(`❌ Failed to send to token [${tokens[idx]}]:`, resp.error.message);
+                }
+            });
         }
-
+        
         res.status(200).json({ message: 'Notification sent', successCount: response.successCount });
     } catch (err) {
         console.error('Error sending welcome notification:', err);
         res.status(500).send('Server error');
     }
 });
+
+router.post('/manual-test-fcm', async (req, res) => {
+    const token = 'd6_XQJgv...'; // paste 1 of your real tokens here
+  
+    const message = {
+      notification: {
+        title: 'Test Notification',
+        body: 'This is a manual test push 🔔'
+      },
+      token
+    };
+  
+    try {
+      const response = await admin.messaging().send(message);
+      console.log('Manual test push response:', response);
+      res.status(200).send('Push sent!');
+    } catch (error) {
+      console.error('Manual push failed:', error);
+      res.status(500).send('Push failed.');
+    }
+  });
 
 module.exports = router;

@@ -41,6 +41,7 @@ export default function App() {
         }
 
         // Initialize push notifications only AFTER checking AsyncStorage
+        registerForegroundHandler();
         const userId = await AsyncStorage.getItem("userId");
         await PushNotificationService.requestUserPermission(userId);
         PushNotificationService.listenForNotifications();
