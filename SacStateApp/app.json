@@ -18,7 +18,7 @@
       "googleServicesFile": "./google-services.json",
       "releaseChannel": "production",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Sac_LIFE_app_icon.png",
         "backgroundColor": "#ffffff"
       },
       "useNextNotificationsApi": true,
