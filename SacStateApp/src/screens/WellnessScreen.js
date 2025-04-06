@@ -4,8 +4,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import styles from '../WellnessStyles/WellnessStyles';
+import BASE_URL from '../apiConfig.js';
 
 const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
@@ -288,17 +288,33 @@ const WellnessCreation = () => {
     const handleCompletePress = async () => {
         const totalScore = calculateTotalScore();
         console.log("Check-in complete. Total score:", totalScore);
+        console.log("Answers: ", answers);
 
         try {
-            // Store both answers and the calculated score
-            await AsyncStorage.setItem('wellnessAnswers', JSON.stringify({
-                answers: answers,
-                score: totalScore
-            }));
+            const payload = {
+                wellnessAnswers: {
+                    answers: answers,
+                    score: totalScore,
+                },
+            };
+
+            const token = await AsyncStorage.getItem('token');
+            const response = await fetch(`${BASE_URL}/api/students/wellness-answers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error sending wellness data to server');
+            }
             navigation.navigate('Dashboard');
         } catch (error) {
-            console.error('Failed to save answers:', error);
-            Alert.alert('Error', 'Failed to save your answers. Please try again.');
+            console.error('Error sending wellness answers: ', error);
+            Alert.alert('Error', 'Failed to send your answers. Please try again.');
         }
     };
 
