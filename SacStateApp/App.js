@@ -4,8 +4,7 @@ import { ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import PushNotificationService from "./src/notifications/PushNotificationService";
+import PushNotificationService, { registerForegroundHandler } from "./src/notifications/PushNotificationService";
 
 
 import HomeScreen from './src/screens/HomeScreen';

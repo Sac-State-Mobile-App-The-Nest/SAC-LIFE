@@ -2,11 +2,10 @@ import messaging from "@react-native-firebase/messaging";
 import { Alert,  Platform } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BASE_URL from "../apiConfig";
-import { Alert, Platform } from 'react-native';
 
 export const registerForegroundHandler = () => {
   messaging().onMessage(async remoteMessage => {
-      console.log('📬 Foreground notification:', remoteMessage);
+      console.log(' Foreground notification:', remoteMessage);
 
       // Example display using Alert (replace with a Toast or custom UI)
       if (remoteMessage.notification) {
@@ -46,7 +45,7 @@ class PushNotificationService {
       });
   
       const result = await response.json();
-      console.log("📡 JSON response from token register:", result);
+      console.log("JSON response from token register:", result);
 
       if (!response.ok) {
         console.error("Failed to register FCM token on backend:", response.status, result);

@@ -114,6 +114,8 @@ const sendProfileDataToServer = async (answers, navigation) => {
             throw new Error('Error sending profile data to server');
         }
 
+        console.log("Sending welcome notification to backend:", `${BASE_URL}/api/notifications/welcome`);
+
          // Send welcome push notification
          console.log("Sending welcome notification for userId:", userId);
          await fetch(`${BASE_URL}/api/notifications/welcome`, {
@@ -125,6 +127,7 @@ const sendProfileDataToServer = async (answers, navigation) => {
                 body: "Thanks for completing your profile. Let’s make this semester amazing!"
             })
         });
+        Alert.alert("Success", "Profile completed and welcome notification sent!");
 
         navigation.reset({
             index: 0,
@@ -317,14 +320,16 @@ const ProfileCreation = () => {
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
-    const handleTutorialFinish = () => {
-        setHasSeenTutorial(true);  // Mark tutorial as completed
-        // Proceed to dashboard or desired screen
-        navigation.reset({
-            index: 0,
-            routes: [{ name: "Dashboard" }], // Adjust route name as needed
-        });
-    };
+    const handleTutorialFinish = async () => {
+        setHasSeenTutorial(true);
+        try {
+          console.log("Tutorial finished — now sending profile and triggering notification");
+          await sendProfileDataToServer(answers, navigation);
+        } catch (err) {
+          console.error("Failed to complete profile creation flow:", err);
+          Alert.alert("Oops!", "Something went wrong while finishing your profile.");
+        }
+      };
 
     const handleNextPress = () => {
         if (currentQuestion === 0 && preferredName.trim() === "") {

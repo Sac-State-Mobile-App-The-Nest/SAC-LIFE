@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const admin = require('../firebaseAdmin');
+const { getMessaging } = require('../firebaseAdmin');
+
+console.log('Notifications router loaded ✅');
 
 // Endpoint to register FCM token
 router.post('/register-token', async (req, res) => {
@@ -19,8 +21,19 @@ router.post('/register-token', async (req, res) => {
 
         // Save token into login_info table (make sure fcm_token column exists!)
         await request.query(`
-            INSERT INTO fcm_tokens (std_id, fcm_token, device_info)
-            VALUES (@userId, @fcmToken, @deviceInfo)
+             IF NOT EXISTS (
+                SELECT 1 FROM fcm_tokens WHERE fcm_token = @fcmToken
+            )
+            BEGIN
+                INSERT INTO fcm_tokens (std_id, fcm_token, device_info)
+                VALUES (@userId, @fcmToken, @deviceInfo)
+            END
+            ELSE
+            BEGIN
+                UPDATE fcm_tokens
+                SET std_id = @userId, device_info = @deviceInfo, last_seen = GETDATE()
+                WHERE fcm_token = @fcmToken
+            END
         `);
 
         res.status(200).json({ message: 'FCM Token saved successfully' });
@@ -81,21 +94,33 @@ router.post('/welcome', async (req, res) => {
             return res.status(404).json({ message: 'No FCM tokens found for user' });
         }
 
+        const messaging = getMessaging();
+
         const message = {
             notification: { title, body },
             tokens,
         };
 
-        const response = await admin.messaging().sendMulticast(message);
+        const response = await messaging.sendEachForMulticast(message);
+        console.log("Push notification sent successfully to FCM");
 
         console.log("Firebase sendMulticast response:", response);
-
         if (response.failureCount > 0) {
-            response.responses.forEach((resp, idx) => {
-                if (!resp.success) {
-                    console.warn(`❌ Failed to send to token [${tokens[idx]}]:`, resp.error.message);
+            for (let i = 0; i < response.responses.length; i++) {
+                const res = response.responses[i];
+                if (!res.success) {
+                    const errorMsg = res.error.message;
+                    console.warn(`Failed to send to token [${tokens[i]}]:`, errorMsg);
+        
+                    if (errorMsg.includes('Requested entity was not found')) {
+                        // Remove the invalid token from the database
+                        const deleteRequest = new sql.Request();
+                        deleteRequest.input('fcmToken', sql.VarChar, tokens[i].trim());
+                        await deleteRequest.query(`DELETE FROM fcm_tokens WHERE fcm_token = @fcmToken`);
+                        console.log(`Cleaned up invalid token: ${tokens[i]}`);
+                    }
                 }
-            });
+            }
         }
         
         res.status(200).json({ message: 'Notification sent', successCount: response.successCount });
@@ -111,7 +136,7 @@ router.post('/manual-test-fcm', async (req, res) => {
     const message = {
       notification: {
         title: 'Test Notification',
-        body: 'This is a manual test push 🔔'
+        body: 'This is a manual test push '
       },
       token
     };

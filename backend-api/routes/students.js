@@ -79,7 +79,17 @@ module.exports = function (poolPromise) {
     const studentId = req.user.std_id;
     // question 0 and 5 are not tags. it will be used for test_students | preferred_name, expected_grad
     const { question0, question1, question2, question3, question4, question5, question6, question7 } = specificAnswers;
-    const allTags = [question1, question2, question3, question4, ...question6, ...question7]
+    
+    const safeArray = (v) => Array.isArray(v) ? v : v ? [v] : [];
+
+    const allTags = [
+      question1,
+      question2,
+      question3,
+      question4,
+      ...safeArray(question6),
+      ...safeArray(question7)
+    ];
 
     try {
       const pool = await poolPromise;
