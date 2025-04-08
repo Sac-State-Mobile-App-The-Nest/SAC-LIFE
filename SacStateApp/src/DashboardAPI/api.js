@@ -129,3 +129,22 @@ export const sendStudentCreatedEvent = async (createdEvent) => {
     console.error('Error sending created event: ', err);
   }
 };
+
+// update student created event
+export const updateStudentCreatedEvent = async (event_id, editedEvent) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const response = await axios.put(`${BASE_URL}/api/events/update-created-event/${event_id}`, 
+      { updatedEvent: editedEvent }, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    // console.log('Update response', response.data);
+  } catch (err) {
+    console.error('Error updating created event: ', err);
+  }
+};
