@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const sql = require('mssql');
 const router = express.Router();
-const { VALID_ROLES } = require('../../middleware/authMiddleware');
+const { VALID_ROLES } = require('../../middleware/adminAuthMiddleware');
 
 const JWT_SECRET = process.env.JWT_SECRET_ADMIN;
 const JWT_REFRESH_SECRET = process.env.JWT_SECRET_ADMIN_REFRESH;

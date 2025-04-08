@@ -1,7 +1,7 @@
 import React, { useState }  from 'react';
 import { View, Text, Modal, TextInput, Button, TouchableOpacity, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
-import styles from '../SettingsStyles/SettingsStyles';
+import styles from '../styles/SettingsStyles';
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { mutedDarkGreen, darkGray } from '../SacStateColors/GeneralColors';

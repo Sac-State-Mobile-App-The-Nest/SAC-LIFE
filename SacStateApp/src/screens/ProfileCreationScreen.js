@@ -5,7 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
 import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from '../ProfileCreationStyles/ProfileCreationStyles';
+import styles from '../styles/ProfileCreationStyles';
+import HoldToCompleteButton from '../components/HoldToCompleteButton';
 
 const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo1.png');
@@ -229,43 +230,53 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
     }
 };
 
-const TutorialScreen = ({ onPressNext }) => (
-    <ScrollView contentContainerStyle={styles.tutorialContainer}>
-        <Text style={styles.tutorialTitle}>Tutorial</Text>
+const TutorialScreen = ({ onPressNext, onSkip }) => (
+    <View style={{ flex: 1 }}>
+    {/* Skip button */}
+    <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+      <Text style={styles.skipButtonText}>Skip</Text>
+    </TouchableOpacity>
 
-        <Text style={styles.tutorialText}>
-            Welcome! In this guide, you'll discover how to effortlessly navigate the app and explore its key features.
-        </Text>
-
-        <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            The Dashboard is your central hub, featuring a calendar where you can easily create your own events. {"\n"}{"\n"}Simply expand the calendar and double-tap on any date to get started.
-        </Text>
-
-        <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            Next up, meet HerkyBot, our very own AI chatbot! {"\n"}{"\n"}Reach out to HerkyBot whenever you need help, have questions, or require information. {"\n"}{"\n"}It's here to assist you!
-        </Text>
-
-        <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            Next, you'll find our wellness questions, designed to help personalize your services and tailor your experience to your unique needs.
-        </Text>
-
-        <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            Feel free to continue exploring the app. {"\n"}{"\n"} If you have any questions along the way, just ask HerkyBot – it's here to help!
-        </Text>
-
-        <TouchableOpacity onPress={onPressNext}>
-            <Text style={styles.finishTutorial}>Finish Tutorial</Text>
-        </TouchableOpacity>
-    </ScrollView>
-);
+        <ScrollView contentContainerStyle={styles.tutorialContainer}>
+            <Text style={styles.tutorialTitle}>Tutorial</Text>
+        
+            <Text style={styles.tutorialText}>
+                Welcome! In this guide, you'll discover how to effortlessly navigate the app and explore its key features.
+            </Text>
+        
+            <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                The Dashboard is your central hub, featuring a calendar where you can easily create your own events.{"\n\n"}
+                Simply expand the calendar and double-tap on any date to get started.
+            </Text>
+        
+            <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                Next up, meet HerkyBot, our very own AI chatbot!{"\n\n"}
+                Reach out to HerkyBot whenever you need help, have questions, or require information.{"\n\n"}
+                It's here to assist you!
+            </Text>
+        
+            <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                Next, you'll find our wellness questions, designed to help personalize your services and tailor your experience to your unique needs.
+            </Text>
+        
+            <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                Feel free to continue exploring the app.{"\n\n"}
+                If you have any questions along the way, just ask HerkyBot – it's here to help!
+            </Text>
+        </ScrollView>
+  
+      {/* Fancy Hold-to-Complete Button */}
+      <HoldToCompleteButton onComplete={onPressNext} />
+    </View>
+  );
 
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);

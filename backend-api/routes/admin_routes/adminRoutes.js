@@ -1,7 +1,7 @@
 const express = require('express');
 const sql = require('mssql');
 const router = express.Router();
-const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware');
+const { verifyRole, authenticateToken } = require('../../middleware/adminAuthMiddleware');
 const bcrypt = require('bcrypt');
 
 module.exports = function (poolPromise) {

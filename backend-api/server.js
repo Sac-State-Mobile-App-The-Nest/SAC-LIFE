@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const { poolPromise } = require('./db'); // Use the shared db module
-const { authenticateToken, verifyRole } = require('./middleware/authMiddleware');
 
 const app = express();
 app.use(express.json());
@@ -33,13 +32,11 @@ app.use('/api/events', eventRoute);
 app.use('/signup', signUpRoute);
 app.use('/api/notifications', notificationRoutes);
 
-
 app.get('/api/helloMessage', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
 
 const port = process.env.PORT;
-
 
 // Only start the server if this file is executed directly
 if (require.main === module) {
