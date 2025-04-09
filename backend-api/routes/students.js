@@ -132,6 +132,66 @@ module.exports = function (poolPromise) {
 
   });
 
+  router.post('/wellness-answers', authenticateToken, async (req, res) => {
+    const { wellnessAnswers } = req.body;
+    const { answers, score } = wellnessAnswers;
+    const studentId = req.user.std_id;
+    try {
+      const pool = await poolPromise;
+      const request = pool.request();
+
+      request.input('std_id', sql.Int, studentId);
+      request.input('wellness_answer', sql.NVarChar(sql.MAX), JSON.stringify(answers));
+      request.input('wellness_score', sql.Int, score);
+
+      await request.query(`
+        UPDATE test_students
+        SET wellness_answer = @wellness_answer, wellness_score = @wellness_score
+        WHERE std_id = @std_id;
+      `);
+
+      res.status(200).json({ message: 'Stored wellness score and answers'})
+    } catch (err) {
+      console.error('SQL error:', err);
+      res.status(500).send('Server Error');
+    }
+
+  });
+
+  router.get('/wellness-answers', authenticateToken, async (req, res) => {
+    const studentId = req.user.std_id;
+  
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request()
+        .input('std_id', sql.Int, studentId)
+        .query(`
+          SELECT wellness_answer, wellness_score
+          FROM test_students
+          WHERE std_id = @std_id;
+        `);
+  
+      const record = result.recordset[0];
+  
+      if (!record) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      const wellnessAnswers = {
+        answers: record.wellness_answer ? JSON.parse(record.wellness_answer) : {},
+        score: record.wellness_score || 0
+      };
+  
+      console.log(wellnessAnswers);
+      res.status(200).json({ wellnessAnswers });
+  
+    } catch (err) {
+      console.error('SQL error:', err);
+      res.status(500).send('Server Error');
+    }
+  });
+  
+
   //Get the the student's college to display on profile page (ex: college of business, college of engineering & computer science)
   router.get('/studentAreaOfStudy', authenticateToken, async (req, res) => {
     try {

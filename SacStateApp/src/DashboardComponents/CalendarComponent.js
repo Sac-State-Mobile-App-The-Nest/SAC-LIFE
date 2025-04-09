@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { sendStudentCreatedEvent } from '../DashboardAPI/api';
+import { sendStudentCreatedEvent, updateStudentCreatedEvent } from '../DashboardAPI/api';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../DashboardStyles/CalendarStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView, Platform, Linking } from 'react-native';
 import * as filter from 'leo-profanity';
+import moment from 'moment-timezone';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { pomegranite } from '../SacStateColors/GeneralColors';
 
 const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [currentWeek, setCurrentWeek] = useState([]);
@@ -55,24 +58,16 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
     getAllStudentCreatedEvents();
     setCurrentWeek(week);
   }, []);
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentDate(new Date());
-  //   }, 1000); // Update every second
-  
-  //   return () => clearInterval(interval); // Cleanup when the component unmounts
-  // }, []);
-  
-  // watches for changes in events and makes sure the events show right when app is loaded
+
   useEffect(() => {
     if (sacStateEvents.length > 0 || studentEvents.length > 0) {
       const todayEvents = [
-        ...getSacStateEventsForDate(selectedDate),
         ...getStudentCreatedEventsForDate(selectedDate),
+        ...getSacStateEventsForDate(selectedDate),
       ];
       setSelectedDayEvents(todayEvents);
     }
-  }, [sacStateEvents, studentEvents, selectedDate,]);
+  }, [sacStateEvents, studentEvents, selectedDate]);
 
   const toggleCalendar = () => {
     setFullCalendarVisible(!isFullCalendarVisible);
@@ -90,8 +85,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       openEventModal(day); // Open event creation modal
     } else {
       setSelectedDate(day.dateObject);
-      const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
       const userEvents = getStudentCreatedEventsForDate(day.dateObject); //user created events
+      const campusEvents = getSacStateEventsForDate(day.dateObject); //sac state events
       setSelectedDayEvents([...userEvents, ...campusEvents]); // Get events for the tapped day - user and campus events
     }
 
@@ -180,13 +175,9 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   //get a list of sac state events just for the day when clicked on calendar
   const getSacStateEventsForDate = (date) => {
     return sacStateEvents.filter(event => {
-      const eventDate = new Date(event.event_start_date);
-  
-      // Normalize both eventDate and the date to be compared to, and only use year, month, and day
-      const eventDateString = eventDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      const selectedDateString = date.toISOString().split('T')[0];  // Format: YYYY-MM-DD
-  
-      return eventDateString === selectedDateString;
+      const eventDate = moment.tz(event.event_start_date, "YYYY-MM-DD HH:mm:ss", "America/Los_Angeles");
+      const selectedDate = moment(date).tz("America/Los_Angeles");
+      return eventDate.format("YYYY-MM-DD") === selectedDate.format("YYYY-MM-DD");
     });
   };
 
@@ -206,17 +197,13 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   };
   const getStudentCreatedEventsForDate = (date) => {
     return studentEvents.filter(event => {
-      const eventDate = new Date(event.event_start_date);
-  
-      // Normalize both eventDate and the date to be compared to, and only use year, month, and day
-      const eventDateString = eventDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      const selectedDateString = date.toISOString().split('T')[0];  // Format: YYYY-MM-DD
-  
-      return eventDateString === selectedDateString;
+      const eventDate = moment.tz(event.event_start_date, "YYYY-MM-DD HH:mm:ss", "America/Los_Angeles");
+      const selectedDate = moment(date).tz("America/Los_Angeles");
+      return eventDate.format("YYYY-MM-DD") === selectedDate.format("YYYY-MM-DD");
     });
   };
 
-  const saveEvent = () => {
+  const saveEventOrChanges = async (event_id) => {
     if (eventTitle.trim() && eventDescription.trim()) {
 
       //title and description length filtering
@@ -242,8 +229,8 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
       const newEvent = {
         title: eventTitle,
         description: eventDescription,
-        event_start_date: eventStartTime.toISOString().split('T')[0] + " " + eventStartTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false}),
-        event_end_date: eventEndTime.toISOString().split('T')[0] + " " + eventEndTime.toLocaleTimeString([], {hour:'2-digit', minute: '2-digit', second: '2-digit',hour12: false})
+        event_start_date: `${eventStartTime.toLocaleDateString('en-CA')} ${eventStartTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
+        event_end_date: `${eventEndTime.toLocaleDateString('en-CA')} ${eventEndTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`
       };
       
       if (eventToEdit) {
@@ -255,16 +242,14 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
               : event
           )
         );
+        await updateStudentCreatedEvent(event_id, newEvent);
         Alert.alert('Event Updated', `Event updated for ${eventDate.toLocaleDateString()}`);
       } else {
         // // Add the new event locally first
         // setStudentEvents((prevEvents) => [...prevEvents, newEvent]);
         // setSelectedDayEvents((prevEvents) => [...prevEvents, newEvent]); // Update events for selected day immediately
   
-        
-        sendStudentCreatedEvent(newEvent); // Send to server
-        
-  
+        await sendStudentCreatedEvent(newEvent); // Send to server
         Alert.alert('Event Created', `Event created for ${eventDate.toLocaleDateString()}`);
       }
   
@@ -278,32 +263,60 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   };
   
 
-  const deleteEvent = () => {
-    if (eventToEdit) {
-      Alert.alert(
-        'Delete Event',
-        `Are you sure you want to delete the event "${eventToEdit.title}"?`,
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
+  const handleDeleteEvent = (selectedEvent) => {
+    Alert.alert(
+      'Delete Event',
+      `Are you sure you want to delete the event "${selectedEvent.event_title}"?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'delete',
+          onPress: () => {
+            //remove event
+            deleteEvent(selectedEvent);
+            // getAllStudentCreatedEvents();
+            setStudentEvents((prevEvents) =>
+              prevEvents.filter((event) => event.event_id !== selectedEvent.event_id)
+            );
+            console.log("deleted event");
+            console.log(studentEvents);
           },
-          {
-            text: 'Delete',
-            onPress: () => {
-              // Remove the event from the events array
-              setEvents((prevEvents) =>
-                prevEvents.filter((event) => event !== eventToEdit)
-              );
-              setSelectedDayEvents(getEventsForDate(selectedDate));
-              Alert.alert('Event Deleted', `Event "${eventToEdit.title}" has been deleted.`);
-              closeEventModal();
-            },
-          },
-        ]
-      );
-    }
+        },
+      ]
+    );
   };
+  const deleteEvent = async (selectedEvent) => {
+    try{
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.delete(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/deleteEvent/${selectedEvent.event_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data) {
+        closeEventModal();
+      } else {
+        Alert.alert("Unable to delete");
+      }
+    } catch(err){
+      console.error("Unable to delete");
+    }
+  }
+
+  const handleEditEvent = (selectedEvent) => {
+    setEventToEdit(selectedEvent);
+    setEventTitle(selectedEvent.event_title);
+    setEventDescription(selectedEvent.event_description);
+    setEventStartTime(new Date(selectedEvent.event_start_date));
+    setEventEndTime(new Date(selectedEvent.event_end_date));
+    setEventDate(new Date(selectedEvent.event_start_date));
+    setModalVisible(true);
+  }
+ 
 
   const generateMonthlyCalendarWithPadding = (currentDate) => {
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -545,11 +558,20 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
               />)
             }
 
-            <Button title={eventToEdit ? 'Save Changes' : 'Save Event'} onPress={saveEvent} />
-            {eventToEdit && (
-              <Button title="Delete Event" onPress={deleteEvent} color="red" />
-            )}
-            <Button title="Cancel" onPress={closeEventModal} />
+          <View style={{ gap: 10, alignItems: 'center' }}>
+            <Button 
+            
+              color="#043927" 
+              title={eventToEdit ? 'Save Changes' : 'Save Event'} 
+              onPress={() => saveEventOrChanges(eventToEdit ? eventToEdit.event_id : null)}
+            />
+            <Button 
+              color="#840029"
+              title="Cancel" 
+              onPress={closeEventModal} 
+            />
+          </View>
+
           </View>
         </View>
       </Modal>
@@ -579,10 +601,31 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
                   <View style={styles.expandedContent}>
                     <Text style={styles.eventDescription}>{event.event_description || "No description available."}</Text>
                     {event.event_link && (
-                      <TouchableOpacity onPress={() => Linking.openURL(event.event_link)}>
-                        <Text style={styles.eventLink}>Open Event Link</Text>
-                      </TouchableOpacity>
+                      <View style={styles.buttonsContainerLink}>
+                        <TouchableOpacity onPress={() => Linking.openURL(event.event_link)} style={styles.editButtonLink}>
+                          <Text style={styles.buttonTextLink}>Open Event Link</Text>
+                        </TouchableOpacity>
+                      </View>
                     )}
+                    {/* Buttons container for Edit and Delete */}
+                    <View style={styles.buttonsContainer}>
+                      {/* Edit Button */}
+                      {!event.event_link ?
+                        <TouchableOpacity onPress={() => handleEditEvent(event)} style={styles.editButton}>
+                          <Text style={styles.buttonText}>Edit</Text>
+                        </TouchableOpacity>
+                        : <></>
+                      }
+
+                      {/* Delete Button */}
+                      {!event.event_link ? 
+                        <TouchableOpacity onPress={() => handleDeleteEvent(event)} style={styles.deleteButton}>
+                          <Text style={styles.buttonText}>Delete</Text>
+                        </TouchableOpacity>
+                        : <></>
+                      }
+                    </View>
+                    
                   </View>
                 )}
               </TouchableOpacity>
