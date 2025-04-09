@@ -64,6 +64,7 @@ export default function App() {
   }
 
   return (
+    <>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName={isFirstLaunch ? "Welcome" : "LogIn"}
@@ -86,5 +87,6 @@ export default function App() {
         <Stack.Screen name= "WellnessHomeScreen" component ={WellnessHomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+  </>
   );
 }

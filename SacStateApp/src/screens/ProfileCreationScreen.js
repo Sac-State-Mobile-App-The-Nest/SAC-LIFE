@@ -91,9 +91,9 @@ const sendProfileDataToServer = async (answers, navigation) => {
         const specificAnswers = {
             question0: answers["0"],    //name
             question1: answers["1"],    //race
-            question2: answers["2"] === "Returning student" ? "reentry student" : answers["2"].toLowerCase(), //student status
+            question2: answers["2"] === "Returning student" ? "reentry student" : (answers["2"] ? answers["2"].toLowerCase() : ""), //student status
             question3: answers["3"],    //area of study
-            question4: answers["4"] === "Graduate" ? "graduate student" : answers["4"].toLowerCase(), //student year
+            question4: answers["4"] === "Graduate" ? "graduate student" : (answers["4"] ? answers["4"].toLowerCase() : ""), //student year
             question5: answers["5"]["semester"] + " " + answers["5"]["year"],   //student graduation 
             question6: answers["6"],    //campus interest
             question7: answers["7"],    //campus support
@@ -127,30 +127,19 @@ const sendProfileDataToServer = async (answers, navigation) => {
                 body: "Thanks for completing your profile. Let’s make this semester amazing!"
             })
         });
-        Alert.alert("Success", "Profile completed and welcome notification sent!");
-
         navigation.reset({
             index: 0,
             routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     } catch (err) {
         console.error('Error sending profile answers: ', err);
-        Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+
         navigation.reset({
             index: 0,
             routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     }
 };
-
-const CompletionScreen = ({ onPress }) => (
-    <View style={styles.completionContainer}>
-        <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-        <TouchableOpacity style={styles.largeButton} onPress={onPress}>
-            <Text style={styles.largeButtonText}>Create Your Profile!</Text>
-        </TouchableOpacity>
-    </View>
-);
 
 const QuestionRenderer = ({ question, answers, profileCreationManager, currentQuestion, preferredName, setPreferredName }) => {
     switch (question.inputType) {
@@ -410,19 +399,10 @@ const ProfileCreation = () => {
             <View style={styles.overlayContainer}>
                 <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                     {isCompleted ? (
-                        !hasSeenTutorial ? (
-                            <View style={styles.tutorialWrapper}>
-                                <TutorialScreen onPressNext={handleTutorialFinish} />
-                            </View>
+                        <View style={styles.tutorialWrapper}>
+                            <TutorialScreen onPressNext={handleTutorialFinish} onSkip={handleTutorialFinish} />
+                        </View>
                         ) : (
-                            <CompletionScreen
-                                onPress={() => {
-                                    console.log("CompletionScreen button pressed — sending profile data");
-                                    sendProfileDataToServer(answers, navigation);
-                                }}
-                                />
-                        )
-                    ) : (
                         <>
                             {/* Animated question title */}
                             <Animated.Text 
