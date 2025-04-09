@@ -124,7 +124,7 @@ const sendProfileDataToServer = async (answers, navigation) => {
             body: JSON.stringify({
                 userId: parseInt(userId),
                 title: "Welcome to Sac LIFE!",
-                body: "Thanks for completing your profile. Let’s make this semester amazing!"
+                body: "Thank you for completing your profile. We’re here to support your academic and personal success—let’s make it a great semester!"
             })
         });
         navigation.reset({

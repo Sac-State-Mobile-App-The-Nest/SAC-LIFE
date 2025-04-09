@@ -1,17 +1,24 @@
 import messaging from "@react-native-firebase/messaging";
-import { Alert,  Platform } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from "react-native";
+import Toast from 'react-native-toast-message';
 import BASE_URL from "../apiConfig";
 
 export const registerForegroundHandler = () => {
   messaging().onMessage(async remoteMessage => {
-      console.log(' Foreground notification:', remoteMessage);
+    console.log('Foreground notification:', remoteMessage);
 
-      // Example display using Alert (replace with a Toast or custom UI)
-      if (remoteMessage.notification) {
-          const { title, body } = remoteMessage.notification;
-          Alert.alert(title, body);
-      }
+    if (remoteMessage.notification) {
+      const { title, body } = remoteMessage.notification;
+
+      Toast.show({
+        type: 'success',
+        text1: title,
+        position: 'top',
+        visibilityTime: 5000,
+        autoHide: true,
+        topOffset: 60,
+      });
+    }
   });
 };
 
@@ -61,12 +68,6 @@ class PushNotificationService {
   }
 
   listenForNotifications() {
-    messaging().onMessage(async (remoteMessage) => {
-      Alert.alert(
-        remoteMessage.notification.title,
-        remoteMessage.notification.body
-      );
-    });
 
     messaging().onNotificationOpenedApp((remoteMessage) => {
       console.log("Notification caused app to open:", remoteMessage);
@@ -77,5 +78,7 @@ class PushNotificationService {
     });
   }
 }
+
+
 
 export default new PushNotificationService();

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PushNotificationService, { registerForegroundHandler } from "./src/notifications/PushNotificationService";
+import Toast from 'react-native-toast-message';
 
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -87,6 +88,42 @@ export default function App() {
         <Stack.Screen name= "WellnessHomeScreen" component ={WellnessHomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+    <Toast config={customToastConfig} />
+
   </>
   );
 }
+
+import { BaseToast } from 'react-native-toast-message';
+
+const customToastConfig = {
+  sacLifeNotification: (props) => (
+    <BaseToast
+      {...props}
+      style={{
+        borderLeftColor: '#E4CFA3', // muted gold accent on the side
+        backgroundColor: '#043927', // Sac green background
+        borderRadius: 12,
+        padding: 12,
+        borderLeftWidth: 6,
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        elevation: 5,
+      }}
+      contentContainerStyle={{
+        paddingHorizontal: 15,
+      }}
+      text1Style={{
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#E4CFA3', // muted gold
+      }}
+      text2Style={{
+        fontSize: 14,
+        color: '#ffffff', // white for body text
+      }}
+    />
+  ),
+};
+

@@ -3,8 +3,6 @@ const router = express.Router();
 const sql = require('mssql');
 const { getMessaging } = require('../firebaseAdmin');
 
-console.log('Notifications router loaded ✅');
-
 // Endpoint to register FCM token
 router.post('/register-token', async (req, res) => {
     const { userId, fcmToken, deviceInfo } = req.body;
