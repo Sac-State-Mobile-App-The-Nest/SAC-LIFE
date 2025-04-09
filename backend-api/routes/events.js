@@ -5,6 +5,7 @@ const config = require('../config'); //server config file
 const fetch = require('node-fetch');
 const { parseStringPromise } = require('xml2js');
 const { authenticateToken } = require('../middleware/studentAuthMiddleware');
+const moment = require('moment-timezone');
 
 module.exports = function(poolPromise) {
 
@@ -95,25 +96,61 @@ module.exports = function(poolPromise) {
         console.log("Data: ", {std_id, title, description, event_start_date, event_end_date});
         try {
             const pool = await poolPromise;
-
+            //stores the all the times in UTC format because database will try converting it to something else
+            //even if it is in pst when sent to database
+            const created_at = moment().tz("America/Los_Angeles").format("YYYY-MM-DD HH:mm:ss");
             await pool.request()
                 .input('std_id', sql.Int, std_id)
                 .input('event_title', sql.NVarChar(255), title)
                 .input('event_description', sql.NVarChar(sql.MAX), description)
                 .input('event_start_date', sql.DateTime, event_start_date)
                 .input('event_end_date', sql.DateTime, event_end_date)
+                .input('created_at', sql.DateTime2, created_at)
                 .query(`
-                   INSERT INTO student_created_events (std_id, event_title, event_description, event_start_date, event_end_date)
-                   VALUES (@std_id, @event_title, @event_description, @event_start_date, @event_end_date) 
+                    INSERT INTO student_created_events (std_id, event_title, event_description, event_start_date, event_end_date, created_at)
+                    VALUES (@std_id, @event_title, @event_description, @event_start_date, @event_end_date, @created_at) 
                 `);
             res.status(200).json({ message: 'Student Event stored successfully', createdEvent});
             
         } catch (err) {
-            console.error('Failed to send created event: ', err);
+            console.error('Failed to save event: ', err);
             res.status(500).send('Server Error');
         }
     });
-  
+
+    // update a student created event
+    router.put('/update-created-event/:event_id', authenticateToken, async (req, res) => {
+        const std_id = req.user.std_id;
+        const { event_id } = req.params;
+        const { title, description, event_start_date, event_end_date } = req.body.updatedEvent;
+        console.log("Updating Event: ", { std_id, event_id, title, description, event_start_date, event_end_date });
+        
+        try {
+            const pool = await poolPromise;
+            await pool.request()
+            .input('std_id', sql.Int, std_id)
+            .input('event_id', sql.Int, event_id)
+            .input('event_title', sql.NVarChar(255), title)
+            .input('event_description', sql.NVarChar(sql.MAX), description)
+            .input('event_start_date', sql.DateTime, event_start_date)
+            .input('event_end_date', sql.DateTime, event_end_date)
+            .query(`
+                UPDATE student_created_events
+                SET event_title = @event_title,
+                    event_description = @event_description,
+                    event_start_date = @event_start_date,
+                    event_end_date = @event_end_date
+                WHERE event_id = @event_id AND std_id = @std_id`);
+        
+            res.status(200).json({ message: 'Student Event updated successfully' });
+        } catch (err) {
+            console.error('Failed to update event: ', err);
+            res.status(500).send('Server Error');
+        }
+    });
+
+    //need an api to delete old events too
+
     //get all the events that a user created
     router.get('/getAllStudentEvents', authenticateToken, async(req, res) => {
         const std_id = req.user.std_id;
@@ -122,10 +159,18 @@ module.exports = function(poolPromise) {
             const result = await pool.request()
                 .input('std_id', sql.Int, std_id)
                 .query(`
-                    SELECT event_id, event_title, event_description, event_start_date, event_end_date FROM student_created_events WHERE
-                    @std_id = std_id
-                `);
-            res.json(result.recordset);
+                    SELECT event_id, event_title, event_description, event_start_date, event_end_date, created_at FROM student_created_events WHERE
+                     @std_id = std_id AND event_end_date >= GETDATE() ORDER BY event_start_date ASC`);
+ 
+             //convert the events from UTC to PST
+             const events = result.recordset.map(event => ({
+                 ...event,
+                 event_start_date: moment.utc(event.event_start_date).tz("America/Los_Angeles").format("YYYY-MM-DD HH:mm:ss"),
+                 event_end_date: moment.utc(event.event_end_date).tz("America/Los_Angeles").format("YYYY-MM-DD HH:mm:ss"),
+                 created_at: moment.utc(event.created_at).tz("America/Los_Angeles").format("YYYY-MM-DD HH:mm:ss")
+             }));
+             // console.log(events);
+             res.json(events);
         } catch (err) {
             console.error('SQL error', err);
             res.status(500).send('Server Error');
@@ -142,14 +187,46 @@ module.exports = function(poolPromise) {
                 SELECT * FROM sac_events WHERE 
                 event_start_date >= GETDATE() ORDER BY 
                 event_start_date ASC`);
-            console.log(result.recordset);
-            res.json(result.recordset);
+            //convert the events from UTC to PST
+            const events = result.recordset.map(event => ({
+                ...event,
+                event_start_date: moment.utc(event.event_start_date).tz("America/Los_Angeles").format("YYYY-MM-DD HH:mm:ss"),
+                event_end_date: moment.utc(event.event_end_date).tz("America/Los_Angeles").format("YYYY-MM-DD HH:mm:ss"),
+            }));
+            // console.log(events);
+            res.json(events);
         } catch (err){
             console.error('SQL error', err);
             res.status(500).send('Server Error');
         }
     });
 
+    //delete a student event
+    router.delete('/deleteEvent/:event_id', authenticateToken, async (req, res) => {
+        const { event_id } = req.params;
+        const std_id = req.user.std_id; 
+        try {
+            const pool = await poolPromise;
+    
+            //delete event from database
+            const result = await pool.request()
+                .input('event_id', sql.Int, event_id)
+                .input('std_id', sql.Int, std_id)
+                .query(`
+                    DELETE FROM student_created_events
+                    WHERE event_id = @event_id AND std_id = @std_id`);
+    
+            //check if the event was deleted
+            if (result.rowsAffected[0] > 0) {
+                res.json({ success: true, message: 'Event deleted successfully.' });
+            } else {
+                res.status(404).json({ success: false, message: 'Event not found or not authorized to delete.' });
+            }
+        } catch (err) {
+            console.error('SQL error', err);
+            res.status(500).send('Server Error');
+        }
+    });
 
     return router;
 };
