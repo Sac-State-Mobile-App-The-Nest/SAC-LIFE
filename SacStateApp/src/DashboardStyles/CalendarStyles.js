@@ -194,6 +194,11 @@ const styles = StyleSheet.create({
   },
   expandedEventTile: {
     backgroundColor: colors.sacGreen,
+    padding: 10,
+    backgroundColor: 'white', 
+    borderRadius: 8, 
+    marginBottom: 10,
+    position: 'relative',
   },
   eventDescription: {
     fontSize: 15,
@@ -203,6 +208,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.subtleGreen,
     textDecorationLine: 'underline',
+    fontSize: 15,
+    color: colors.mutedDarkGreen,
     marginTop: 5,
   },
   eventTime: {
@@ -364,8 +371,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#777',
     fontStyle: 'italic',
-  }
-  });
+  },
 
+  buttonsContainer: {
+    marginTop: '5%',
+    marginBottom: '1%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    gap: 20,
+  },
+
+  buttonsContainerLink: {
+    marginTop: '5%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  buttonTextLink: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center'
+  },
+
+  editButtonLink: {
+    backgroundColor: colors.mutedSacStateGreen,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 5,
+    width: '70%',
+    alignItems: 'center',
+  },
+
+  editButton: {
+    backgroundColor: colors.mutedSacStateGreen,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 5,
+    width: '40%',
+    alignItems: 'center',
+  },
+
+  deleteButton: {
+    backgroundColor: colors.pomegranite, // Red color for delete button
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 5,
+    width: '40%', // Control the width of the button
+    alignItems: 'center', // Center text inside button
+  },
+
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: 'bold', // Make text bold for emphasis
+  },
+  });
 
 export default styles;

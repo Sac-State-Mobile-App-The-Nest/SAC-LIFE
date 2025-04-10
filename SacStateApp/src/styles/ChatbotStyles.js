@@ -10,133 +10,131 @@ const styles = StyleSheet.create({
     chatContainer: {
         flex: 1,
         justifyContent: 'space-between',
-        padding: -5, //was 0 before 2nd commit.
+        padding: 0,
+        marginTop: 10,
     },
     messagesContainer: {
         flex: 1,
-        padding: 5,
+        paddingHorizontal: 10,
+        paddingBottom: 15,
     },
     messagesContentContainer: {
-        paddingBottom: 10,
+        paddingBottom: 20,
     },
-    
+
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
-        marginLeft: -10,
+        marginBottom: 15,
         paddingTop: 10,
-        paddingHorizontal: 20,
+        paddingBottom: 10,
+        paddingHorizontal: 15,
         borderTopWidth: 1,
+        borderBottomWidth: 1,
         borderTopColor: colors.mutedGold,
+        borderBottomColor: colors.mutedGold,
+        backgroundColor: colors.whiteGreen,
     },
     input: {
         flex: 1,
-        height: 40,
+        height: 45,
         backgroundColor: colors.fadedWhiteSmoke,
-        borderRadius: 20,
+        borderRadius: 25,
         paddingLeft: 40,
         fontSize: 14,
         borderWidth: 1,
         borderColor: '#ddd',
+        marginRight: 10,
     },
     sendButton: {
-        marginLeft: 10,
-        padding: 10,
+        padding: 12,
         backgroundColor: colors.mutedSacGreen,
-        borderRadius: 20,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     searchIcon: {
-        marginLeft: 30,
+        paddingTop: 3,
+        marginLeft: 25,
         zIndex: 1,
     },
-      sendIcon: {
-        marginLeft: 10,
-        marginRight: -4,
+    sendIcon: {
+        paddingLeft: 10,
+        marginRight: -10,
         color: colors.sacGreen,
     },
-
-    // User message background (bubble around senderLabel)
-    userMessage: {
-        alignSelf: 'flex-end',
-        backgroundColor: colors.offWhite,
-        marginBottom: 10,
-        borderRadius: 10,
-        padding: 12,
-        maxWidth: '80%',
-    },
-    
-    // Bot message background (bubble around senderLabel)
-    botMessage: {
-        alignSelf: 'flex-start',
-        backgroundColor: colors.offWhite,
-        marginBottom: 10,
-        borderRadius: 10,
-        padding: 12,
-        maxWidth: '80%',
-    },
-
-    // You and SacLifeBot text
+   
+    // Sender labels with bubble around them
     senderLabelYou: {
         fontSize: 12,
-        color: colors.gray,
-        marginBottom: 4, // Add some space between the sender label and the message bubble
-        marginRight: 5,
+        color: colors.white,
+        backgroundColor: colors.sacGreen, // Green background to make it stand out
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12, // Rounded corners for the label bubble
+        marginTop: 4,
+        marginBottom: 4,
+        marginRight: 10,
         alignSelf: 'flex-end',
     },
-    
+
     senderLabelBot: {
         fontSize: 12,
         color: colors.gray,
         marginBottom: 4, // Add some space between the sender label and the message bubble
-        marginLeft: 5,
+        marginLeft: 10,
     },
 
+    // User message bubble container
     userMessageBubble: {
-        maxWidth: '80%', // Limit the bubble width for better readability
-        padding: 10,
-        borderRadius: 15, // Rounded corners for the user bubble
+        maxWidth: '80%',
+        padding: 12,
+        borderRadius: 20,
         backgroundColor: colors.whiteGreen,
         borderColor: colors.sacGreen,
         borderWidth: 1,
-        alignSelf: 'flex-end', // User message is on the right side
+        alignSelf: 'flex-end',
+        marginRight: 5,
     },
 
-    // Bot's message bubble container
+    // Bot message bubble container
     botMessageBubble: {
-        maxWidth: '80%', // Limit the bubble width for better readability
-        padding: 10,
-        borderRadius: 15, // Rounded corners for the bot bubble
-        backgroundColor: colors.whiteGold, // Web-Only color sac gold
-        borderColor: colors.mutedGold,
-        borderWidth: 1,
-        alignSelf: 'flex-start', // Bot message is on the left side
-    },
-
-    typingIndicator: {
         maxWidth: '80%',
-        padding: 10,
-        borderRadius: 15,
+        padding: 12,
+        borderRadius: 20,
         backgroundColor: colors.whiteGold,
         borderColor: colors.mutedGold,
         borderWidth: 1,
-        alignSelf: 'flex-start', // Ensure it's aligned like other bot messages
+        marginTop: 4,
+        marginBottom: 4,
+        alignSelf: 'flex-start',
+        marginLeft: 5,
+    },
+
+    // Typing indicator bubble
+    typingIndicator: {
+        maxWidth: '80%',
+        padding: 12,
+        borderRadius: 20,
+        backgroundColor: colors.whiteGold,
+        borderColor: colors.mutedGold,
+        borderWidth: 1,
+        alignSelf: 'flex-start',
     },
     typingIndicatorText: {
         fontSize: 14,
         fontStyle: 'italic',
         color: colors.gray,
     },
-    
 
     userMessageText: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
         color: colors.sacGreen,
     },
     botMessageText: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
         color: colors.sacGreen,
     },
 });
