@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { DEV_BACKEND_SERVER_IP } from '@env';
 import {
     View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView,
     Platform, Keyboard, Linking, TouchableWithoutFeedback
@@ -25,7 +26,7 @@ const ChatbotScreen = () => {
                     console.error(" No username stored in AsyncStorage.");
                     return;
                 }
-                const response = await fetch(`http://10.0.2.2:3000/api/students/getLoggedInUser?username=${username}`);
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/api/students/getLoggedInUser?username=${username}`);
                 const responseText = await response.text();
 
                 if (response.ok) {
@@ -50,7 +51,7 @@ const ChatbotScreen = () => {
     // Fetch chat history using std_id
     const fetchChatHistory = async (stdId) => {
         try {
-            const response = await fetch(`http://10.0.2.2:3000/chat-history/${stdId}`);
+            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/chat-history/${stdId}`);
             if (response.ok) {
                 const history = await response.json();
                 setMessages(history.flatMap(chat => [
@@ -94,7 +95,7 @@ const ChatbotScreen = () => {
             const requestBody = { message, std_id: loggedInStudentId };
 
             try {
-                const response = await fetch('http://10.0.2.2:3000/message', {
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}3000/message`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
@@ -136,7 +137,7 @@ const ChatbotScreen = () => {
         }
 
         try {
-            const response = await fetch(`http://10.0.2.2:3000/clear-chat/${loggedInStudentId}`, {
+            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/clear-chat/${loggedInStudentId}`, {
                 method: 'DELETE',
             });
 
