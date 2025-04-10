@@ -5,7 +5,7 @@ import styles from '../WellnessStyles/WellnessHomeStyles'; // Ensure this import
 import BASE_URL from '../apiConfig.js';
 
 const { width: screenWidth } = Dimensions.get('window'); // Get screen width
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); //added for image background testing
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // added for image background testing
 const BACKGROUND_IMAGE = require('../assets/WellnessBackGround.jpg');
 
 
@@ -89,6 +89,14 @@ const WellnessHome = ({ navigation }) => {
       fetchAnswers();
       // Update welcome message each time the screen comes into focus
       setWelcomeMessage(getRandomWelcomeMessage());
+
+      // Force re-run animation every time Wellness tab is focused
+    healthBarAnim.setValue(0); // Reset width to 0
+    Animated.timing(healthBarAnim, {
+      toValue: (score / maxScore) * containerWidth,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
     });
     
     // Initial fetch

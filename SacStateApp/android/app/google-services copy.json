@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "770405191114",
+    "project_id": "saclife-a53c2",
+    "storage_bucket": "saclife-a53c2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:770405191114:android:59deea6541245d7e205333",
+        "android_client_info": {
+          "package_name": "com.sacstateapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpmRHCqrXKvSRcSFLlD-wrND2-QoU4vyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

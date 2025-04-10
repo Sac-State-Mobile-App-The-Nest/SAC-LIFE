@@ -12,3 +12,5 @@ temp/
 
 # Ignore all .vs/ files
 .vs/
+
+backend-api/firebase-service-account.json
