@@ -5,19 +5,20 @@ import BASE_URL from "../apiConfig";
 
 export const registerForegroundHandler = () => {
   messaging().onMessage(async remoteMessage => {
-    console.log('Foreground notification:', remoteMessage);
-
-    if (remoteMessage.notification) {
+    try {
       const { title, body } = remoteMessage.notification;
 
       Toast.show({
         type: 'success',
         text1: title,
+        text2: body,
         position: 'top',
         visibilityTime: 5000,
         autoHide: true,
         topOffset: 60,
       });
+    } catch (err) {
+      console.error("Error in foreground notification handler:", err);
     }
   });
 };

@@ -128,6 +128,77 @@ router.post('/welcome', async (req, res) => {
     }
 });
 
+// Wellness notifications route
+router.post('/wellness', async (req, res) => {
+    const { userId, score } = req.body;
+    console.log('/wellness hit with userId:', userId, 'score:', score);
+
+    if (!userId || typeof score !== 'number') {
+        return res.status(400).json({ message: 'Missing userId or score' });
+    }
+
+    let title = "Your Wellness Update";
+    let body = "";
+
+    const percentage = (score / 25) * 100;
+
+    if (percentage < 30) {
+        body = "Your score suggests you may be having a tough time. Reach out for support—Sac State cares about you 💚.";
+    } else if (percentage < 60) {
+        body = "You're doing okay, but don't hesitate to use our wellness resources to boost your mood and energy.";
+    } else {
+        body = "You're thriving! Keep up the great work and take a moment to celebrate your well-being 🎉.";
+    }
+
+    try {
+        const request = new sql.Request();
+        request.input('userId', sql.Int, userId);
+
+        const result = await request.query(`
+            SELECT fcm_token FROM fcm_tokens WHERE std_id = @userId
+        `);
+
+        const tokens = [...new Set(result.recordset.map(row => row.fcm_token))];
+        if (tokens.length === 0) {
+            console.warn("No FCM tokens found for user:", userId);
+            return res.status(404).json({ message: 'No FCM tokens found for user' });
+        }
+
+        const messaging = getMessaging();
+
+        const message = {
+            notification: { title, body },
+            tokens,
+        };
+
+        const response = await messaging.sendEachForMulticast(message);
+        console.log("Wellness notification sent to", response.successCount, "devices");
+
+        if (response.failureCount > 0) {
+            for (let i = 0; i < response.responses.length; i++) {
+                const res = response.responses[i];
+                if (!res.success) {
+                    const errorMsg = res.error.message;
+                    console.warn(`Failed to send to token [${tokens[i]}]:`, errorMsg);
+
+                    if (errorMsg.includes('Requested entity was not found')) {
+                        const deleteRequest = new sql.Request();
+                        deleteRequest.input('fcmToken', sql.VarChar, tokens[i].trim());
+                        await deleteRequest.query(`DELETE FROM fcm_tokens WHERE fcm_token = @fcmToken`);
+                        console.log(`Cleaned up invalid token: ${tokens[i]}`);
+                    }
+                }
+            }
+        }
+
+        res.status(200).json({ message: 'Wellness notification sent', successCount: response.successCount });
+    } catch (err) {
+        console.error('Error sending wellness notification:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+
 router.post('/manual-test-fcm', async (req, res) => {
     const token = 'd6_XQJgv...'; // paste 1 of your real tokens here
   

@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
+import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../WellnessStyles/WellnessStyles';
@@ -299,6 +300,8 @@ const WellnessCreation = () => {
             };
 
             const token = await AsyncStorage.getItem('token');
+            const userId = await AsyncStorage.getItem('userId');
+
             const response = await fetch(`${BASE_URL}/api/students/wellness-answers`, {
                 method: 'POST',
                 headers: {
@@ -311,6 +314,23 @@ const WellnessCreation = () => {
             if (!response.ok) {
                 throw new Error('Error sending wellness data to server');
             }
+            // send wellness notifcation
+            await fetch(`${BASE_URL}/api/notifications/wellness`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: parseInt(userId),
+                    score: totalScore
+                })
+            });
+
+            Toast.show({
+                type: 'sacLifeNotification',
+                text1: 'Wellness Check-In Complete!',
+                text2: 'Thanks for checking in — you’ve earned a fresh start 💚',
+                position: 'bottom'
+              });
+
             navigation.navigate('Dashboard');
         } catch (error) {
             console.error('Error sending wellness answers: ', error);
