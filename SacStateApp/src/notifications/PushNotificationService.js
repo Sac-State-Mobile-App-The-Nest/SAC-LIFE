@@ -1,5 +1,5 @@
 import messaging from "@react-native-firebase/messaging";
-import { Platform } from "react-native";
+import { Platform, Linking } from "react-native";
 import Toast from 'react-native-toast-message';
 import BASE_URL from "../apiConfig";
 
@@ -7,14 +7,20 @@ export const registerForegroundHandler = () => {
   messaging().onMessage(async remoteMessage => {
     try {
       const { title, body } = remoteMessage.notification;
+      const resourceLink = remoteMessage.data?.resource_link;
 
       Toast.show({
-        type: 'success',
+        type: 'sacLifeNotification',
         text1: title,
         text2: body,
         position: 'top',
-        visibilityTime: 5000,
+        onPress: () => {
+          if (resourceLink) {
+            Linking.openURL(resourceLink);
+          }
+        },
         autoHide: true,
+        visibilityTime: 120000,
         topOffset: 60,
       });
     } catch (err) {
@@ -71,8 +77,20 @@ class PushNotificationService {
   listenForNotifications() {
 
     messaging().onNotificationOpenedApp((remoteMessage) => {
-      console.log("Notification caused app to open:", remoteMessage);
+      const resourceLink = remoteMessage.data?.resource_link;
+      if (resourceLink) {
+        Linking.openURL(resourceLink); // opens default browser
+      }
     });
+
+    messaging()
+  .getInitialNotification()
+  .then(remoteMessage => {
+    const resourceLink = remoteMessage?.data?.resource_link;
+    if (resourceLink) {
+      Linking.openURL(resourceLink); // opens if app was completely closed
+    }
+  });
 
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       console.log("Notification received in background:", remoteMessage);

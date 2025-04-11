@@ -144,10 +144,13 @@ router.post('/wellness', async (req, res) => {
 
     if (percentage < 30) {
         body = "Your score suggests you may be having a tough time. Reach out for support—Sac State cares about you 💚.";
+        resource_link = "https://www.csus.edu/student-life/health-counseling/counseling/";
     } else if (percentage < 60) {
         body = "You're doing okay, but don't hesitate to use our wellness resources to boost your mood and energy.";
+        resource_link = "https://www.csus.edu/student-life/health-counseling/wellness-education/presentations.html";
     } else {
         body = "You're thriving! Keep up the great work and take a moment to celebrate your well-being 🎉.";
+        resource_link = "https://www.csus.edu/student-life/health-counseling/";
     }
 
     try {
@@ -168,6 +171,7 @@ router.post('/wellness', async (req, res) => {
 
         const message = {
             notification: { title, body },
+            data: { resource_link },
             tokens,
         };
 
@@ -197,27 +201,5 @@ router.post('/wellness', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-
-router.post('/manual-test-fcm', async (req, res) => {
-    const token = 'd6_XQJgv...'; // paste 1 of your real tokens here
-  
-    const message = {
-      notification: {
-        title: 'Test Notification',
-        body: 'This is a manual test push '
-      },
-      token
-    };
-  
-    try {
-      const response = await admin.messaging().send(message);
-      console.log('Manual test push response:', response);
-      res.status(200).send('Push sent!');
-    } catch (error) {
-      console.error('Manual push failed:', error);
-      res.status(500).send('Push failed.');
-    }
-  });
 
 module.exports = router;
