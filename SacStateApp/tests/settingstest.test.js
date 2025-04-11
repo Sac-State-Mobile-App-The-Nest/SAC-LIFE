@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import SettingsScreen from '../screens/SettingsScreen';
+import SettingsScreen from '../src/screens/SettingsScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 // Mock the API functions directly
-jest.mock('../DashboardAPI/api', () => ({ // <---- Cannot find module
+jest.mock('../src/DashboardAPI/api', () => ({
   fetchUserAreaOfStudy: jest.fn(() => Promise.resolve([{ tag_name: 'computer science' }])),
   fetchUserYearOfStudy: jest.fn(() => Promise.resolve([{ tag_name: 'senior' }])),
 }));
@@ -18,7 +18,7 @@ jest.mock('@expo/vector-icons', () => ({
 }));
 
 // Mock the ProfileModals component
-jest.mock('../../SettingsScreenComponents/ProfileModals', () => 'ProfileModals');
+jest.mock('../src/SettingsScreenComponents/ProfileModals', () => 'ProfileModals');
 
 describe('SettingsScreen', () => {
   const mockNavigation = {
@@ -26,14 +26,17 @@ describe('SettingsScreen', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    
-    // Mock AsyncStorage
+    jest.clearAllMocks(); // Clear any previous mocks
+
+    // Mock AsyncStorage methods
     AsyncStorage.getItem.mockImplementation((key) => {
       if (key === 'token') return Promise.resolve('mock-token');
       if (key === 'authToken') return Promise.resolve('mock-auth-token');
       return Promise.resolve(null);
     });
+
+    AsyncStorage.setItem.mockResolvedValue();
+    AsyncStorage.removeItem.mockResolvedValue();
 
     // Mock axios responses
     axios.get.mockResolvedValue({
@@ -43,27 +46,9 @@ describe('SettingsScreen', () => {
         last_name: 'Doe'
       }
     });
-});
     axios.put.mockResolvedValue({ data: { success: true } });
   });
 
-  it('renders correctly with user data', async () => {
-    const { getByText, findByText } = render(
-      <SettingsScreen navigation={mockNavigation} />
-    );
-    
-    await findByText('John');
-    expect(getByText('Computer Science')).toBeTruthy();
-    expect(getByText('Grade: Senior')).toBeTruthy();
-  });
-    axios.put.mockResolvedValue({ data: { success: true } });
-
-    // Mock API responses
-    require('../DashboardAPI/api').fetchUserAreaOfStudy.mockResolvedValue([{ tag_name: 'computer science' }]);
-    require('../DashboardAPI/api').fetchUserYearOfStudy.mockResolvedValue([{ tag_name: 'senior' }]);
-  
-
-  // 1. Render Tests
   it('renders correctly with user data', async () => {
     const { getByText, findByText } = render(
       <SettingsScreen navigation={mockNavigation} />
@@ -77,7 +62,6 @@ describe('SettingsScreen', () => {
     expect(getByText('About & Legal')).toBeTruthy();
   });
 
-  // 2. Logout Functionality
   it('handles logout correctly', async () => {
     const { getByText } = render(
       <SettingsScreen navigation={mockNavigation} />
@@ -94,7 +78,6 @@ describe('SettingsScreen', () => {
     });
   });
 
-  // 3. API Integration Tests
   describe('API Integration', () => {
     it('fetches user data on mount', async () => {
       render(<SettingsScreen navigation={mockNavigation} />);
@@ -124,7 +107,6 @@ describe('SettingsScreen', () => {
     });
   });
 
-  // 4. Name Update Functionality
   describe('updateNameFunction', () => {
     let settingsInstance;
 
@@ -163,7 +145,6 @@ describe('SettingsScreen', () => {
     });
   });
 
-  // 5. Password Update Functionality
   describe('updatePasswordFunction', () => {
     let settingsInstance;
 
@@ -199,7 +180,6 @@ describe('SettingsScreen', () => {
     });
   });
 
-  // 6. Utility Functions
   describe('Utility Functions', () => {
     it('capitalizes words correctly', () => {
       const instance = new SettingsScreen({ navigation: mockNavigation });
@@ -207,3 +187,4 @@ describe('SettingsScreen', () => {
       expect(instance.capitalizeWords('first year')).toBe('First Year');
     });
   });
+});
