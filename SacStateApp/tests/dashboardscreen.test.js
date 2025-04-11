@@ -1,119 +1,156 @@
-/*
-// Mock expo-font to resolve the issue with Font.isLoaded
-jest.mock('expo-font', () => ({
-  Font: {
-    isLoaded: jest.fn().mockReturnValue(true),  // Mock `Font.isLoaded` to always return true
-    loadAsync: jest.fn().mockResolvedValue(true),  // Mock `Font.loadAsync` to always resolve successfully
-  },
+// dashboardscreen.test.js
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+  removeItem: jest.fn(() => Promise.resolve()),
+  clear: jest.fn(() => Promise.resolve()),
 }));
 
-// Mock react-native-vector-icons MaterialIcons
-jest.mock('react-native-vector-icons/MaterialIcons', () => ({
-  __esModule: true, // ensures that the mock works with imports
-  default: ({ name, size, color }) => (
-    <mock-icon name={name} size={size} color={color} />
-  ),
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: jest.fn(({ children }) => children)
 }));
 
-// Mock other required Expo dependencies
-jest.mock('expo-linear-gradient', () => {
-  const React = require('react');
-  return {
-    LinearGradient: ({ children }) => <>{children}</>,
-  };
-});
+jest.mock('@expo/vector-icons/Ionicons', () => 'Ionicons');
 
-jest.mock('@expo/vector-icons/Ionicons', () => {
-  const React = require('react');
-  return {
-    __esModule: true,
-    default: ({ name, color, size }) => (
-      <mock-ionicon name={name} color={color} size={size} />
-    ),
-  };
-});
-
-// Mock EventEmitter
-global.EventEmitter = {
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-};
-
-// Mock child screens
-jest.mock('../src/DashboardComponents/DashboardTab', () => () => <></>);
-jest.mock('../src/screens/SettingsScreen', () => () => <></>);
-jest.mock('../src/screens/WellnessHomeScreen', () => () => <></>);
-jest.mock('../src/screens/ChatbotScreen', () => () => <></>);
+// Mock child components
+jest.mock('../src/DashboardComponents/DashboardTab', () => jest.fn(() => null));
+jest.mock('../src/screens/SettingsScreen', () => jest.fn(() => null));
+jest.mock('../src/screens/WellnessHomeScreen', () => jest.fn(() => null));
+jest.mock('../src/screens/ChatbotScreen', () => jest.fn(() => null));
 
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import DashboardScreen from '../src/screens/DashboardScreen'; // Adjust if needed
-import DashboardTab from '../src/DashboardComponents/DashboardTab';
+import DashboardScreen from '../src/screens/DashboardScreen';
+import { View } from 'react-native';
+
+// Provide implementations for mocked components
+require('../src/DashboardComponents/DashboardTab').mockImplementation(() => (
+  <View testID="dashboard-tab" />
+));
+
+require('../src/screens/SettingsScreen').mockImplementation(() => (
+  <View testID="settings-screen" />
+));
+
+require('../src/screens/WellnessHomeScreen').mockImplementation(() => (
+  <View testID="wellness-screen" />
+));
+
+require('../src/screens/ChatbotScreen').mockImplementation(() => (
+  <View testID="chatbot-screen" />
+));
+
+// Mock Ionicons implementation
+jest.mock('@expo/vector-icons/Ionicons', () => {
+  const { Text } = require('react-native');
+  return ({ name, size, color }) => (
+    <Text testID={`icon-${name}`}>{name}-icon</Text>
+  );
+});
+
+// Mock LinearGradient implementation
+require('expo-linear-gradient').LinearGradient.mockImplementation(
+  ({ colors, style, children }) => (
+    <View 
+      style={style}
+      testColors={colors}
+      testID="linear-gradient"
+    >
+      {children}
+    </View>
+  )
+);
 
 describe('DashboardScreen', () => {
-  const renderDashboard = () =>
-    render(
+  let renderedComponent;
+
+  beforeAll(() => {
+    // Mock all required modules at the start
+    jest.mock('@react-native-async-storage/async-storage', () => ({
+      getItem: jest.fn(() => Promise.resolve(null)),
+      setItem: jest.fn(() => Promise.resolve()),
+      removeItem: jest.fn(() => Promise.resolve()),
+      clear: jest.fn(() => Promise.resolve()),
+    }));
+
+    jest.mock('expo-linear-gradient', () => ({
+      LinearGradient: jest.fn(({ children }) => children)
+    }));
+
+    jest.mock('@expo/vector-icons/Ionicons', () => {
+      const { Text } = require('react-native');
+      return ({ name, size, color }) => (
+        <Text testID={`icon-${name}`}>{name}-icon</Text>
+      );
+    });
+
+    // Mock child components
+    jest.mock('../src/DashboardComponents/DashboardTab', () => 
+      jest.fn(() => <View testID="dashboard-tab" />)
+    );
+    jest.mock('../src/screens/SettingsScreen', () => 
+      jest.fn(() => <View testID="settings-screen" />)
+    );
+    jest.mock('../src/screens/WellnessHomeScreen', () => 
+      jest.fn(() => <View testID="wellness-screen" />)
+    );
+    jest.mock('../src/screens/ChatbotScreen', () => 
+      jest.fn(() => <View testID="chatbot-screen" />)
+    );
+  });
+
+  beforeEach(async () => {
+    renderedComponent = render(
       <NavigationContainer>
         <DashboardScreen />
       </NavigationContainer>
     );
-
-  it('renders without crashing', () => {
-    expect(() => renderDashboard()).not.toThrow();
+    // Wait for initial render to complete
+    await screen.findByText('Dashboard');
   });
 
-  it('displays all four tab labels', () => {
-    renderDashboard();
+  afterEach(() => {
+    if (renderedComponent) {
+      renderedComponent.unmount();
+      renderedComponent = null;
+    }
+    jest.clearAllMocks();
+  });
+
+  it('renders without crashing', () => {
+    expect(screen.getByText('Dashboard')).toBeTruthy();
+  });
+
+  it('displays all tab navigation items', () => {
     expect(screen.getByText('Dashboard')).toBeTruthy();
     expect(screen.getByText('HerkyBot')).toBeTruthy();
     expect(screen.getByText('Wellness')).toBeTruthy();
     expect(screen.getByText('Profile')).toBeTruthy();
   });
 
-  it('changes active tab when pressed', () => {
-    renderDashboard();
-
-    const dashboardTab = screen.getByText('Dashboard');
-    const herkybotTab = screen.getByText('HerkyBot');
-
-    expect(dashboardTab.props.accessibilityState?.selected).toBe(true);
-    expect(herkybotTab.props.accessibilityState?.selected).toBe(false);
-
-    fireEvent.press(herkybotTab);
-
-    // After press, tabs re-render, so we need fresh elements
-    const updatedDashboardTab = screen.getByText('Dashboard');
-    const updatedHerkybotTab = screen.getByText('HerkyBot');
-
-    expect(updatedDashboardTab.props.accessibilityState?.selected).toBe(false);
-    expect(updatedHerkybotTab.props.accessibilityState?.selected).toBe(true);
+  it('renders all tab icons', () => {
+    expect(screen.getByTestId('icon-home')).toBeTruthy();
+    expect(screen.getByTestId('icon-chatbox-ellipses-outline')).toBeTruthy();
+    expect(screen.getByTestId('icon-heart')).toBeTruthy();
+    expect(screen.getByTestId('icon-person')).toBeTruthy();
   });
 
-  it('renders tab icons correctly with expected names', () => {
-    const { UNSAFE_getAllByType } = renderDashboard();
+  it('navigates between tabs correctly', async () => {
+    // Initial tab should be Dashboard
+    expect(screen.getByTestId('dashboard-tab')).toBeTruthy();
 
-    const icons = UNSAFE_getAllByType('mock-ionicon');
-    const iconNames = icons.map(i => i.props.name);
-
-    expect(iconNames).toContain('home');
-    expect(iconNames).toContain('person');
-    expect(iconNames).toContain('heart');
-    expect(iconNames).toContain('chatbox-ellipses-outline');
+    // Switch to HerkyBot tab
+    await act(async () => {
+      fireEvent.press(screen.getByText('HerkyBot'));
+    });
+    expect(screen.getByTestId('chatbot-screen')).toBeTruthy();
   });
 
   it('applies correct tab bar styling', () => {
-    const { UNSAFE_getAllByType } = renderDashboard();
-
-    const viewElements = UNSAFE_getAllByType('View');
-    const tabBar = viewElements.find(
-      el =>
-        el.props?.style?.backgroundColor === '#043927' &&
-        el.props?.style?.borderTopColor === '#E4CFA3'
-    );
-
-    expect(tabBar).toBeTruthy();
+    const tabBar = screen.getByTestId('linear-gradient').parent.parent;
+    expect(tabBar.props.style.backgroundColor).toBe('#043927');
+    expect(tabBar.props.style.borderTopColor).toBe('#E4CFA3');
     expect(tabBar.props.style.borderTopWidth).toBe(1);
   });
 });
-*/
