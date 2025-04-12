@@ -14,6 +14,13 @@ jest.mock('@expo/vector-icons/Ionicons', () => 'Ionicons');
 
 // Mock child components
 jest.mock('../src/DashboardComponents/DashboardTab', () => jest.fn(() => null));
+
+// This may fix the View issue, but present others (not sure yet).
+/*jest.mock('../src/DashboardComponents/DashboardTab', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return jest.fn(() => <View testID="dashboard-tab" />);
+});*/
 jest.mock('../src/screens/SettingsScreen', () => jest.fn(() => null));
 jest.mock('../src/screens/WellnessHomeScreen', () => jest.fn(() => null));
 jest.mock('../src/screens/ChatbotScreen', () => jest.fn(() => null));
