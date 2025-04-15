@@ -7,7 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { fetchUserAreaOfStudy } from '../DashboardAPI/api';
 import { fetchUserYearOfStudy } from '../DashboardAPI/api';
-import ProfileModals from '../SettingsScreenComponents/ProfileModals'; //when a user clicks on a profile/setting screen button, it'll render this
+import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
+import PushNotificationService from '../notifications/PushNotificationService';
+import BASE_URL from '../apiConfig';
+import messaging from '@react-native-firebase/messaging';
 
 const SettingsScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -27,10 +30,29 @@ const SettingsScreen = ({ navigation }) => {
     displayUserYearOfStudy();
   }, []);
 
-  //lets the user log out
+  // Lets the user log out
   const logout = async (navigation) => {
     try {
-      await AsyncStorage.removeItem('authToken'); //remove token
+      const userId = await AsyncStorage.getItem('userId');
+      const fcmToken = await PushNotificationService.getToken(); // Just returns device token
+  
+      if (userId && fcmToken) {
+        await axios.delete(`${BASE_URL}/api/notifications/remove-token`, {
+          data: {
+            userId: parseInt(userId),
+            fcmToken,
+          },
+        });
+
+        await messaging().deleteToken();
+        console.log("Local FCM token deleted");
+      }
+  
+      // Clear all keys that were set during login
+      await AsyncStorage.removeItem('token'); 
+      await AsyncStorage.removeItem('username');
+      await AsyncStorage.removeItem('userId');
+  
       navigation.reset({
         index: 0,
         routes: [{ name: 'LogIn' }],

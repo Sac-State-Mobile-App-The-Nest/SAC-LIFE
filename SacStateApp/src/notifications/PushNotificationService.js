@@ -2,6 +2,7 @@ import messaging from "@react-native-firebase/messaging";
 import { Platform, Linking } from "react-native";
 import Toast from 'react-native-toast-message';
 import BASE_URL from "../apiConfig";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const registerForegroundHandler = () => {
   messaging().onMessage(async remoteMessage => {
@@ -47,9 +48,18 @@ class PushNotificationService {
 
   async getToken(userId) {
     try {
+      if (!userId) {
+        const fromStorage = await AsyncStorage.getItem('userId');
+        if (!fromStorage) {
+          console.error("❌ userId is missing and not found in storage");
+          return null;
+        }
+        userId = parseInt(fromStorage); // fallback
+      }
+  
       const token = await messaging().getToken();
       console.log("FCM Token:", token);
-
+  
       const deviceInfo = `${Platform.OS} - ${Platform.Version}`;
   
       const response = await fetch(`${BASE_URL}/api/notifications/register-token`, {
@@ -60,7 +70,7 @@ class PushNotificationService {
   
       const result = await response.json();
       console.log("JSON response from token register:", result);
-
+  
       if (!response.ok) {
         console.error("Failed to register FCM token on backend:", response.status, result);
         return null;
@@ -68,6 +78,7 @@ class PushNotificationService {
   
       console.log("FCM Token saved to backend:", result);
       return token;
+  
     } catch (error) {
       console.error("Error getting or registering FCM Token:", error);
       return null;
