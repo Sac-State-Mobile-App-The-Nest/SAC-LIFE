@@ -22,12 +22,17 @@ const SettingsScreen = ({ navigation }) => {
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
   const [oldPassword, setOldPassword] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
 
   useEffect(() => {
     displayUserPreferredName();
     displayUserAreaOfStudy();
     displayUserYearOfStudy();
+
+    AsyncStorage.getItem('notificationsEnabled').then(val => {
+      if (val !== null) setNotificationsEnabled(JSON.parse(val));
+    });
   }, []);
 
   // Lets the user log out
@@ -212,6 +217,25 @@ const SettingsScreen = ({ navigation }) => {
     }
   };
 
+  const toggleNotifications = async () => {
+    try {
+      if (notificationsEnabled) {
+        await messaging().deleteToken(); // This prevents further push notifications
+        console.log("Notifications disabled");
+      } else {
+        await PushNotificationService.getToken(); // Re-register for notifications
+        console.log("Notifications enabled");
+      }
+
+      Alert.alert("Notification Setting", notificationsEnabled ? "Notifications disabled." : "Notifications enabled.");
+  
+      setNotificationsEnabled(!notificationsEnabled);
+      await AsyncStorage.setItem('notificationsEnabled', JSON.stringify(!notificationsEnabled));
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
@@ -240,7 +264,10 @@ const SettingsScreen = ({ navigation }) => {
         
         <SettingsItem icon="pencil" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
         <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} />
-        <SettingsItem icon="notifications-outline" text="Notification Settings" onPress={() => openModal('editNotifitcations')} />
+        <SettingsItem icon={notificationsEnabled ? "notifications" : "notifications-off"}
+          text={notificationsEnabled ? "Disable Notifications" : "Enable Notifications"}
+          onPress={toggleNotifications}
+        />
         <SettingsItem icon="log-out-outline" text="Logout" onPress={() => logout(navigation)} />
         {/* <SettingsItem icon="add-circle" text="Increase Font Size" />
         <SettingsItem icon="remove-circle" text="Decrease Font Size" /> */}
