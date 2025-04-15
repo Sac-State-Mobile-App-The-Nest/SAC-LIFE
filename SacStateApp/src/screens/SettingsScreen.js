@@ -35,8 +35,9 @@ const SettingsScreen = ({ navigation }) => {
     });
   }, []);
 
-  // Lets the user log out
-  const logout = async (navigation) => {
+
+  //lets the user log out
+  const logout = async (navigation, type) => {
     try {
       const userId = await AsyncStorage.getItem('userId');
       const fcmToken = await PushNotificationService.getToken(); // Just returns device token
@@ -62,6 +63,11 @@ const SettingsScreen = ({ navigation }) => {
         index: 0,
         routes: [{ name: 'LogIn' }],
       });
+      if (type == 'passwordChanged'){
+        Alert.alert("Password Updated", "Please sign in with your new password");
+      } else if(type == 'logout'){
+        Alert.alert("Logout", "Successfully logged out");
+      }
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -71,15 +77,17 @@ const SettingsScreen = ({ navigation }) => {
   const displayUserPreferredName = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}/api/students/getName`, {
+      // console.log("Attempting to display name");
+      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      // console.log("name gotten")
       setUserInfo(response.data);
       console.log(userInfo);
     } catch (error) {
-      console.error('Error displaying user first and last name: ', error);
+      console.error('Error displaying user name: ', error);
     }
   };
   const displayUserAreaOfStudy = async () => {
@@ -202,11 +210,11 @@ const SettingsScreen = ({ navigation }) => {
         }
       );
       if (response.data.success == true){//api call returned true
-        Alert.alert("Success", "Password updated");
         setModalVisible(false);
         setNewPassword('');
         setNewPassword2('');
         setOldPassword('');
+        logout(navigation, 'passwordChanged');
       } else {//true
         Alert.alert("Error", "Couldn't update password");
         return;
@@ -289,10 +297,11 @@ const SettingsScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>About & Legal</Text>
       </View>
       <View style={styles.sectionContainer}>
-        {/* <SettingsItem icon="document-text-outline" text="Terms of Service" />
+        {/* 
         <SettingsItem icon="shield-checkmark-outline" text="Privacy Policy" />
         <SettingsItem icon="information-circle-outline" text="App Version" /> */}
         <SettingsItem icon="information-circle-outline" text="Sac State LIFE App" onPress={() => openModal('about')} />
+        <SettingsItem icon="document-text-outline" text="Terms of Service" onPress={() => openModal('tos')}/>
       </View>
 
       {/* Centered Modal with Blurred Background */}

@@ -18,6 +18,7 @@ export const offWhite = '#F8F9FA';
 export const offsetWhite = '#F8F8F8';
 export const opaqueWhite = 'rgba(255, 255, 255, 0.9)';
 export const sacGreen = '#043927';
+export const sacStateGold = 'rgb(196, 182, 129)';
 export const smokeGray = '#555';
 export const smokeWhite = '#E0E0E0';
 export const softCream = '#FDF6E4';
