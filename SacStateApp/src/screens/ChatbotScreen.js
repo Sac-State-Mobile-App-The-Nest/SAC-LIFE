@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-    View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, 
-    Platform, Keyboard, Linking 
+import { DEV_BACKEND_SERVER_IP } from '@env';
+import {
+    View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView,
+    Platform, Keyboard, Linking, TouchableWithoutFeedback
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import ParsedText from 'react-native-parsed-text';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/ChatbotStyles';
 
 const ChatbotScreen = () => {
@@ -20,27 +21,19 @@ const ChatbotScreen = () => {
     useEffect(() => {
         const fetchStudentId = async () => {
             try {
-                const username = await AsyncStorage.getItem('username'); 
-        
+                const username = await AsyncStorage.getItem('username');
                 if (!username) {
                     console.error(" No username stored in AsyncStorage.");
                     return;
                 }
-        
-                console.log(" Username retrieved from storage:", username); 
-        
-                const response = await fetch(`http://10.0.2.2:3000/api/students/getLoggedInUser?username=${username}`);
-        
-                const responseText = await response.text(); 
-                console.log("📥 Raw response:", responseText); 
-        
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/api/students/getLoggedInUser?username=${username}`);
+                const responseText = await response.text();
+
                 if (response.ok) {
-                    const userData = JSON.parse(responseText); 
-                    console.log("User data received:", userData);
-        
+                    const userData = JSON.parse(responseText);
                     if (userData.std_id) {
-                        setLoggedInStudentId(userData.std_id); 
-                        fetchChatHistory(userData.std_id); 
+                        setLoggedInStudentId(userData.std_id);
+                        fetchChatHistory(userData.std_id);
                     } else {
                         console.error(" std_id missing in response.");
                     }
@@ -51,10 +44,6 @@ const ChatbotScreen = () => {
                 console.error(" Error fetching student ID:", error);
             }
         };
-        
-        
-        
-        
 
         fetchStudentId();
     }, []);
@@ -62,14 +51,9 @@ const ChatbotScreen = () => {
     // Fetch chat history using std_id
     const fetchChatHistory = async (stdId) => {
         try {
-            console.log(" Fetching chat history for stdId:", stdId); 
-    
-            const response = await fetch(`http://10.0.2.2:3000/chat-history/${stdId}`);
-    
+            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/chat-history/${stdId}`);
             if (response.ok) {
                 const history = await response.json();
-                console.log(" Chat history received:", history);
-    
                 setMessages(history.flatMap(chat => [
                     { text: chat.student_question, sender: 'You' },
                     { text: chat.bot_response, sender: 'SacLifeBot' }
@@ -81,13 +65,26 @@ const ChatbotScreen = () => {
             console.error("Error fetching chat history:", error);
         }
     };
-    
 
     useEffect(() => {
         if (scrollViewRef.current) {
             scrollViewRef.current.scrollToEnd({ animated: true });
         }
-    }, [messages]);
+
+        // Add listeners for keyboard events
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            setKeyboardVisible(true);
+        });
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardVisible(false);
+        });
+
+        // Cleanup listeners on unmount
+        return () => {
+            keyboardDidHideListener.remove();
+            keyboardDidShowListener.remove();
+        };
+    }, []);
 
     const handleSend = async () => {
         if (message.trim()) {
@@ -95,14 +92,10 @@ const ChatbotScreen = () => {
             setMessage('');
             setIsTyping(true);
 
-            const requestBody = { message, 
-                std_id: loggedInStudentId
-            };
-
-            
+            const requestBody = { message, std_id: loggedInStudentId };
 
             try {
-                const response = await fetch('http://10.0.2.2:3000/message', {
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}3000/message`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
@@ -142,15 +135,15 @@ const ChatbotScreen = () => {
             console.error(" Cannot clear chat — no std_id available.");
             return;
         }
-    
+
         try {
-            const response = await fetch(`http://10.0.2.2:3000/clear-chat/${loggedInStudentId}`, {
+            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/clear-chat/${loggedInStudentId}`, {
                 method: 'DELETE',
             });
-    
+
             if (response.ok) {
                 console.log("Chat history cleared.");
-                setMessages([]); 
+                setMessages([]);
             } else {
                 console.error(` Failed to clear chat history, status: ${response.status}`);
             }
@@ -158,82 +151,81 @@ const ChatbotScreen = () => {
             console.error(" Error clearing chat:", error);
         }
     };
-    
 
     return (
-        <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-            style={styles.container} 
-            keyboardVerticalOffset={keyboardVisible ? (Platform.OS === 'ios' ? 100 : 130) : 0}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 86 : 0} // Adjust the value as needed
         >
-        
-            <View style={styles.chatContainer}>
-                <ScrollView
-                    ref={scrollViewRef}
-                    style={styles.messagesContainer}
-                    contentContainerStyle={styles.messagesContentContainer}
-                >
-                    {messages.map((msg, index) => (
-                        <View key={index} style={msg.sender === 'You' ? styles.userMessage : styles.botMessage}>
-                            <Text style={msg.sender === 'You' ? styles.senderLabelYou : styles.senderLabelBot}>
-                                {msg.sender}
-                            </Text>
-                            <View style={msg.sender === 'You' ? styles.userMessageBubble : styles.botMessageBubble}>
-                                <ParsedText
-                                    style={msg.sender === 'You' ? styles.userMessageText : styles.botMessageText}
-                                    parse={[
-                                        {
+            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+                <View style={styles.chatContainer}>
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={styles.messagesContainer}
+                        contentContainerStyle={styles.messagesContentContainer}
+                    >
+                        {messages.map((msg, index) => (
+                            <View key={index} style={msg.sender === 'You' ? styles.userMessage : styles.botMessage}>
+                                <Text style={msg.sender === 'You' ? styles.senderLabelYou : styles.senderLabelBot}>
+                                    {msg.sender}
+                                </Text>
+                                <View style={msg.sender === 'You' ? styles.userMessageBubble : styles.botMessageBubble}>
+                                    <ParsedText
+                                        style={msg.sender === 'You' ? styles.userMessageText : styles.botMessageText}
+                                        parse={[{
                                             type: 'url',
                                             style: { color: 'blue', textDecorationLine: 'underline' },
                                             onPress: handleUrlPress,
-                                        },
-                                    ]}
-                                >
-                                    {msg.text}
-                                </ParsedText>
+                                        }]}
+                                    >
+                                        {msg.text}
+                                    </ParsedText>
+                                </View>
                             </View>
-                        </View>
-                    ))}
-                    {isTyping && (
-                        <View style={styles.botMessage}>
-                            <Text style={styles.senderLabelBot}>HerkyBot</Text>
-                            <View style={styles.botMessageBubble}>
-                                <Text style={styles.botMessageText}>HerkyBot is typing...</Text>
+                        ))}
+                        {isTyping && (
+                            <View style={styles.botMessage}>
+                                <Text style={styles.senderLabelBot}>HerkyBot</Text>
+                                <View style={styles.botMessageBubble}>
+                                    <Text style={styles.botMessageText}>HerkyBot is typing...</Text>
+                                </View>
                             </View>
-                        </View>
-                    )}
-                </ScrollView>
-                <TouchableOpacity onPress={handleClearChat}>
-                    <Text style={{ color: 'rgba(4, 57, 39, 0.8)', alignSelf: 'center', marginBottom: 10 }}>Clear Chat History</Text>
-                </TouchableOpacity>
-                
+                        )}
+                    </ScrollView>
 
-                <View style={styles.inputContainer}>
-                    <MaterialIcons 
-                        name="search" 
-                        size={20} 
-                        color="#9E9E9E" 
-                        style={[styles.searchIcon, { position: 'absolute', left: 5, top: 20 }]} 
-                    />
-                    <TextInput
-                        style={styles.input}
-                        value={message}
-                        onChangeText={setMessage}
-                        placeholder="Ask me a question..."
-                        onBlur={() => setKeyboardVisible(false)}
-                    />
-                    <TouchableOpacity onPress={handleSend}>
-                        <MaterialIcons 
-                            name="arrow-circle-up" 
-                            size={30} 
-                            color="#9E9E9E" 
-                            style={[styles.sendIcon, { left: -10 }]} 
-                        />
+                    <TouchableOpacity onPress={handleClearChat}>
+                        <Text style={{ color: 'rgba(4, 57, 39, 0.8)', alignSelf: 'center', marginBottom: 10 }}>
+                            Clear Chat History
+                        </Text>
                     </TouchableOpacity>
+
+                    <View style={styles.inputContainer}>
+                        <MaterialIcons
+                            name="search"
+                            size={20}
+                            color="#9E9E9E"
+                            style={[styles.searchIcon, { position: 'absolute', left: 5, top: 20 }]}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            value={message}
+                            onChangeText={setMessage}
+                            placeholder="Ask me a question..."
+                        />
+                        <TouchableOpacity onPress={handleSend}>
+                            <MaterialIcons
+                                name="arrow-circle-up"
+                                size={30}
+                                color="#9E9E9E"
+                                style={[styles.sendIcon, { left: -10 }]}
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
-    );    
+    );
 };
 
 export default ChatbotScreen;

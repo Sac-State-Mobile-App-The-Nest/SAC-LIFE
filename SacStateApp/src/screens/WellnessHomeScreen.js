@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, Dimensions, ScrollView, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../WellnessStyles/WellnessHomeStyles'; // Ensure this import is correct
+import BASE_URL from '../apiConfig.js';
 
 const { width: screenWidth } = Dimensions.get('window'); // Get screen width
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); //added for image background testing
+const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // added for image background testing
 const BACKGROUND_IMAGE = require('../assets/WellnessBackGround.jpg');
 
 
@@ -53,26 +54,49 @@ const WellnessHome = ({ navigation }) => {
     return welcomeMessages[randomIndex];
   };
 
-  useEffect(() => {
-    const fetchAnswers = async () => {
-      try {
-        const storedData = await AsyncStorage.getItem('wellnessAnswers');
-        if (storedData) {
-          const { answers, score } = JSON.parse(storedData);
-          // Use stored score if available, otherwise calculate from answers
-          const calculatedScore = score || Object.values(answers).reduce((sum, value) => sum + (Number(value) || 0), 0);
-          setScore(calculatedScore);
-        }
-      } catch (error) {
-        console.error('Failed to fetch answers: ', error);
-      }
-    };
+  const fetchAnswers = async () => {
+    try {
+      // const storedData = await AsyncStorage.getItem('wellnessAnswers');
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${BASE_URL}/api/students/wellness-answers`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const { answers, score } = data.wellnessAnswers;
+        // Use stored score if available, otherwise calculate from answers
+        const calculatedScore = score || Object.values(answers).reduce((sum, value) => sum + (Number(value) || 0), 0);
+        setScore(calculatedScore);
 
+      } else {
+        throw new Error('Error getting data from server');
+      }
+    } catch (error) {
+      console.error('Failed to fetch answers: ', error);
+    }
+  };
+
+  useEffect(() => {
+    
+    fetchAnswers();
     // Set up focus listener to refresh data when screen comes into focus
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAnswers();
       // Update welcome message each time the screen comes into focus
       setWelcomeMessage(getRandomWelcomeMessage());
+
+      // Force re-run animation every time Wellness tab is focused
+    healthBarAnim.setValue(0); // Reset width to 0
+    Animated.timing(healthBarAnim, {
+      toValue: (score / maxScore) * containerWidth,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
     });
     
     // Initial fetch
