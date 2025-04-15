@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
             // Get the hashed password from the database result
             const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
             // Function call to compare password
-            bcrypt.compare(userInputPassword, storedHashedPassword, (err, result) => {
+            bcrypt.compare(userInputPassword, storedHashedPassword, async (err, result) => {
                 // Error handler
                 if (err) {
                     console.log("An error occured comparing passwords.", err);
@@ -63,6 +63,8 @@ router.post('/login', async (req, res) => {
                     const user = loginQuery.recordset[0];
                     const accessToken = jwt.sign(loginQuery.recordset[0], JWT_SECRET_TOKEN);
 
+                    //log the successful login for analytics
+                    await request.query('INSERT INTO login_logs DEFAULT VALUES;');
                     res.json({ 
                         accessToken: accessToken, 
                         userId: user.std_id 
