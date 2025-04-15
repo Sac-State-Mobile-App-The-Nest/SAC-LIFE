@@ -1,4 +1,12 @@
 // dashboardscreen.test.js
+import React from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import DashboardScreen from '../src/screens/DashboardScreen';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { View, Text } from 'react-native';
+
+// Mocks
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
   setItem: jest.fn(() => Promise.resolve()),
@@ -6,106 +14,53 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   clear: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('expo-linear-gradient', () => ({
-  LinearGradient: jest.fn(({ children }) => children)
-}));
-
-jest.mock('@expo/vector-icons/Ionicons', () => 'Ionicons');
-
-// Mock child components
-jest.mock('../src/DashboardComponents/DashboardTab', () => jest.fn(() => null));
-
-// This may fix the View issue, but present others (not sure yet).
-/*jest.mock('../src/DashboardComponents/DashboardTab', () => {
-  const React = require('react');
+jest.mock('expo-linear-gradient', () => {
   const { View } = require('react-native');
-  return jest.fn(() => <View testID="dashboard-tab" />);
-});*/
-jest.mock('../src/screens/SettingsScreen', () => jest.fn(() => null));
-jest.mock('../src/screens/WellnessHomeScreen', () => jest.fn(() => null));
-jest.mock('../src/screens/ChatbotScreen', () => jest.fn(() => null));
-
-import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import DashboardScreen from '../src/screens/DashboardScreen';
-import { View } from 'react-native';
-
-// Provide implementations for mocked components
-require('../src/DashboardComponents/DashboardTab').mockImplementation(() => (
-  <View testID="dashboard-tab" />
-));
-
-require('../src/screens/SettingsScreen').mockImplementation(() => (
-  <View testID="settings-screen" />
-));
-
-require('../src/screens/WellnessHomeScreen').mockImplementation(() => (
-  <View testID="wellness-screen" />
-));
-
-require('../src/screens/ChatbotScreen').mockImplementation(() => (
-  <View testID="chatbot-screen" />
-));
-
-// Mock Ionicons implementation
-jest.mock('@expo/vector-icons/Ionicons', () => {
-  const { Text } = require('react-native');
-  return ({ name, size, color }) => (
-    <Text testID={`icon-${name}`}>{name}-icon</Text>
-  );
+  return {
+    LinearGradient: ({ colors, style, children }) => (
+      <View style={style} testColors={colors} testID="linear-gradient">
+        {children}
+      </View>
+    ),
+  };
 });
 
-// Mock LinearGradient implementation
-require('expo-linear-gradient').LinearGradient.mockImplementation(
-  ({ colors, style, children }) => (
-    <View 
-      style={style}
-      testColors={colors}
-      testID="linear-gradient"
-    >
-      {children}
-    </View>
-  )
-);
+jest.mock('@expo/vector-icons/Ionicons', () => {
+  const { Text } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ name }) => <Text testID={`icon-${name}`}>{name}-icon</Text>
+  };
+});
 
+// Screen and component mocks as proper React components
+jest.mock('../src/DashboardComponents/DashboardTab', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return () => <View testID="dashboard-tab" />;
+});
+
+jest.mock('../src/screens/SettingsScreen', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return () => <View testID="settings-screen" />;
+});
+
+jest.mock('../src/screens/WellnessHomeScreen', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return () => <View testID="wellness-screen" />;
+});
+
+jest.mock('../src/screens/ChatbotScreen', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return () => <View testID="chatbot-screen" />;
+});
+
+// Tests
 describe('DashboardScreen', () => {
   let renderedComponent;
-
-  beforeAll(() => {
-    // Mock all required modules at the start
-    jest.mock('@react-native-async-storage/async-storage', () => ({
-      getItem: jest.fn(() => Promise.resolve(null)),
-      setItem: jest.fn(() => Promise.resolve()),
-      removeItem: jest.fn(() => Promise.resolve()),
-      clear: jest.fn(() => Promise.resolve()),
-    }));
-
-    jest.mock('expo-linear-gradient', () => ({
-      LinearGradient: jest.fn(({ children }) => children)
-    }));
-
-    jest.mock('@expo/vector-icons/Ionicons', () => {
-      const { Text } = require('react-native');
-      return ({ name, size, color }) => (
-        <Text testID={`icon-${name}`}>{name}-icon</Text>
-      );
-    });
-
-    // Mock child components
-    jest.mock('../src/DashboardComponents/DashboardTab', () => 
-      jest.fn(() => <View testID="dashboard-tab" />)
-    );
-    jest.mock('../src/screens/SettingsScreen', () => 
-      jest.fn(() => <View testID="settings-screen" />)
-    );
-    jest.mock('../src/screens/WellnessHomeScreen', () => 
-      jest.fn(() => <View testID="wellness-screen" />)
-    );
-    jest.mock('../src/screens/ChatbotScreen', () => 
-      jest.fn(() => <View testID="chatbot-screen" />)
-    );
-  });
 
   beforeEach(async () => {
     renderedComponent = render(
@@ -113,7 +68,6 @@ describe('DashboardScreen', () => {
         <DashboardScreen />
       </NavigationContainer>
     );
-    // Wait for initial render to complete
     await screen.findByText('Dashboard');
   });
 
@@ -144,13 +98,12 @@ describe('DashboardScreen', () => {
   });
 
   it('navigates between tabs correctly', async () => {
-    // Initial tab should be Dashboard
     expect(screen.getByTestId('dashboard-tab')).toBeTruthy();
 
-    // Switch to HerkyBot tab
     await act(async () => {
       fireEvent.press(screen.getByText('HerkyBot'));
     });
+
     expect(screen.getByTestId('chatbot-screen')).toBeTruthy();
   });
 
