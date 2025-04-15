@@ -28,7 +28,7 @@ function Students() {
   
       let response;
       try {
-        response = await api.get('/students/preferredInfo', {
+        response = await api.get('/students/studentInfo', {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (error) {
@@ -36,7 +36,7 @@ function Students() {
           console.warn("Access token expired. Refreshing...");
           token = await refreshAccessToken();
           if (!token) return;
-          response = await api.get('/students/preferredInfo', {
+          response = await api.get('/students/studentInfo', {
             headers: { Authorization: `Bearer ${token}` }
           });
         } else {
@@ -97,47 +97,51 @@ function Students() {
       return;
     }
   
-    try {
-      // 🔁 First attempt to delete with current token
-      try {
-        await Promise.all(
-          selectedStudents.map(async (stdId) => {
-            return api.request({
+    const deleteStudents = async (tokenToUse) => {
+      const skipped = [];
+  
+      await Promise.all(
+        selectedStudents.map(async (stdId) => {
+          try {
+            await api.request({
               url: `adminRoutes/students/${stdId}`,
               method: 'delete',
-              headers: { Authorization: `Bearer ${token}` },
-              data: { password }, // ✅ Pass the password in the body
+              headers: { Authorization: `Bearer ${tokenToUse}` },
+              data: { password },
             });
-          })
-        );
+          } catch (error) {
+            if (error.response?.status === 404) {
+              console.warn(`Student ${stdId} already deleted.`);
+              skipped.push(stdId);
+            } else {
+              throw error;
+            }
+          }
+        })
+      );
+  
+      return skipped;
+    };
+  
+    try {
+      try {
+        await deleteStudents(token);
       } catch (error) {
-        // 🔁 Refresh token if the error is 401 (unauthorized)
         if (error.response?.status === 401) {
           console.warn("Token expired, attempting refresh...");
           token = await refreshAccessToken();
           token = sessionStorage.getItem('token');
-          if (!token) {
-            throw new Error("Token refresh failed.");
-          }
-  
-          // ✅ Retry the deletions with the refreshed token
-          await Promise.all(
-            selectedStudents.map(async (stdId) => {
-              return api.request({
-                url: `adminRoutes/students/${stdId}`,
-                method: 'delete',
-                headers: { Authorization: `Bearer ${token}` },
-                data: { password },
-              });
-            })
-          );
+          if (!token) throw new Error("Token refresh failed.");
+          await deleteStudents(token);
         } else {
           throw error;
         }
       }
   
       alert("Selected students deleted successfully.");
-      setStudents((prev) => prev.filter((student) => !selectedStudents.includes(student.std_id)));
+      setStudents((prev) =>
+        prev.filter((student) => !selectedStudents.includes(student.std_id))
+      );
       setSelectedStudents([]);
     } catch (error) {
       console.error('Bulk deletion error:', error);
@@ -255,6 +259,8 @@ function Students() {
               checked={students.length > 0 && selectedStudents.length === students.length}
             />
           </th>
+          <th>First Name</th>
+          <th>Last Name</th>
           <th>Preferred Name</th>
           <th>Expected Graduation</th>
           {role === 'super-admin' && <th>Actions</th>}
@@ -270,7 +276,10 @@ function Students() {
                     onChange={() => handleCheckboxChange(user.std_id)}
                   />
                 </td>
+                <td>{`${user.f_name}`}</td>
+                <td>{`${user.l_name}`}</td>
                 <td>{user.preferred_name}</td>
+                {/* <td>{user.preferred_name}</td> */}
                 <td>{user.expected_grad}</td>
                 {role !== 'read-only' && (
                   <td>

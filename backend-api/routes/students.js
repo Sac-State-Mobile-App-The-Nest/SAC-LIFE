@@ -19,11 +19,23 @@ module.exports = function (poolPromise) {
     }
   });
 
-  // Get std_id, preferred_name, abd expected_grad
+  // Get std_id, preferred_name, and expected_grad
   router.get('/preferredInfo', async (req, res) => {
     try {
       const pool = await poolPromise;
       const result = await pool.request().query('SELECT std_id, preferred_name, expected_grad FROM test_students');
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  // Gets important information about students to be displayed on the student admin page
+  router.get('/studentInfo', async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT std_id, f_name, l_name, preferred_name, expected_grad FROM test_students');
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
