@@ -314,6 +314,53 @@ module.exports = function (poolPromise) {
     }
   });
 
+  /**
+ * GET: Returns all chatbot logs
+ * Only accessible by super-admins
+ */
+  router.get('/chatbot-logs', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query(`
+        SELECT 
+          l.id,                        
+          l.std_id,
+          s.username,
+          l.student_question,
+          l.bot_response,
+          l.timestamp
+        FROM chat_logs l
+        JOIN login_info s ON l.std_id = s.std_id
+        ORDER BY l.timestamp DESC
+      `);
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error (chatbot logs):', err.message);
+      res.status(500).json({ message: 'Failed to fetch chatbot logs' });
+    }
+  });
+  
+
+
+router.delete('/chatbot-logs/:id', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('DELETE FROM chat_logs WHERE id = @id');
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Chat log not found' });
+    }
+
+    res.json({ message: 'Chat log deleted successfully' });
+  } catch (err) {
+    console.error('SQL error (delete chat log):', err.message);
+    res.status(500).json({ message: 'Failed to delete chat log' });
+  }
+});
+  
     /**
  * get: gets logs of all login dates within the past month, week, and day
  * All admins can see analytics.
