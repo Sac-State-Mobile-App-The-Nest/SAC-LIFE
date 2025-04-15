@@ -139,18 +139,19 @@ router.post('/wellness', async (req, res) => {
 
     let title = "Your Wellness Update";
     let body = "";
+    let resource_link = "";
 
     const percentage = (score / 25) * 100;
 
     if (percentage < 30) {
         body = "Your score suggests you may be having a tough time. Reach out for support—Sac State cares about you 💚.";
-        resource_link = "https://www.csus.edu/student-life/health-counseling/counseling/";
+        resource_link = "https://www.csus.edu/student-life/health-counseling/counseling";
     } else if (percentage < 60) {
         body = "You're doing okay, but don't hesitate to use our wellness resources to boost your mood and energy.";
         resource_link = "https://www.csus.edu/student-life/health-counseling/wellness-education/presentations.html";
     } else {
         body = "You're thriving! Keep up the great work and take a moment to celebrate your well-being 🎉.";
-        resource_link = "https://www.csus.edu/student-life/health-counseling/";
+        resource_link = "https://www.csus.edu/student-life/health-counseling";
     }
 
     try {
@@ -171,7 +172,7 @@ router.post('/wellness', async (req, res) => {
 
         const message = {
             notification: { title, body },
-            data: { resource_link },
+            data: { resource_link: resource_link },
             tokens,
         };
 
