@@ -52,8 +52,7 @@ const LogInScreen = () => {
                 navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
-            setLoading(false);
-            if (error.response.status === 403){
+            if (error.response && error.response.status === 403){
                 Alert.alert("Error", error.response.data.message);
                 return;
             }
@@ -97,6 +96,7 @@ const LogInScreen = () => {
                         placeholder="Username"
                         value={username}
                         onChangeText={setUsername}
+                        testID="usernameInput"  // Added testID here for username input
                     />
                     
                     <View style={styles.passwordContainer}>
@@ -106,10 +106,12 @@ const LogInScreen = () => {
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry={!showPassword}
+                            testID="passwordInput"  // Added testID here for password input
                         />
                         <TouchableOpacity
                             onPress={() => setShowPassword(prev => !prev)}
                             style={styles.eyeIcon}
+                            testID="eyeIcon" // Added testID here for the eye icon (password visibility toggle)
                         >
                             <Icon 
                                 name={showPassword ? 'visibility' : 'visibility-off'} 
@@ -120,20 +122,20 @@ const LogInScreen = () => {
                     </View>
 
                     {loading ? (
-                        <ActivityIndicator size="large" color="#043927" />
+                        <ActivityIndicator testID="loadingIndicator" size="large" color="#043927" />
                     ) : (
                         <>
-                        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                        <TouchableOpacity style={styles.button} onPress={handleLogin} testID="loginButton">
                             <Text style={styles.buttonText}>Log In</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')} testID="signUpLink">
                             <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
                         </TouchableOpacity>
                         </>
                     )}
                 </View>
-                <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+                <TouchableOpacity style={styles.skipButton} onPress={handleSkip} testID="skipButton">
                     <Text style={styles.skipButtonText}>Developer Skip Button</Text>
                 </TouchableOpacity>
             </View>
