@@ -32,7 +32,7 @@ const LogInScreen = () => {
             await AsyncStorage.setItem('username', username);
             await AsyncStorage.setItem('userId', userId.toString());
 
-            const fcmToken = await PushNotificationService.getToken(userId);
+            const fcmToken = await PushNotificationService.getToken();
             if (!fcmToken) {
                 console.error("FCM token was not saved to backend.");
               } else {

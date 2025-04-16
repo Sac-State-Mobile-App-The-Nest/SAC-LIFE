@@ -1,6 +1,9 @@
 .analytics-container {
+    max-height: 100vh;
+    overflow-y: auto;
     padding: 20px;
-    max-width: 1000px;
+    width: 100%;
+    box-sizing: border-box;
     margin: 0 auto;
     background-color: transparent; /* Remove background to blend in */
     box-shadow: none; /* Remove shadow if you want it flush with the page */
@@ -16,9 +19,13 @@
   }
   
   .analytics-grid {
-    display: grid;
+    margin-top: 5%;
+    display: flex;
+    flex-direction: column;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
+    align-items: center;
+    gap: 25px;
+    width: 100%;
   }
   
   .analytics-card {
@@ -28,13 +35,29 @@
     box-shadow: 0 4px 8px rgba(0, 51, 17, 0.1); /* Matches users-container */
     color: #2e5339;
     transition: transform 0.2s ease;
+    width: 70%;
+    max-width: 1000px;
   }
   
   .analytics-card:hover {
     transform: scale(1.02);
   }
-  
+
+  .analytics-card button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    background-color: #2e5339;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .analytics-card button:hover {
+    background-color: #3f6e4a;
+  }
+
   .analytics-card h3 {
-    margin-bottom: 10px;
+    margin-bottom: 30px;
     font-size: 18px;
   }

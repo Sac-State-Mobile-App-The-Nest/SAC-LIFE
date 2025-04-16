@@ -5,7 +5,6 @@ import styles from '../WellnessStyles/WellnessHomeStyles'; // Ensure this import
 import BASE_URL from '../apiConfig.js';
 
 const { width: screenWidth } = Dimensions.get('window'); // Get screen width
-const SAC_STATE_LOGO = require('../assets/sac-state-logo.png'); // added for image background testing
 const BACKGROUND_IMAGE = require('../assets/WellnessBackGround.jpg');
 
 
@@ -40,10 +39,8 @@ const WellnessHome = ({ navigation }) => {
       { min: 16, max: 20, color: '#06D6A0' }, // Green
       { min: 21, max: 25, color: '#118AB2' }, // Blue
     ];
-
     // Find the matching range for the score
     const matchingRange = colorRanges.find(range => score >= range.min && score <= range.max);
-
     // Return the matching color or a default color if no range matches
     return matchingRange ? matchingRange.color : '#76c7c0'; // Default color
   };
@@ -72,7 +69,6 @@ const WellnessHome = ({ navigation }) => {
         // Use stored score if available, otherwise calculate from answers
         const calculatedScore = score || Object.values(answers).reduce((sum, value) => sum + (Number(value) || 0), 0);
         setScore(calculatedScore);
-
       } else {
         throw new Error('Error getting data from server');
       }
@@ -82,43 +78,28 @@ const WellnessHome = ({ navigation }) => {
   };
 
   useEffect(() => {
-    
     fetchAnswers();
-    // Set up focus listener to refresh data when screen comes into focus
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchAnswers();
-      // Update welcome message each time the screen comes into focus
+    const unsubscribe = navigation.addListener('focus', async () => {
+      await fetchAnswers();
       setWelcomeMessage(getRandomWelcomeMessage());
-
-      // Force re-run animation every time Wellness tab is focused
-    healthBarAnim.setValue(0); // Reset width to 0
-    Animated.timing(healthBarAnim, {
-      toValue: (score / maxScore) * containerWidth,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
     });
-    
-    // Initial fetch
-    fetchAnswers();
-    
-    // Set initial random welcome message
     setWelcomeMessage(getRandomWelcomeMessage());
-
     return unsubscribe;
   }, [navigation]);
+  
+  useEffect(() => {
+    if (score > 0 && containerWidth > 0) {
+      healthBarAnim.setValue(0);
+      Animated.timing(healthBarAnim, {
+        toValue: (score / maxScore) * containerWidth,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [score, containerWidth]);
 
-  const healthBarWidth = (score / maxScore) * containerWidth; // Calculate the width in pixels
   const percentage = Math.min(100, Math.max(0, ((score / maxScore) * 100).toFixed(0))); // Calculate the percentage (0-100)
 
-  useEffect(() => {
-    console.log("Score:", score, "Health Bar Width (px):", healthBarWidth); // Debugging
-    Animated.timing(healthBarAnim, {
-      toValue: healthBarWidth, // Target width in pixels
-      duration: 500, // Animation duration in milliseconds
-      useNativeDriver: false, // Must be false for layout properties
-    }).start();
-  }, [score, containerWidth]); // Trigger animation when score or container width changes
 
   return (
     <ImageBackground 

@@ -394,5 +394,23 @@ module.exports = function (poolPromise) {
     }
   });
 
+  router.delete('/deleteChatLogs', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    try{
+      const pool = await poolPromise;
+      const result = await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`DELETE FROM chat_logs WHERE std_id = @std_id`);
+      if (result.rowsAffected[0] > 0){
+        res.status(200).json({ success: true, message: 'Chat logs deleted' });
+      } else {
+        res.status(404).json({ success: false, message: 'No chat logs found for student' });
+      }
+    } catch (err) {
+      console.error('Delete error', err);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
   return router;
 };

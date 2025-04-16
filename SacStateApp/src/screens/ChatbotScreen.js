@@ -95,7 +95,7 @@ const ChatbotScreen = () => {
             const requestBody = { message, std_id: loggedInStudentId };
 
             try {
-                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}3000/message`, {
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/message`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
