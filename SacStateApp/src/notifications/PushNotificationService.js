@@ -1,23 +1,31 @@
 import messaging from "@react-native-firebase/messaging";
-import { Platform } from "react-native";
+import { Platform, Linking } from "react-native";
 import Toast from 'react-native-toast-message';
 import BASE_URL from "../apiConfig";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const registerForegroundHandler = () => {
   messaging().onMessage(async remoteMessage => {
-    console.log('Foreground notification:', remoteMessage);
-
-    if (remoteMessage.notification) {
+    try {
       const { title, body } = remoteMessage.notification;
+      const resourceLink = remoteMessage.data?.resource_link;
 
       Toast.show({
-        type: 'success',
+        type: 'sacLifeNotification',
         text1: title,
+        text2: body,
         position: 'top',
-        visibilityTime: 5000,
+        onPress: () => {
+          if (resourceLink) {
+            Linking.openURL(resourceLink);
+          }
+        },
         autoHide: true,
+        visibilityTime: 120000,
         topOffset: 60,
       });
+    } catch (err) {
+      console.error("Error in foreground notification handler:", err);
     }
   });
 };
@@ -40,9 +48,18 @@ class PushNotificationService {
 
   async getToken(userId) {
     try {
+      if (!userId) {
+        const fromStorage = await AsyncStorage.getItem('userId');
+        if (!fromStorage) {
+          console.error("❌ userId is missing and not found in storage");
+          return null;
+        }
+        userId = parseInt(fromStorage); // fallback
+      }
+  
       const token = await messaging().getToken();
       console.log("FCM Token:", token);
-
+  
       const deviceInfo = `${Platform.OS} - ${Platform.Version}`;
   
       const response = await fetch(`${BASE_URL}/api/notifications/register-token`, {
@@ -53,7 +70,7 @@ class PushNotificationService {
   
       const result = await response.json();
       console.log("JSON response from token register:", result);
-
+  
       if (!response.ok) {
         console.error("Failed to register FCM token on backend:", response.status, result);
         return null;
@@ -61,6 +78,7 @@ class PushNotificationService {
   
       console.log("FCM Token saved to backend:", result);
       return token;
+  
     } catch (error) {
       console.error("Error getting or registering FCM Token:", error);
       return null;
@@ -70,8 +88,20 @@ class PushNotificationService {
   listenForNotifications() {
 
     messaging().onNotificationOpenedApp((remoteMessage) => {
-      console.log("Notification caused app to open:", remoteMessage);
+      const resourceLink = remoteMessage.data?.resource_link;
+      if (resourceLink) {
+        Linking.openURL(resourceLink); // opens default browser
+      }
     });
+
+    messaging()
+  .getInitialNotification()
+  .then(remoteMessage => {
+    const resourceLink = remoteMessage?.data?.resource_link;
+    if (resourceLink) {
+      Linking.openURL(resourceLink); // opens if app was completely closed
+    }
+  });
 
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       console.log("Notification received in background:", remoteMessage);

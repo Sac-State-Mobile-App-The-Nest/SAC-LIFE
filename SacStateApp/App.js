@@ -6,6 +6,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PushNotificationService, { registerForegroundHandler } from "./src/notifications/PushNotificationService";
 import Toast from 'react-native-toast-message';
+import { Text, TouchableOpacity, View } from 'react-native';
+
 
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -51,6 +53,7 @@ export default function App() {
     };
 
     initializeApp();
+
   }, []);
 
 
@@ -94,36 +97,35 @@ export default function App() {
   );
 }
 
-import { BaseToast } from 'react-native-toast-message';
-
 const customToastConfig = {
-  sacLifeNotification: (props) => (
-    <BaseToast
-      {...props}
+  sacLifeNotification: ({ text1, text2, onPress, hide }) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
       style={{
-        borderLeftColor: '#E4CFA3', // muted gold accent on the side
-        backgroundColor: '#043927', // Sac green background
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#043927',
+        borderLeftColor: '#E4CFA3',
+        borderLeftWidth: 6,
         borderRadius: 12,
         padding: 12,
-        borderLeftWidth: 6,
+        marginHorizontal: 10,
+        marginTop: 10,
         shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowRadius: 6,
         elevation: 5,
       }}
-      contentContainerStyle={{
-        paddingHorizontal: 15,
-      }}
-      text1Style={{
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#E4CFA3', // muted gold
-      }}
-      text2Style={{
-        fontSize: 14,
-        color: '#ffffff', // white for body text
-      }}
-    />
-  ),
+    >
+      <View style={{ flex: 1, paddingRight: 8 }}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#E4CFA3' }}>{text1}</Text>
+        <Text style={{ fontSize: 14, color: '#ffffff' }}>{text2}</Text>
+      </View>
+      <TouchableOpacity onPress={hide}>
+        <Text style={{ fontSize: 18, color: '#E4CFA3', paddingHorizontal: 8 }}>✕</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  )
 };
 

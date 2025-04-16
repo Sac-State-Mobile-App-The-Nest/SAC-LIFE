@@ -7,7 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { fetchUserAreaOfStudy } from '../DashboardAPI/api';
 import { fetchUserYearOfStudy } from '../DashboardAPI/api';
-import ProfileModals from '../SettingsScreenComponents/ProfileModals'; //when a user clicks on a profile/setting screen button, it'll render this
+import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
+import PushNotificationService from '../notifications/PushNotificationService';
+import BASE_URL from '../apiConfig';
+import messaging from '@react-native-firebase/messaging';
 
 const SettingsScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -19,18 +22,43 @@ const SettingsScreen = ({ navigation }) => {
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
   const [oldPassword, setOldPassword] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
 
   useEffect(() => {
     displayUserPreferredName();
     displayUserAreaOfStudy();
     displayUserYearOfStudy();
+
+    AsyncStorage.getItem('notificationsEnabled').then(val => {
+      if (val !== null) setNotificationsEnabled(JSON.parse(val));
+    });
   }, []);
+
 
   //lets the user log out
   const logout = async (navigation, type) => {
     try {
-      await AsyncStorage.removeItem('authToken'); //remove token
+      const userId = await AsyncStorage.getItem('userId');
+      const fcmToken = await PushNotificationService.getToken(); // Just returns device token
+  
+      if (userId && fcmToken) {
+        await axios.delete(`${BASE_URL}/api/notifications/remove-token`, {
+          data: {
+            userId: parseInt(userId),
+            fcmToken,
+          },
+        });
+
+        await messaging().deleteToken();
+        console.log("Local FCM token deleted");
+      }
+  
+      // Clear all keys that were set during login
+      await AsyncStorage.removeItem('token'); 
+      await AsyncStorage.removeItem('username');
+      await AsyncStorage.removeItem('userId');
+  
       navigation.reset({
         index: 0,
         routes: [{ name: 'LogIn' }],
@@ -197,6 +225,25 @@ const SettingsScreen = ({ navigation }) => {
     }
   };
 
+  const toggleNotifications = async () => {
+    try {
+      if (notificationsEnabled) {
+        await messaging().deleteToken(); // This prevents further push notifications
+        console.log("Notifications disabled");
+      } else {
+        await PushNotificationService.getToken(); // Re-register for notifications
+        console.log("Notifications enabled");
+      }
+
+      Alert.alert("Notification Setting", notificationsEnabled ? "Notifications disabled." : "Notifications enabled.");
+  
+      setNotificationsEnabled(!notificationsEnabled);
+      await AsyncStorage.setItem('notificationsEnabled', JSON.stringify(!notificationsEnabled));
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
@@ -224,9 +271,12 @@ const SettingsScreen = ({ navigation }) => {
       <View style={styles.sectionContainer}>
         
         <SettingsItem icon="pencil" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
-        {/* <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} /> */}
-        {/* <SettingsItem icon="notifications-outline" text="Notification Settings" onPress={() => openModal('editNotifitcations')} /> */}
-        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => logout(navigation, 'logout')} />
+        <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} />
+        <SettingsItem icon={notificationsEnabled ? "notifications" : "notifications-off"}
+          text={notificationsEnabled ? "Disable Notifications" : "Enable Notifications"}
+          onPress={toggleNotifications}
+        />
+        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => logout(navigation)} />
         {/* <SettingsItem icon="add-circle" text="Increase Font Size" />
         <SettingsItem icon="remove-circle" text="Decrease Font Size" /> */}
       </View>
