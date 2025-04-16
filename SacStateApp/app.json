@@ -4,7 +4,7 @@
     "slug": "SacStateApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Sac_LIFE_app_icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -18,7 +18,7 @@
       "googleServicesFile": "./google-services.json",
       "releaseChannel": "production",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Sac_LIFE_app_icon.png",
         "backgroundColor": "#ffffff"
       },
       "useNextNotificationsApi": true,

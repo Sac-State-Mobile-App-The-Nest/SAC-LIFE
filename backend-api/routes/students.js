@@ -19,7 +19,7 @@ module.exports = function (poolPromise) {
     }
   });
 
-  // Get std_id, preferred_name, abd expected_grad
+  // Get std_id, preferred_name, and expected_grad
   router.get('/preferredInfo', async (req, res) => {
     try {
       const pool = await poolPromise;
@@ -27,6 +27,37 @@ module.exports = function (poolPromise) {
       res.json(result.recordset);
     } catch (err) {
       console.error('SQL error:', err.message);
+      res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  // Gets important information about students to be displayed on the student admin page
+  router.get('/studentInfo', async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query(`
+        SELECT 
+          s.std_id,
+          s.f_name,
+          s.l_name,
+          s.preferred_name,
+          s.expected_grad,
+          STRING_AGG(t.tag_name, ', ') AS tags
+        FROM 
+          test_students s
+        LEFT JOIN 
+          test_student_tags st ON s.std_id = st.std_id
+        LEFT JOIN 
+          test_tags t ON st.tag_id = t.tag_id
+        GROUP BY 
+          s.std_id, s.f_name, s.l_name, s.preferred_name, s.expected_grad
+        ORDER BY 
+          s.std_id;
+      `);
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error:', err);
+      console.log(result);
       res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
   });
@@ -79,7 +110,17 @@ module.exports = function (poolPromise) {
     const studentId = req.user.std_id;
     // question 0 and 5 are not tags. it will be used for test_students | preferred_name, expected_grad
     const { question0, question1, question2, question3, question4, question5, question6, question7 } = specificAnswers;
-    const allTags = [question1, question2, question3, question4, ...question6, ...question7]
+    
+    const safeArray = (v) => Array.isArray(v) ? v : v ? [v] : [];
+
+    const allTags = [
+      question1,
+      question2,
+      question3,
+      question4,
+      ...safeArray(question6),
+      ...safeArray(question7)
+    ];
 
     try {
       const pool = await poolPromise;
@@ -350,6 +391,24 @@ module.exports = function (poolPromise) {
     } catch (err) {
       console.error('SQL error', err);
       return res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+
+  router.delete('/deleteChatLogs', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id;
+    try{
+      const pool = await poolPromise;
+      const result = await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`DELETE FROM chat_logs WHERE std_id = @std_id`);
+      if (result.rowsAffected[0] > 0){
+        res.status(200).json({ success: true, message: 'Chat logs deleted' });
+      } else {
+        res.status(404).json({ success: false, message: 'No chat logs found for student' });
+      }
+    } catch (err) {
+      console.error('Delete error', err);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
 

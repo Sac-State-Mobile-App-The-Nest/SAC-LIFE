@@ -6,6 +6,7 @@ import { api, logoutAdmin, refreshAccessToken } from '../api/api';
 
 function Students() {
   // State variables
+  const [expandedRows, setExpandedRows] = useState([]);
   const [students, setStudents] = useState([]);
   const [role, setRole] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]); 
@@ -28,7 +29,7 @@ function Students() {
   
       let response;
       try {
-        response = await api.get('/students/preferredInfo', {
+        response = await api.get('/students/studentInfo', {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (error) {
@@ -36,7 +37,7 @@ function Students() {
           console.warn("Access token expired. Refreshing...");
           token = await refreshAccessToken();
           if (!token) return;
-          response = await api.get('/students/preferredInfo', {
+          response = await api.get('/students/studentInfo', {
             headers: { Authorization: `Bearer ${token}` }
           });
         } else {
@@ -97,47 +98,51 @@ function Students() {
       return;
     }
   
-    try {
-      // 🔁 First attempt to delete with current token
-      try {
-        await Promise.all(
-          selectedStudents.map(async (stdId) => {
-            return api.request({
+    const deleteStudents = async (tokenToUse) => {
+      const skipped = [];
+  
+      await Promise.all(
+        selectedStudents.map(async (stdId) => {
+          try {
+            await api.request({
               url: `adminRoutes/students/${stdId}`,
               method: 'delete',
-              headers: { Authorization: `Bearer ${token}` },
-              data: { password }, // ✅ Pass the password in the body
+              headers: { Authorization: `Bearer ${tokenToUse}` },
+              data: { password },
             });
-          })
-        );
+          } catch (error) {
+            if (error.response?.status === 404) {
+              console.warn(`Student ${stdId} already deleted.`);
+              skipped.push(stdId);
+            } else {
+              throw error;
+            }
+          }
+        })
+      );
+  
+      return skipped;
+    };
+  
+    try {
+      try {
+        await deleteStudents(token);
       } catch (error) {
-        // 🔁 Refresh token if the error is 401 (unauthorized)
         if (error.response?.status === 401) {
           console.warn("Token expired, attempting refresh...");
           token = await refreshAccessToken();
           token = sessionStorage.getItem('token');
-          if (!token) {
-            throw new Error("Token refresh failed.");
-          }
-  
-          // ✅ Retry the deletions with the refreshed token
-          await Promise.all(
-            selectedStudents.map(async (stdId) => {
-              return api.request({
-                url: `adminRoutes/students/${stdId}`,
-                method: 'delete',
-                headers: { Authorization: `Bearer ${token}` },
-                data: { password },
-              });
-            })
-          );
+          if (!token) throw new Error("Token refresh failed.");
+          await deleteStudents(token);
         } else {
           throw error;
         }
       }
   
       alert("Selected students deleted successfully.");
-      setStudents((prev) => prev.filter((student) => !selectedStudents.includes(student.std_id)));
+      setStudents((prev) =>
+        prev.filter((student) => !selectedStudents.includes(student.std_id))
+      );
       setSelectedStudents([]);
     } catch (error) {
       console.error('Bulk deletion error:', error);
@@ -205,6 +210,15 @@ function Students() {
     }
   };
 
+  // Toggles row expansion to display more student details
+  const toggleRowExpansion = (std_id) => {
+    setExpandedRows((prevExpanded) =>
+      prevExpanded.includes(std_id)
+        ? prevExpanded.filter(id => id !== std_id)
+        : [...prevExpanded, std_id]
+    );
+  };
+
   // Filters the students list based on the search term entered by the user
   const filteredStudents = students.filter((student) => {
     const term = searchTerm.toLowerCase();
@@ -233,57 +247,80 @@ function Students() {
       <div className="scrollable-table-container">
         <table className="users-table">
         <thead>
-        <tr>
-          {/* Checkbox Header with Delete Button Inside */}
-          <th className="checkbox-header">
-            {role === 'super-admin' && (
-              <button
-                className="delete-selected-button"
-                onClick={() => setShowBulkConfirmModal(true)}
-                disabled={selectedStudents.length === 0}
-                style={{
-                  opacity: selectedStudents.length === 0 ? 0.5 : 1,
-                  cursor: selectedStudents.length === 0 ? "not-allowed" : "pointer",
-                }}
-              >
-                Delete Selected
+  <tr>
+    <th className="checkbox-header">
+      {role === 'super-admin' && (
+        <button
+          className="delete-selected-button"
+          onClick={() => setShowBulkConfirmModal(true)}
+          disabled={selectedStudents.length === 0}
+          style={{
+            opacity: selectedStudents.length === 0 ? 0.5 : 1,
+            cursor: selectedStudents.length === 0 ? "not-allowed" : "pointer",
+          }}
+        >
+          Delete Selected
+        </button>
+      )}
+      <input
+        type="checkbox"
+        onChange={handleSelectAllChange}
+        checked={students.length > 0 && selectedStudents.length === students.length}
+      />
+    </th>
+    <th></th> {/* Expand/Collapse button column */}
+    <th>First Name</th>
+    <th>Last Name</th>
+    <th>Preferred Name</th>
+    <th>Expected Graduation</th>
+    {role === 'super-admin' && <th>Actions</th>}
+  </tr>
+</thead>
+<tbody>
+  {filteredStudents.map((user) => (
+    <React.Fragment key={user.std_id}>
+      <tr>
+        <td>
+          <input
+            type="checkbox"
+            checked={selectedStudents.includes(user.std_id)}
+            onChange={() => handleCheckboxChange(user.std_id)}
+          />
+        </td>
+        <td>
+          <button
+            onClick={() => toggleRowExpansion(user.std_id)}
+            className="expand-toggle"
+          >
+            {expandedRows.includes(user.std_id) ? '▲' : '▼'}
+          </button>
+        </td>
+        <td>{user.f_name}</td>
+        <td>{user.l_name}</td>
+        <td>{user.preferred_name}</td>
+        <td>{user.expected_grad}</td>
+        {role !== 'read-only' && (
+          <td>
+            {role !== 'support-admin' && (
+              <button className="edit-button" onClick={() => openEditModal(user)}>
+                Edit
               </button>
             )}
-            <input
-              type="checkbox"
-              onChange={handleSelectAllChange}
-              checked={students.length > 0 && selectedStudents.length === students.length}
-            />
-          </th>
-          <th>Preferred Name</th>
-          <th>Expected Graduation</th>
-          {role === 'super-admin' && <th>Actions</th>}
+          </td>
+        )}
+      </tr>
+
+      {/* Expanded row with tag display */}
+      {expandedRows.includes(user.std_id) && (
+        <tr className="expanded-row">
+          <td colSpan={role !== 'read-only' ? 7 : 6}>
+            <strong>Tags:</strong> {user.tags || 'None'}
+          </td>
         </tr>
-      </thead>
-          <tbody>
-            {filteredStudents.map((user) => (
-              <tr key={user.std_id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedStudents.includes(user.std_id)}
-                    onChange={() => handleCheckboxChange(user.std_id)}
-                  />
-                </td>
-                <td>{user.preferred_name}</td>
-                <td>{user.expected_grad}</td>
-                {role !== 'read-only' && (
-                  <td>
-                    {role !== 'support-admin' && (
-                      <button className="edit-button" onClick={() => openEditModal(user)}>
-                        Edit
-                      </button>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
+      )}
+    </React.Fragment>
+  ))}
+</tbody>
         </table>
       </div>
   
@@ -360,10 +397,14 @@ function Students() {
             onChange={handleEditChange}
           >
             <option value="">Select Year</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
+            <option value="Spring 2025">Spring 2025</option>
+            <option value="Fall 2025">Fall 2025</option>
+            <option value="Spring 2026">Spring 2026</option>
+            <option value="Fall 2026">Fall 2026</option>
+            <option value="Spring 2027">Spring 2027</option>
+            <option value="Fall 2027">Fall 2027</option>
+            <option value="Spring 2028">Spring 2028</option>
+            <option value="Fall 2028">Fall 2028</option>
           </select>
 
 

@@ -52,6 +52,7 @@ body {
   transform: translate(-50%, -50%);
   opacity: 0.08; /* More subtle effect for the logo */
   z-index: -1;
+  overflow: auto;
 }
 
 h1 {

@@ -96,23 +96,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 12,
     },
-    input: {
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-        borderWidth: 1.2,
-        borderColor: colors.sacGreen,
-        borderRadius: 10,
-        backgroundColor: colors.white,
-        marginBottom: 12,
-        width: '92%',
-        fontSize: 16,
-        alignSelf: 'center',
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.07,
-        shadowRadius: 3,
-        elevation: 2,
-    },
     pickerContainer: {
         width: '92%',
         backgroundColor: colors.fadedSacGold,
@@ -194,11 +177,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
-    },
-    largeInput: {
-        height: 100, // Adjust height as needed
-        textAlignVertical: 'top', // Align text to the top
-        padding: 10, // Add padding for better readability
     },
     footerDecoration: {
         position: 'absolute',

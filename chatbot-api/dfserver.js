@@ -62,6 +62,23 @@ app.post('/message', async (req, res) => {
       return res.status(400).json({ error: 'Message and std_id are required.' });
     }
 
+    //Fetch tags for the student
+    const pool = await sql.connect(config);
+    const tagResult = await pool.request()
+      .input('stdId', sql.Int, std_id)
+      .query(`
+        SELECT t.tag_name 
+        FROM test_student_tags st
+        JOIN test_tags t ON st.tag_id = t.tag_id
+        WHERE st.std_id = @stdId
+      `);
+    
+    const tags = tagResult.recordset.map(row => row.tag_name);
+    const tagDescription = tags.length > 0
+      ? `This student has the following tags: ${tags.join(', ')}. Use this to personalize responses.`
+      : 'No tag data is available for this student.';
+
+    //Generate  response
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -70,7 +87,9 @@ app.post('/message', async (req, res) => {
           {
             role: 'system',
             content: `
-              You are HerkyBot, an AI assistant for Sac State students. Answer campus-related questions concisely and helpfully. Provide links where applicable.
+              You are HerkyBot, an AI assistant for Sac State students.
+              Answer questions concisely and helpfully using the following context.
+              ${tagDescription}
 
               - **Dining:** [Dining Info](https://www.dining.csus.edu/campus-eateries-2/)
               - **Academic Calendar:** [Events Calendar](https://events.csus.edu/sac-state-academic-calendar#/?i=6)
@@ -84,13 +103,13 @@ app.post('/message', async (req, res) => {
               - **Events:** [Campus Events](https://events.csus.edu/)
               - **Sports:** [Hornet Sports](https://hornetsports.com/calendar)
               - **Parking:** [Permit Pricing](https://www.csus.edu/parking-transportation/parking/permit-pricing.html)
-              - **library:** https://library.csus.edu/ 
+              - **Library:** [Library](https://library.csus.edu/)
 
               If unrelated to Sac State, reply: "I'm not sure. Let's get back to campus-related topics!"
             `
           },
           { role: 'user', content: message }
-        ],
+        ]
       },
       {
         headers: {
@@ -102,8 +121,7 @@ app.post('/message', async (req, res) => {
 
     const botResponse = response.data.choices[0].message.content;
 
-    // Insert chat log
-    let pool = await sql.connect(config);
+    //Save to chat_logs
     await pool.request()
       .input('stdId', sql.Int, std_id)
       .input('student_question', sql.NVarChar(sql.MAX), message)
@@ -122,6 +140,7 @@ app.post('/message', async (req, res) => {
     }
   }
 });
+
 
 
 app.get('/api/students/getLoggedInUser', async (req, res) => {
@@ -204,6 +223,9 @@ app.delete('/clear-chat/:stdId', async (req, res) => {
       res.status(500).json({ error: 'Failed to clear chat history.' });
   }
 });
+
+
+
 
 
 
