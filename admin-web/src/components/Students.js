@@ -6,6 +6,7 @@ import { api, logoutAdmin, refreshAccessToken } from '../api/api';
 
 function Students() {
   // State variables
+  const [expandedRows, setExpandedRows] = useState([]);
   const [students, setStudents] = useState([]);
   const [role, setRole] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]); 
@@ -209,6 +210,15 @@ function Students() {
     }
   };
 
+  // Toggles row expansion to display more student details
+  const toggleRowExpansion = (std_id) => {
+    setExpandedRows((prevExpanded) =>
+      prevExpanded.includes(std_id)
+        ? prevExpanded.filter(id => id !== std_id)
+        : [...prevExpanded, std_id]
+    );
+  };
+
   // Filters the students list based on the search term entered by the user
   const filteredStudents = students.filter((student) => {
     const term = searchTerm.toLowerCase();
@@ -237,62 +247,80 @@ function Students() {
       <div className="scrollable-table-container">
         <table className="users-table">
         <thead>
-        <tr>
-          {/* Checkbox Header with Delete Button Inside */}
-          <th className="checkbox-header">
-            {role === 'super-admin' && (
-              <button
-                className="delete-selected-button"
-                onClick={() => setShowBulkConfirmModal(true)}
-                disabled={selectedStudents.length === 0}
-                style={{
-                  opacity: selectedStudents.length === 0 ? 0.5 : 1,
-                  cursor: selectedStudents.length === 0 ? "not-allowed" : "pointer",
-                }}
-              >
-                Delete Selected
+  <tr>
+    <th className="checkbox-header">
+      {role === 'super-admin' && (
+        <button
+          className="delete-selected-button"
+          onClick={() => setShowBulkConfirmModal(true)}
+          disabled={selectedStudents.length === 0}
+          style={{
+            opacity: selectedStudents.length === 0 ? 0.5 : 1,
+            cursor: selectedStudents.length === 0 ? "not-allowed" : "pointer",
+          }}
+        >
+          Delete Selected
+        </button>
+      )}
+      <input
+        type="checkbox"
+        onChange={handleSelectAllChange}
+        checked={students.length > 0 && selectedStudents.length === students.length}
+      />
+    </th>
+    <th></th> {/* Expand/Collapse button column */}
+    <th>First Name</th>
+    <th>Last Name</th>
+    <th>Preferred Name</th>
+    <th>Expected Graduation</th>
+    {role === 'super-admin' && <th>Actions</th>}
+  </tr>
+</thead>
+<tbody>
+  {filteredStudents.map((user) => (
+    <React.Fragment key={user.std_id}>
+      <tr>
+        <td>
+          <input
+            type="checkbox"
+            checked={selectedStudents.includes(user.std_id)}
+            onChange={() => handleCheckboxChange(user.std_id)}
+          />
+        </td>
+        <td>
+          <button
+            onClick={() => toggleRowExpansion(user.std_id)}
+            className="expand-toggle"
+          >
+            {expandedRows.includes(user.std_id) ? '▲' : '▼'}
+          </button>
+        </td>
+        <td>{user.f_name}</td>
+        <td>{user.l_name}</td>
+        <td>{user.preferred_name}</td>
+        <td>{user.expected_grad}</td>
+        {role !== 'read-only' && (
+          <td>
+            {role !== 'support-admin' && (
+              <button className="edit-button" onClick={() => openEditModal(user)}>
+                Edit
               </button>
             )}
-            <input
-              type="checkbox"
-              onChange={handleSelectAllChange}
-              checked={students.length > 0 && selectedStudents.length === students.length}
-            />
-          </th>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Preferred Name</th>
-          <th>Expected Graduation</th>
-          {role === 'super-admin' && <th>Actions</th>}
+          </td>
+        )}
+      </tr>
+
+      {/* Expanded row with tag display */}
+      {expandedRows.includes(user.std_id) && (
+        <tr className="expanded-row">
+          <td colSpan={role !== 'read-only' ? 7 : 6}>
+            <strong>Tags:</strong> {user.tags || 'None'}
+          </td>
         </tr>
-      </thead>
-          <tbody>
-            {filteredStudents.map((user) => (
-              <tr key={user.std_id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedStudents.includes(user.std_id)}
-                    onChange={() => handleCheckboxChange(user.std_id)}
-                  />
-                </td>
-                <td>{`${user.f_name}`}</td>
-                <td>{`${user.l_name}`}</td>
-                <td>{user.preferred_name}</td>
-                {/* <td>{user.preferred_name}</td> */}
-                <td>{user.expected_grad}</td>
-                {role !== 'read-only' && (
-                  <td>
-                    {role !== 'support-admin' && (
-                      <button className="edit-button" onClick={() => openEditModal(user)}>
-                        Edit
-                      </button>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
+      )}
+    </React.Fragment>
+  ))}
+</tbody>
         </table>
       </div>
   
@@ -369,10 +397,14 @@ function Students() {
             onChange={handleEditChange}
           >
             <option value="">Select Year</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
+            <option value="Spring 2025">Spring 2025</option>
+            <option value="Fall 2025">Fall 2025</option>
+            <option value="Spring 2026">Spring 2026</option>
+            <option value="Fall 2026">Fall 2026</option>
+            <option value="Spring 2027">Spring 2027</option>
+            <option value="Fall 2027">Fall 2027</option>
+            <option value="Spring 2028">Spring 2028</option>
+            <option value="Fall 2028">Fall 2028</option>
           </select>
 
 

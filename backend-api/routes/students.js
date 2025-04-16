@@ -35,10 +35,29 @@ module.exports = function (poolPromise) {
   router.get('/studentInfo', async (req, res) => {
     try {
       const pool = await poolPromise;
-      const result = await pool.request().query('SELECT std_id, f_name, l_name, preferred_name, expected_grad FROM test_students');
+      const result = await pool.request().query(`
+        SELECT 
+          s.std_id,
+          s.f_name,
+          s.l_name,
+          s.preferred_name,
+          s.expected_grad,
+          STRING_AGG(t.tag_name, ', ') AS tags
+        FROM 
+          test_students s
+        LEFT JOIN 
+          test_student_tags st ON s.std_id = st.std_id
+        LEFT JOIN 
+          test_tags t ON st.tag_id = t.tag_id
+        GROUP BY 
+          s.std_id, s.f_name, s.l_name, s.preferred_name, s.expected_grad
+        ORDER BY 
+          s.std_id;
+      `);
       res.json(result.recordset);
     } catch (err) {
-      console.error('SQL error:', err.message);
+      console.error('SQL error:', err);
+      console.log(result);
       res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
   });
