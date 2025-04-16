@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/SignUpStyles';
 import backgroundImage from '../assets/logInBackground.jpg';
 import axios from 'axios';
+import BASE_URL from '../apiConfig.js';
 
 const SignUpScreen = ({ navigation }) => {
     const [fName, setFName] = useState('');
@@ -15,6 +16,8 @@ const SignUpScreen = ({ navigation }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
@@ -23,10 +26,21 @@ const SignUpScreen = ({ navigation }) => {
     }, [navigation]);
 
     const handleSignUp = async () => {
-        if (!fName || !lName || !username || !password || !confirmPassword) {
+        console.log('BASE_URL:', BASE_URL);
+
+
+        if (!fName || !lName || !email || !username || !password || !confirmPassword) {
             Alert.alert('Error', 'All fields are required.');
             return;
         }
+        
+        const sacStateEmailRegex = /^[a-zA-Z0-9._%+-]+@csus\.edu$/;
+        if (!sacStateEmailRegex.test(email)) {
+            Alert.alert('Error', 'Please use a valid Sac State email ending in @csus.edu.');
+            return;
+        }
+        
+
         if (password.length < 8) {
             Alert.alert('Error', 'Password must be at least 8 characters long.');
             return;
@@ -35,22 +49,25 @@ const SignUpScreen = ({ navigation }) => {
             Alert.alert('Error', 'Passwords do not match.');
             return;
         }
-
+    
         setLoading(true);
-
+    
         try {
-            const response = await axios.post(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/signup`, {
+            const response = await axios.post(`${BASE_URL}/signup`, {
                 f_name: fName,
                 l_name: lName,
+                email,
                 username,
                 password,
             });
-
+            
+            
+            
             if (response.status === 201) {
                 Alert.alert('Success', 'Account created successfully!');
                 navigation.navigate('LogIn');
             } else {
-                Alert.alert('Error', response.data.message || 'Unexpected error');
+                Alert.alert('Error', response.data.message || 'Unexpected error occurred.');
             }
         } catch (error) {
             console.error('Sign-up error:', error);
@@ -77,6 +94,14 @@ const SignUpScreen = ({ navigation }) => {
                         placeholder="Last Name"
                         value={lName}
                         onChangeText={setLName}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Sac State Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
                     />
                     <TextInput
                         style={styles.input}
