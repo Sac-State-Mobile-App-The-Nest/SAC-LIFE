@@ -143,13 +143,6 @@ const WellnessHome = ({ navigation }) => {
         >
           <Text style={styles.primaryButtonText}>Check on your Wellness</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => navigation.navigate('Resources')}
-        >
-          <Text style={styles.secondaryButtonText}>Explore Resources</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
     </ImageBackground>
