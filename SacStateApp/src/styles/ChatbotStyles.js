@@ -37,30 +37,26 @@ const styles = StyleSheet.create({
         backgroundColor: '#F3F4F6',
         borderRadius: 22,
         paddingLeft: 40,
+        paddingRight: 40, // give room for send icon
         fontSize: 15,
         borderWidth: 1,
         borderColor: '#ddd',
         color: colors.sacGreen,
-    },
+      },
     searchIcon: {
         position: 'absolute',
-        left: 22,
+        left: 60,
         top: Platform.OS === 'android' ? 21 : 16,
         zIndex: 1,
         tintColor: '#9E9E9E'
     },
     sendIcon: {
-        backgroundColor: colors.sacGreen,
+        backgroundColor: '#F3F3F3',   // subtle background
         borderRadius: 20,
         padding: 6,
-        marginLeft: 8,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
-        color: colors.white,
+        marginLeft: 6,
+        elevation: 2,                 // soft shadow
+        color: colors.sacGreen,
     },
     senderLabelYou: {
         fontSize: 12,
@@ -122,23 +118,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         color: colors.sacGreen,
     },
-    clearChatDropdown: {
-        position: 'absolute',
-        top: 40,
-        right: 16,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        backgroundColor: '#F3F3F3',
-        borderRadius: 8,
-        borderColor: '#B0B0B0',
-        borderWidth: 1,
-        zIndex: 99,
-    },
-    clearChatButtonText: {
-        color: colors.sacGreen,
-        fontWeight: '500',
-        fontSize: 13,
-    },
     typingDotsContainer: {
         flexDirection: 'row',
         paddingTop: 4,
@@ -153,6 +132,16 @@ const styles = StyleSheet.create({
         backgroundColor: colors.sacGreen,
         opacity: 0.6,
     },
+    trashButton: {
+        position: 'absolute',
+        bottom: 75, // aligns above the tab bar but below the input
+        left: 20,
+        padding: 10,
+        backgroundColor: '#F3F3F3',
+        borderRadius: 20,
+        elevation: 2,
+        zIndex: 10,
+    }
 });
 
 export default styles;

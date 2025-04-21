@@ -17,7 +17,6 @@ const ChatbotScreen = () => {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [loggedInStudentId, setLoggedInStudentId] = useState(null);
-    const [showClearDropdown, setShowClearDropdown] = useState(false);
 
     useEffect(() => {
         const fetchStudentId = async () => {
@@ -79,15 +78,27 @@ const ChatbotScreen = () => {
 
     const handleClearChat = async () => {
         if (!loggedInStudentId) return;
-        try {
-            const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/clear-chat/${loggedInStudentId}`, {
-                method: 'DELETE',
-            });
-            if (res.ok) setMessages([]);
-        } catch (err) {
-            console.error("Error clearing chat:", err);
-        }
-    };
+        Alert.alert(
+          'Clear Chat',
+          'Are you sure you want to clear all messages?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Yes',
+              onPress: async () => {
+                try {
+                  const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/clear-chat/${loggedInStudentId}`, {
+                    method: 'DELETE',
+                  });
+                  if (res.ok) setMessages([]);
+                } catch (err) {
+                  console.error("Error clearing chat:", err);
+                }
+              },
+            },
+          ]
+        );
+      };
 
     const AnimatedDot = ({ delay = 0 }) => {
         const scaleAnim = useRef(new Animated.Value(0.5)).current;
@@ -175,28 +186,13 @@ const ChatbotScreen = () => {
               )}
             </ScrollView>
       
-            <TouchableOpacity
-              onPress={() => setShowClearDropdown(!showClearDropdown)}
-              style={styles.clearChatToggleIcon}
-            >
-              <MaterialIcons name="more-vert" size={24} color={colors.sacGreen} />
-            </TouchableOpacity>
-      
-            {showClearDropdown && (
-              <TouchableOpacity
-                onPress={() => {
-                  handleClearChat();
-                  setShowClearDropdown(false);
-                }}
-                style={styles.clearChatDropdown}
-              >
-                <Text style={styles.clearChatButtonText}>Clear Chat History</Text>
-              </TouchableOpacity>
-            )}
-      
             {/* ✅ Wrap ONLY input area in TouchableWithoutFeedback */}
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.inputContainer}>
+              <TouchableOpacity onPress={handleClearChat} style={{ paddingRight: 10 }}>
+                <MaterialIcons name="delete-outline" size={24} color={colors.sacGreen} />
+            </TouchableOpacity>
+
                 <MaterialIcons name="search" size={20} color="#9E9E9E" style={styles.searchIcon} />
                 <TextInput
                   style={styles.input}
@@ -205,7 +201,7 @@ const ChatbotScreen = () => {
                   placeholder="Ask me a question..."
                 />
                 <TouchableOpacity onPress={handleSend}>
-                  <MaterialIcons name="arrow-circle-up" size={30} color="#9E9E9E" style={styles.sendIcon} />
+                    <MaterialIcons name="send" size={22} style={styles.sendIcon} />
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

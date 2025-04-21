@@ -191,6 +191,19 @@ const SettingsScreen = ({ navigation }) => {
       return;
     }
 
+     // check for uppercase letter
+    if (!/[A-Z]/.test(newPass1)) {
+      Alert.alert("Error", "Password must include at least one uppercase letter.");
+      return;
+    }
+
+    // check for special character
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPass1)) {
+      Alert.alert("Error", "Password must include at least one special character.");
+      return;
+    }
+
+
     //call api to change password
     // that checks if the password (hashed) isn't already in the database for that userid,
     // and if it returns true then password wasn't so it will update the password
@@ -271,12 +284,11 @@ const SettingsScreen = ({ navigation }) => {
       <View style={styles.sectionContainer}>
         
         <SettingsItem icon="pencil" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
-        <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} />
         <SettingsItem icon={notificationsEnabled ? "notifications" : "notifications-off"}
           text={notificationsEnabled ? "Disable Notifications" : "Enable Notifications"}
           onPress={toggleNotifications}
         />
-        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => logout(navigation)} />
+        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => openModal('logoutConfirm')} />
         {/* <SettingsItem icon="add-circle" text="Increase Font Size" />
         <SettingsItem icon="remove-circle" text="Decrease Font Size" /> */}
       </View>
@@ -304,15 +316,59 @@ const SettingsScreen = ({ navigation }) => {
         <SettingsItem icon="document-text-outline" text="Terms of Service" onPress={() => openModal('tos')}/>
       </View>
 
-      {/* Centered Modal with Blurred Background */}
-      <ProfileModals modalVisible={modalVisible} modalContent={modalContent} newPassword={newPassword} 
-        setNewPassword={setNewPassword} newPreferredName={newPreferredName} setNewPreferredName={setNewPreferredName} 
-        updateNameFunction={updateNameFunction} updatePasswordFunction={updatePasswordFunction}
-        setModalVisible={setModalVisible} newPassword2={newPassword2} setNewPassword2={setNewPassword2}
-        oldPassword={oldPassword} setOldPassword={setOldPassword} setModalContent={setModalContent}
-        navigation={navigation} logout={logout}
+      {/* Modals */}
+      {modalContent === 'logoutConfirm' && modalVisible && (
+        <Modal transparent={true} animationType="fade" visible={modalVisible}>
+          <View style={styles.blurBackground}>
+            <View style={styles.centeredModal}>
+              <Text style={styles.modalTitle}>Are you sure you want to log out?</Text>
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={() => {
+                  logout(navigation, 'logout');
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.saveButtonText}>Yes</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+
+      {/* Centered Modal for Other Settings */}
+      {modalContent !== 'logoutConfirm' && (
+        <ProfileModals
+          modalVisible={modalVisible}
+          modalContent={modalContent}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          newPreferredName={newPreferredName}
+          setNewPreferredName={setNewPreferredName}
+          updateNameFunction={updateNameFunction}
+          updatePasswordFunction={updatePasswordFunction}
+          setModalVisible={setModalVisible}
+          newPassword2={newPassword2}
+          setNewPassword2={setNewPassword2}
+          oldPassword={oldPassword}
+          setOldPassword={setOldPassword}
+          setModalContent={setModalContent}
+          navigation={navigation}
+          logout={logout}
         />
+      )}
     </ScrollView>
+
+    
   );
 };
 
