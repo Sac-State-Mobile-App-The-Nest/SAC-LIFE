@@ -132,67 +132,67 @@ const ChatbotScreen = () => {
     };
 
     return (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.container}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 86 : 0}
-        >
-          <View style={styles.chatContainer}>
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.messagesContainer}
-              contentContainerStyle={styles.messagesContentContainer}
-              keyboardShouldPersistTaps="always"
-              showsVerticalScrollIndicator={true}
-              scrollEnabled={true}
-              nestedScrollEnabled={true}
-              onContentSizeChange={() => {
-                if (!keyboardVisible) {
-                  scrollViewRef.current?.scrollToEnd({ animated: true });
-                }
-              }}
-            >
-              {messages.map((msg, i) => (
-                <AnimatedMessage key={i} style={msg.sender === 'You' ? styles.userMessage : styles.botMessage}>
-                  <Text style={msg.sender === 'You' ? styles.senderLabelYou : styles.senderLabelBot}>
-                    {msg.sender}
-                  </Text>
-                  <View style={msg.sender === 'You' ? styles.userMessageBubble : styles.botMessageBubble}>
-                    <ParsedText
-                      style={msg.sender === 'You' ? styles.userMessageText : styles.botMessageText}
-                      parse={[{
-                        type: 'url',
-                        style: { color: 'blue', textDecorationLine: 'underline' },
-                        onPress: Linking.openURL,
-                      }]}
-                    >
-                      {msg.text}
-                    </ParsedText>
-                  </View>
-                </AnimatedMessage>
-              ))}
-              {isTyping && (
-                <View style={styles.botMessage}>
-                  <Text style={styles.senderLabelBot}>HerkyBot</Text>
-                  <View style={styles.botMessageBubble}>
-                    <Text style={styles.botMessageText}>HerkyBot is typing</Text>
-                    <View style={styles.typingDotsContainer}>
-                      <AnimatedDot delay={0} />
-                      <AnimatedDot delay={300} />
-                      <AnimatedDot delay={600} />
-                    </View>
+      <View style={styles.container}>
+        <View style={styles.chatContainer}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.messagesContainer}
+            contentContainerStyle={styles.messagesContentContainer}
+            keyboardShouldPersistTaps="always"
+            showsVerticalScrollIndicator={true}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
+            onContentSizeChange={() => {
+              if (!keyboardVisible) {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }
+            }}
+          >
+            {messages.map((msg, i) => (
+              <AnimatedMessage key={i} style={msg.sender === 'You' ? styles.userMessage : styles.botMessage}>
+                <Text style={msg.sender === 'You' ? styles.senderLabelYou : styles.senderLabelBot}>
+                  {msg.sender}
+                </Text>
+                <View style={msg.sender === 'You' ? styles.userMessageBubble : styles.botMessageBubble}>
+                  <ParsedText
+                    style={msg.sender === 'You' ? styles.userMessageText : styles.botMessageText}
+                    parse={[{
+                      type: 'url',
+                      style: { color: 'blue', textDecorationLine: 'underline' },
+                      onPress: Linking.openURL,
+                    }]}
+                  >
+                    {msg.text}
+                  </ParsedText>
+                </View>
+              </AnimatedMessage>
+            ))}
+            {isTyping && (
+              <View style={styles.botMessage}>
+                <Text style={styles.senderLabelBot}>HerkyBot</Text>
+                <View style={styles.botMessageBubble}>
+                  <Text style={styles.botMessageText}>HerkyBot is typing</Text>
+                  <View style={styles.typingDotsContainer}>
+                    <AnimatedDot delay={0} />
+                    <AnimatedDot delay={300} />
+                    <AnimatedDot delay={600} />
                   </View>
                 </View>
-              )}
-            </ScrollView>
-      
-            {/* ✅ Wrap ONLY input area in TouchableWithoutFeedback */}
+              </View>
+            )}
+          </ScrollView>
+    
+          {/* ✅ Only input area is keyboard-aware */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 86 : 20}
+          >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.inputContainer}>
-              <TouchableOpacity onPress={handleClearChat} style={{ paddingRight: 10 }}>
-                <MaterialIcons name="delete-outline" size={24} color={colors.sacGreen} />
-            </TouchableOpacity>
-
+                <TouchableOpacity onPress={handleClearChat} style={{ paddingRight: 10 }}>
+                  <MaterialIcons name="delete-outline" size={24} color={colors.sacGreen} />
+                </TouchableOpacity>
+    
                 <MaterialIcons name="search" size={20} color="#9E9E9E" style={styles.searchIcon} />
                 <TextInput
                   style={styles.input}
@@ -201,13 +201,15 @@ const ChatbotScreen = () => {
                   placeholder="Ask me a question..."
                 />
                 <TouchableOpacity onPress={handleSend}>
-                    <MaterialIcons name="send" size={22} style={styles.sendIcon} />
+                  <MaterialIcons name="send" size={22} style={styles.sendIcon} />
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
-          </View>
-        </KeyboardAvoidingView>
-      );
+          </KeyboardAvoidingView>
+        </View>
+      </View>
+    );
+    
 };
 
 export default ChatbotScreen;
