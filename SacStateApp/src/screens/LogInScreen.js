@@ -7,8 +7,8 @@ import backgroundImage from '../assets/logInBackground.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
-import styles from '../LoginStyles/LoginStyles';
-//import PushNotificationService from '../notifications/PushNotificationService';
+import styles from '../styles/LoginStyles';
+import PushNotificationService from '../notifications/PushNotificationService';
 
 import BASE_URL from '../apiConfig.js';
 
@@ -23,16 +23,26 @@ const LogInScreen = () => {
     // Login function
     const login = async () => {
         try {
+            console.log("BASE_URL:", BASE_URL);
             const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
             const token = response.data.accessToken;
             const userId = response.data.userId; 
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('username', username);
+            await AsyncStorage.setItem('userId', userId.toString());
 
+            const fcmToken = await PushNotificationService.getToken();
+            if (!fcmToken) {
+                console.error("FCM token was not saved to backend.");
+              } else {
+                console.log("FCM token registered successfully.");
+              }
             const booleanResponse = await axios.get(`${BASE_URL}/api/login_info/check-login-bool`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
+            setLoading(false);
 
             Alert.alert('Login successful');
             // If login is successful, navigate to homescreen
@@ -42,7 +52,7 @@ const LogInScreen = () => {
                 navigation.navigate('ProfileCreation'); 
             }
         } catch (error) {
-            if (error.response.status === 403){
+            if (error.response && error.response.status === 403){
                 Alert.alert("Error", error.response.data.message);
                 return;
             }
@@ -86,6 +96,7 @@ const LogInScreen = () => {
                         placeholder="Username"
                         value={username}
                         onChangeText={setUsername}
+                        testID="usernameInput"  // Added testID here for username input
                     />
                     
                     <View style={styles.passwordContainer}>
@@ -95,10 +106,12 @@ const LogInScreen = () => {
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry={!showPassword}
+                            testID="passwordInput"  // Added testID here for password input
                         />
                         <TouchableOpacity
                             onPress={() => setShowPassword(prev => !prev)}
                             style={styles.eyeIcon}
+                            testID="eyeIcon" // Added testID here for the eye icon (password visibility toggle)
                         >
                             <Icon 
                                 name={showPassword ? 'visibility' : 'visibility-off'} 
@@ -109,20 +122,20 @@ const LogInScreen = () => {
                     </View>
 
                     {loading ? (
-                        <ActivityIndicator size="large" color="#043927" />
+                        <ActivityIndicator testID="loadingIndicator" size="large" color="#043927" />
                     ) : (
                         <>
-                        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                        <TouchableOpacity style={styles.button} onPress={handleLogin} testID="loginButton">
                             <Text style={styles.buttonText}>Log In</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')} testID="signUpLink">
                             <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
                         </TouchableOpacity>
                         </>
                     )}
                 </View>
-                <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+                <TouchableOpacity style={styles.skipButton} onPress={handleSkip} testID="skipButton">
                     <Text style={styles.skipButtonText}>Developer Skip Button</Text>
                 </TouchableOpacity>
             </View>

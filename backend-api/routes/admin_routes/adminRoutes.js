@@ -1,7 +1,7 @@
 const express = require('express');
 const sql = require('mssql');
 const router = express.Router();
-const { verifyRole, authenticateToken } = require('../../middleware/authMiddleware');
+const { verifyRole, authenticateToken } = require('../../middleware/adminAuthMiddleware');
 const bcrypt = require('bcrypt');
 
 module.exports = function (poolPromise) {
@@ -310,6 +310,128 @@ module.exports = function (poolPromise) {
         res.json({ message: `Admin ${is_active ? 'activated' : 'deactivated'} successfully!` });
     } catch (err) {
         console.error('SQL error:', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  /**
+ * GET: Returns all chatbot logs
+ * Only accessible by super-admins
+ */
+  router.get('/chatbot-logs', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query(`
+        SELECT 
+          l.id,                        
+          l.std_id,
+          s.username,
+          l.student_question,
+          l.bot_response,
+          l.timestamp
+        FROM chat_logs l
+        JOIN login_info s ON l.std_id = s.std_id
+        ORDER BY l.timestamp DESC
+      `);
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('SQL error (chatbot logs):', err.message);
+      res.status(500).json({ message: 'Failed to fetch chatbot logs' });
+    }
+  });
+  
+
+
+router.delete('/chatbot-logs/:id', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('DELETE FROM chat_logs WHERE id = @id');
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Chat log not found' });
+    }
+
+    res.json({ message: 'Chat log deleted successfully' });
+  } catch (err) {
+    console.error('SQL error (delete chat log):', err.message);
+    res.status(500).json({ message: 'Failed to delete chat log' });
+  }
+});
+  
+    /**
+ * get: gets logs of all login dates within the past month, week, and day
+ * All admins can see analytics.
+ */
+  router.get('/admin/analytics/numberOfLogins', authenticateToken, verifyRole(['super-admin', 'content-manager', 'support-admin', 'read-only']), async (req, res) => {
+    //gets all login dates from login_logs tables and is sorted by most recent dates within the past month
+    try {
+      const pool = await poolPromise;
+      //get the number of logins for today grouped by hour
+      const todayResult = await pool.request().query(`
+        SELECT DATEPART(HOUR, login_date) AS hour, COUNT(*) AS count FROM login_logs
+        WHERE CAST(login_date AS DATE) = CAST(GETDATE() AS DATE) GROUP BY DATEPART(HOUR, login_date) ORDER BY hour`);
+      //get number of logins for the past week grouped by day
+      const weekResult = await pool.request().query(`
+        SELECT CAST(login_date AS DATE) AS date, COUNT(*) AS count
+        FROM login_logs
+        WHERE login_date >= DATEADD(DAY, -6, CAST(GETDATE() AS DATE))  -- Last 7 days from today
+        GROUP BY CAST(login_date AS DATE)
+        ORDER BY CAST(login_date AS DATE)`);
+      //get number of logins for past month grouped by day
+      const monthResult = await pool.request().query(`
+        SELECT CAST(login_date AS DATE) AS date, COUNT(*) AS count
+        FROM login_logs
+        WHERE login_date >= DATEADD(DAY, -29, CAST(GETDATE() AS DATE))  -- Last 30 days
+        GROUP BY CAST(login_date AS DATE)
+        ORDER BY CAST(login_date AS DATE)`);
+      res.json({
+        today: {
+          hourly: todayResult.recordset, //[{ hour: 0, count: 2 }, { hour: 1, count: 5}...]
+        },
+        week: {
+          daily: weekResult.recordset,   //[{ date: '2025-04-13', count: 10 }, { date: '2025-04-14', count: 7 }...]
+        },
+        month: {
+          daily: monthResult.recordset,  //[{ date: '2025-03-15', count: 20 }, { date: '2025-04-10', count: 10 }...]
+        },
+      });
+    } catch (err) {
+        console.error('SQL error:', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  /**
+ * get: gets the number of total active accounts
+ * All admins can see analytics.
+ */
+  router.get('/admin/analytics/numberOfActiveAccounts', authenticateToken, verifyRole(['super-admin', 'content-manager', 'support-admin', 'read-only']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT COUNT(*) AS activeCount FROM login_info WHERE is_active = 1');
+      const activeCount = result.recordset[0].activeCount;
+      res.json({ activeUsers: activeCount });
+    } catch (err) {
+        console.error('Error fecthing number of active accounts', err.message);
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+  });
+
+  /**
+   * get: gets the number of total deactivated accounts
+   * All admins can see analytics.
+   */
+  router.get('/admin/analytics/numberOfInactiveAccounts', authenticateToken, verifyRole(['super-admin', 'content-manager', 'support-admin', 'read-only']), async (req, res) => {
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request().query('SELECT COUNT(*) AS activeCount FROM login_info WHERE is_active = 0');
+      const activeCount = result.recordset[0].activeCount;
+      res.json({ inactiveUsers: activeCount });
+    } catch (err) {
+        console.error('Error fecthing number of active accounts', err.message);
         res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
   });

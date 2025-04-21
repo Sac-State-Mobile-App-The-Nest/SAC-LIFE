@@ -1,13 +1,13 @@
 //to-do:  hp bar, backend implementation, clean up and ui focus
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Dimensions, ImageBackground, Animated, ActivityIndicator} from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import styles from '../WellnessStyles/WellnessStyles';
+import BASE_URL from '../apiConfig.js';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo.png');
 
 // Question class to define the structure of each question
@@ -54,18 +54,22 @@ class WellnessCheckInManager {
     }
 }
 
-// CompletionScreen component to display after all questions are answered
-const CompletionScreen = ({ onPress, navigation }) => (
+const CompletionScreen = ({ onPress, isSubmitting }) => (
     <View style={styles.completionContainer}>
-        <Text style={styles.completionText}>Thank you for checking in on yourself!</Text>
-        <TouchableOpacity
-            style={styles.largeButton}
-            onPress={onPress}
-        >
-            <Text style={styles.largeButtonText}>Complete Check-in!</Text>
-        </TouchableOpacity>
+      <Text style={styles.completionText}>Thank you for checking in on yourself!</Text>
+      <TouchableOpacity
+        style={[styles.largeButton, isSubmitting && { opacity: 0.6 }]}
+        onPress={onPress}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator size="small" color="#043927" />
+        ) : (
+          <Text style={styles.largeButtonText}>Complete Check-in!</Text>
+        )}
+      </TouchableOpacity>
     </View>
-);
+  );
 
 
 // QuestionRenderer component to render different types of questions
@@ -76,10 +80,6 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
 
     const handleDropdownChange = (option) => {
         wellnessCheckInManager.handleAnswer(question.id, option.value, currentQuestion);
-    };
-
-    const handleTextInputChange = (text) => {
-        wellnessCheckInManager.handleAnswer(question.id, text, currentQuestion);
     };
 
     switch (question.inputType) {
@@ -122,31 +122,6 @@ const QuestionRenderer = ({ question, wellnessCheckInManager, currentQuestion, a
                     selectTextStyle={styles.pickerText}
                 />
             );
-        default:
-            // Make the final question's text box larger and multiline
-            if (question.id === 5) { // Assuming the final question has id 5
-                return (
-                    <TextInput
-                        style={[styles.input, styles.largeInput]} // Apply a larger style
-                        placeholder="Input here"
-                        onChangeText={handleTextInputChange}
-                        value={answers[question.id] || ''}
-                        multiline={true} // Allow multiline input
-                        numberOfLines={5} // Set a minimum number of lines
-                        scrollEnabled={true} // Enable scrolling
-                        textAlignVertical="top" // Align text to the top
-                    />
-                );
-            } else {
-                return (
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Input here"
-                        onChangeText={handleTextInputChange}
-                        value={answers[question.id] || ''}
-                    />
-                );
-            }
     }
 };
 
@@ -157,6 +132,7 @@ const WellnessCreation = () => {
     const [isCompleted, setIsCompleted] = useState(false);
     const navigation = useNavigation();
     const slideAnim = useRef(new Animated.Value(0)).current;
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Resets it when questionaire is complete.
     useFocusEffect(
@@ -213,7 +189,6 @@ const WellnessCreation = () => {
                 { label: "Agree", value: 1 }
             ]
         ),
-        new Question(5, "Is there anything you would like to add about your school life or wellbeing?", "text"), // Final question with a larger text box
     ];
 
     const wellnessCheckInManager = new WellnessCheckInManager(questions, setCurrentQuestion, setAnswers);
@@ -286,19 +261,50 @@ const WellnessCreation = () => {
 
     // Handle the "Complete Check-in" button press
     const handleCompletePress = async () => {
+        setIsSubmitting(true); // Start loading
         const totalScore = calculateTotalScore();
         console.log("Check-in complete. Total score:", totalScore);
+        console.log("Answers: ", answers);
 
         try {
-            // Store both answers and the calculated score
-            await AsyncStorage.setItem('wellnessAnswers', JSON.stringify({
-                answers: answers,
-                score: totalScore
-            }));
+            const payload = {
+                wellnessAnswers: {
+                    answers: answers,
+                    score: totalScore,
+                },
+            };
+
+            const token = await AsyncStorage.getItem('token');
+            const userId = await AsyncStorage.getItem('userId');
+
+            const response = await fetch(`${BASE_URL}/api/students/wellness-answers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error sending wellness data to server');
+            }
+            // send wellness notifcation
+            await fetch(`${BASE_URL}/api/notifications/wellness`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: parseInt(userId),
+                    score: totalScore
+                })
+            });
+
             navigation.navigate('Dashboard');
         } catch (error) {
-            console.error('Failed to save answers:', error);
-            Alert.alert('Error', 'Failed to save your answers. Please try again.');
+            console.error('Error sending wellness answers: ', error);
+            Alert.alert('Error', 'Failed to send your answers. Please try again.');
+        } finally {
+            setIsSubmitting(false); // End loading
         }
     };
 
@@ -307,7 +313,7 @@ const WellnessCreation = () => {
             <View style={styles.overlayContainer}>
                 <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                     {isCompleted ? (
-                        <CompletionScreen onPress={handleCompletePress} navigation={navigation} />
+                        <CompletionScreen onPress={handleCompletePress} isSubmitting={isSubmitting} navigation={navigation} />
                     ) : (
                         <>
                             {/* Animated question title */}

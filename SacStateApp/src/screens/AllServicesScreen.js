@@ -19,8 +19,7 @@ const AllServicesScreen = ({ route }) => {
     //Filter services based on search query number or name1
     const filteredServices = useMemo(() => {
         return services.filter(service => 
-            service.serv_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            service.index.toString().includes(searchQuery)
+            service.serv_name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [services, searchQuery]);
 
@@ -57,12 +56,11 @@ const AllServicesScreen = ({ route }) => {
         {/* shows all of the services recommended and by search*/}
         <FlatList
             data={filteredServices}
-            keyExtractor={(item, index) => (item.index ? item.index.toString() : index.toString())}
             numColumns={2}
             columnWrapperStyle={styles.row}
             renderItem={({ item }) => (
                 <TouchableOpacity style={styles.serviceBox} onPress={() => handlePress(item.service_link)}>
-                <Text style={styles.serviceTitle}>{item.index}. {item.serv_name}</Text>
+                    <Text style={styles.serviceTitle}>{item.serv_name}</Text>
                 </TouchableOpacity>
             )}
         />

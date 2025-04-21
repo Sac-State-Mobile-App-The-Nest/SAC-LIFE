@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
-const config = require('../config'); //server config file
 
 // Get test_tags table from SQL
 router.get('/', async (req, res) => {

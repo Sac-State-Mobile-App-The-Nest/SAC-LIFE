@@ -40,7 +40,7 @@ const DashboardScreen = () => {
         tabBarBackground: () => (
           <View style={{ flex: 1 }}>
             <LinearGradient
-              colors={['#043927', '#06442F']} // ✅ Gradient applied here
+              colors={['#043927', '#06442F']} // Gradient applied here
               style={{ flex: 1 }}
             />
           </View>
@@ -48,7 +48,7 @@ const DashboardScreen = () => {
         headerBackground: () => (
           <View style={{ flex: 1 }}>
             <LinearGradient
-              colors={['#043927', '#0B6845']} // ✅ Gradient applied to header
+              colors={['#043927', '#0B6845']} // Gradient applied to header
               style={{ flex: 1 }}
             />
           </View>
@@ -57,9 +57,9 @@ const DashboardScreen = () => {
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardTab} options={{ headerShown: false }} />
-      <Tab.Screen name="HerkyBot" component={ChatbotScreen} />
-      <Tab.Screen name="Wellness" component={WellnessHomeScreen} />
-      <Tab.Screen name="Profile" component={SettingsScreen} />
+      <Tab.Screen name="HerkyBot" component={ChatbotScreen}  options={{ title: 'Sac LIFE', tabBarLabel: 'HerkyBot',}}  />
+      <Tab.Screen name="Wellness" component={WellnessHomeScreen}  options={{ title: 'Sac LIFE', tabBarLabel: 'Wellness',}}  />
+      <Tab.Screen name="Profile" component={SettingsScreen}  options={{ title: 'Sac LIFE', tabBarLabel: 'Settings',}}  />
     </Tab.Navigator>
   );
 };

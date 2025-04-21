@@ -1,0 +1,8 @@
+node_modules/
+.git/
+__tests__/
+*.log
+*.zip
+*.tar.gz
+.DS_Store
+.env.local

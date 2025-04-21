@@ -31,4 +31,4 @@ const createAdminUser = async (username, plainPassword, role) => {
 };
 
 // Call the function with desired credentials
-createAdminUser('admin2', 'admin123', 'super-admin'); // Replace with your admin credentials
+createAdminUser('admin3', 'admin123', 'super-admin'); // Replace with your admin credentials

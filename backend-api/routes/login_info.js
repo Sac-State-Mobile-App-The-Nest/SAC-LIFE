@@ -4,8 +4,8 @@ const sql = require('mssql');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const { authenticateToken } = require('../authMiddleware')
-const JWT_SECRET_TOKEN = 'eea7a9c77a0ee1b50710563929964c15631e1e898871c90fe32784c5e9b925fc882554a81e3695d5cd3a919a6203a31c4371ad82c920a5257f03db3d635f0301';
+const { authenticateToken } = require('../middleware/studentAuthMiddleware')
+const JWT_SECRET_TOKEN = process.env.JWT_SECRET_TOKEN;
 
 // Get request for the whole login_info table from SQL
 router.get('/', async (req, res) => {
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
             // Get the hashed password from the database result
             const storedHashedPassword = loginQuery.recordset[0].hashed_pwd;
             // Function call to compare password
-            bcrypt.compare(userInputPassword, storedHashedPassword, (err, result) => {
+            bcrypt.compare(userInputPassword, storedHashedPassword, async (err, result) => {
                 // Error handler
                 if (err) {
                     console.log("An error occured comparing passwords.", err);
@@ -63,6 +63,8 @@ router.post('/login', async (req, res) => {
                     const user = loginQuery.recordset[0];
                     const accessToken = jwt.sign(loginQuery.recordset[0], JWT_SECRET_TOKEN);
 
+                    //log the successful login for analytics
+                    await request.query('INSERT INTO login_logs DEFAULT VALUES;');
                     res.json({ 
                         accessToken: accessToken, 
                         userId: user.std_id 
@@ -149,69 +151,4 @@ router.put('/deactivateAccount', authenticateToken, async (req, res) => {
     }
 })
 
-// Protected route
-// router.get('/protected', authenticateToken, async (req, res) => {
-//     const username = req.user.username;
-    
-//     try {
-//         const request = new sql.Request();
-//         request.input('username', sql.VarChar, username);
-//         const result = await request.query('SELECT std_id FROM login_info WHERE username = @username')
-
-//         console.log(result.recordset);  // Currently prints: [ { std_id: 4 } ]
-
-//         res.send(`Hello, ${username}, you are authenticated!`);
-//     } catch (err) {
-//         console.error('SQL error', err);
-//         res.status(500).send('Server Error');
-//     }
-// });
-
-
-// Get request to hash a password
-// Call in Postman with: localhost:5000/api/login_info/login/hasher
-router.get('/hasher', async (req, res) => {
-    // Replace the samplePass with whatever password you want to encrypt
-    const samplePass = 'password123';
-
-    try {
-        // Generate salt with 10 rounds
-        const salt = await bcrypt.genSalt(10);
-
-        // Hash the password with the generated salt
-        const hash = await bcrypt.hash(samplePass, salt);
-
-        // Send the hashed password as a response
-        res.send({ hashedPassword: hash });
-
-    } catch (err) {
-        console.error('Error:', err.message);
-        res.status(500).send('Server Error.');
-    }
-});
-
-
 module.exports = router;
-
-
-// Navigate to the 'backend-api' folder and then run:
-// npm install bcryptjs jsonwebtoken
-
-// For testing logins with new hash logic:
-// This is the only sample account with a hashed password (Plaintext password is: password123)
-// "std_id": 4,
-// "username": "user4",
-// "hashed_pwd": "$2a$10$vFAmld52ZZsWtv7ntShnFOThdlrMMt.RpkJmWP8.SDMUOFFkseRIa",
-// "first_login": false
-// 
-
-// Password hashing function
-        // bcrypt.hash(userPassword, salt, (err, hash) => {
-        //     if (err) {
-        //         console.log("Password hash failed.")
-        //         return;
-        //     }
-
-        //     // Hashing successful, 'hash' holds the hashed password
-        //     console.log('Hashed password: ', hash);
-        // });

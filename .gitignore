@@ -12,3 +12,11 @@ temp/
 
 # Ignore all .vs/ files
 .vs/
+
+backend-api/firebase-service-account.json
+
+android/app/google-services.json
+
+android/app/google-services copy.json
+
+android/app/debug.keystore

@@ -5,7 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
 import ethnicity from '../assets/ethnicity.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from '../ProfileCreationStyles/ProfileCreationStyles';
+import styles from '../styles/ProfileCreationStyles';
+import HoldToCompleteButton from '../components/HoldToCompleteButton';
+import BASE_URL from '../apiConfig.js';
 
 const { width, height } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo1.png');
@@ -83,13 +85,15 @@ const getMinimumGraduationYear = (selectedYear) => {
 };
 
 const sendProfileDataToServer = async (answers, navigation) => {
+    const userId = await AsyncStorage.getItem('userId');
+    console.log("📤 Sending profile for userId:", userId);
     try {
         const specificAnswers = {
             question0: answers["0"],    //name
             question1: answers["1"],    //race
-            question2: answers["2"] === "Returning student" ? "reentry student" : answers["2"].toLowerCase(), //student status
+            question2: answers["2"] === "Returning student" ? "reentry student" : (answers["2"] ? answers["2"].toLowerCase() : ""), //student status
             question3: answers["3"],    //area of study
-            question4: answers["4"] === "Graduate" ? "graduate student" : answers["4"].toLowerCase(), //student year
+            question4: answers["4"] === "Graduate" ? "graduate student" : (answers["4"] ? answers["4"].toLowerCase() : ""), //student year
             question5: answers["5"]["semester"] + " " + answers["5"]["year"],   //student graduation 
             question6: answers["6"],    //campus interest
             question7: answers["7"],    //campus support
@@ -97,7 +101,7 @@ const sendProfileDataToServer = async (answers, navigation) => {
             question9: answers["9"]     //veteran check
         };
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch(`https://${process.env.DEV_BACKEND_SERVER_IP}/api/students/profile-answers`, {
+        const response = await fetch(`${BASE_URL}/api/students/profile-answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -110,28 +114,32 @@ const sendProfileDataToServer = async (answers, navigation) => {
             throw new Error('Error sending profile data to server');
         }
 
+        console.log("Sending welcome notification to backend:", `${BASE_URL}/api/notifications/welcome`);
+
+         // Send welcome push notification
+         console.log("Sending welcome notification for userId:", userId);
+         await fetch(`${BASE_URL}/api/notifications/welcome`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: parseInt(userId),
+                title: "Welcome to Sac LIFE!",
+                body: "Thank you for completing your profile. We’re here to support your academic and personal success—let’s make it a great semester!"
+            })
+        });
         navigation.reset({
             index: 0,
             routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     } catch (err) {
         console.error('Error sending profile answers: ', err);
-        Alert.alert('Error', 'Failed to send profile answers. Please try again.');
+
         navigation.reset({
             index: 0,
             routes: [{ name: "Dashboard" }], // Adjust route name as needed
         });
     }
 };
-
-const CompletionScreen = ({ onPress }) => (
-    <View style={styles.completionContainer}>
-        <Text style={styles.completionText}>You have finished customizing your personal profile!</Text>
-        <TouchableOpacity style={styles.largeButton} onPress={onPress}>
-            <Text style={styles.largeButtonText}>Create Your Profile!</Text>
-        </TouchableOpacity>
-    </View>
-);
 
 const QuestionRenderer = ({ question, answers, profileCreationManager, currentQuestion, preferredName, setPreferredName }) => {
     switch (question.inputType) {
@@ -229,43 +237,53 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
     }
 };
 
-const TutorialScreen = ({ onPressNext }) => (
-    <ScrollView contentContainerStyle={styles.tutorialContainer}>
-        <Text style={styles.tutorialTitle}>Tutorial</Text>
+const TutorialScreen = ({ onPressNext, onSkip }) => (
+    <View style={{ flex: 1 }}>
+    {/* Skip button */}
+    <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+      <Text style={styles.skipButtonText}>Skip</Text>
+    </TouchableOpacity>
 
-        <Text style={styles.tutorialText}>
-            Welcome! In this guide, you'll discover how to effortlessly navigate the app and explore its key features.
-        </Text>
-
-        <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            The Dashboard is your central hub, featuring a calendar where you can easily create your own events. {"\n"}{"\n"}Simply expand the calendar and double-tap on any date to get started.
-        </Text>
-
-        <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            Next up, meet HerkyBot, our very own AI chatbot! {"\n"}{"\n"}Reach out to HerkyBot whenever you need help, have questions, or require information. {"\n"}{"\n"}It's here to assist you!
-        </Text>
-
-        <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            Next, you'll find our wellness questions, designed to help personalize your services and tailor your experience to your unique needs.
-        </Text>
-
-        <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
-
-        <Text style={styles.tutorialText}>
-            Feel free to continue exploring the app. {"\n"}{"\n"} If you have any questions along the way, just ask HerkyBot – it's here to help!
-        </Text>
-
-        <TouchableOpacity onPress={onPressNext}>
-            <Text style={styles.finishTutorial}>Finish Tutorial</Text>
-        </TouchableOpacity>
-    </ScrollView>
-);
+        <ScrollView contentContainerStyle={styles.tutorialContainer}>
+            <Text style={styles.tutorialTitle}>Tutorial</Text>
+        
+            <Text style={styles.tutorialText}>
+                Welcome! In this guide, you'll discover how to effortlessly navigate the app and explore its key features.
+            </Text>
+        
+            <Image source={require('../assets/Dashboard.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                The Dashboard is your central hub, featuring a calendar where you can easily create your own events.{"\n\n"}
+                Simply expand the calendar and double-tap on any date to get started.
+            </Text>
+        
+            <Image source={require('../assets/Calendar.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                Next up, meet HerkyBot, our very own AI chatbot!{"\n\n"}
+                Reach out to HerkyBot whenever you need help, have questions, or require information.{"\n\n"}
+                It's here to assist you!
+            </Text>
+        
+            <Image source={require('../assets/Chatbot.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                Next, you'll find our wellness questions, designed to help personalize your services and tailor your experience to your unique needs.
+            </Text>
+        
+            <Image source={require('../assets/Wellness.png')} style={styles.tutorialImage} />
+        
+            <Text style={styles.tutorialText}>
+                Feel free to continue exploring the app.{"\n\n"}
+                If you have any questions along the way, just ask HerkyBot – it's here to help!
+            </Text>
+        </ScrollView>
+  
+      {/* Fancy Hold-to-Complete Button */}
+      <HoldToCompleteButton onComplete={onPressNext} />
+    </View>
+  );
 
 const ProfileCreation = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -291,14 +309,16 @@ const ProfileCreation = () => {
 
     const profileCreationManager = new ProfileCreationManager(questions, setCurrentQuestion, setAnswers);
 
-    const handleTutorialFinish = () => {
-        setHasSeenTutorial(true);  // Mark tutorial as completed
-        // Proceed to dashboard or desired screen
-        navigation.reset({
-            index: 0,
-            routes: [{ name: "Dashboard" }], // Adjust route name as needed
-        });
-    };
+    const handleTutorialFinish = async () => {
+        setHasSeenTutorial(true);
+        try {
+          console.log("Tutorial finished — now sending profile and triggering notification");
+          await sendProfileDataToServer(answers, navigation);
+        } catch (err) {
+          console.error("Failed to complete profile creation flow:", err);
+          Alert.alert("Oops!", "Something went wrong while finishing your profile.");
+        }
+      };
 
     const handleNextPress = () => {
         if (currentQuestion === 0 && preferredName.trim() === "") {
@@ -379,14 +399,10 @@ const ProfileCreation = () => {
             <View style={styles.overlayContainer}>
                 <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
                     {isCompleted ? (
-                        !hasSeenTutorial ? (
-                            <View style={styles.tutorialWrapper}>
-                                <TutorialScreen onPressNext={handleTutorialFinish} />
-                            </View>
+                        <View style={styles.tutorialWrapper}>
+                            <TutorialScreen onPressNext={handleTutorialFinish} onSkip={handleTutorialFinish} />
+                        </View>
                         ) : (
-                            <CompletionScreen onPress={() => sendProfileDataToServer(answers, navigation)} />
-                        )
-                    ) : (
                         <>
                             {/* Animated question title */}
                             <Animated.Text 
