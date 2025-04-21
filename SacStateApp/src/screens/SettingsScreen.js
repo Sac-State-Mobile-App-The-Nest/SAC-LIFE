@@ -10,6 +10,7 @@ import { fetchUserYearOfStudy } from '../DashboardAPI/api';
 import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
 //import PushNotificationService from '../notifications/PushNotificationService';
 import BASE_URL from '../apiConfig';
+import * as filter from 'leo-profanity';
 //import messaging from '@react-native-firebase/messaging';
 
 const SettingsScreen = ({ navigation }) => {
@@ -29,6 +30,7 @@ const SettingsScreen = ({ navigation }) => {
     displayUserPreferredName();
     displayUserAreaOfStudy();
     displayUserYearOfStudy();
+    filter.loadDictionary();
 
     AsyncStorage.getItem('notificationsEnabled').then(val => {
       if (val !== null) setNotificationsEnabled(JSON.parse(val));
@@ -135,8 +137,12 @@ const SettingsScreen = ({ navigation }) => {
       return;
     }
     //check if name contains letters only
-    if (!/^[A-Za-z]+$/.test(trimmedName)) {
+    if (filter.isProfane(trimmedName)) {
       Alert.alert("Error", "Name can only contain letters.");
+      return;
+    }
+    if (isProfane(trimmedName)) {
+      Alert.alert("Error", "Name contains inappropriate language.");
       return;
     }
     //check if name isn't same as the current name
@@ -185,6 +191,12 @@ const SettingsScreen = ({ navigation }) => {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
+
+    if (filter.isProfane(newPass1)) {
+      Alert.alert("Error", "Password cannot contain inappropriate language.");
+      return;
+    }
+
     //checking if password length is long enough
     if (newPass1.length < 6 || newPass1.length > 25){
       Alert.alert("Error", "Password must be between 10 and 25 characters long.");
