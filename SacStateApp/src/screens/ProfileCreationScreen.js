@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
+import { View, Text,  ScrollView, TouchableOpacity, TextInput, Alert, Dimensions, ImageBackground, Image, Animated } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import { useNavigation } from '@react-navigation/native';
 import majorList from '../assets/majorList.json';
@@ -9,7 +9,7 @@ import styles from '../styles/ProfileCreationStyles';
 import HoldToCompleteButton from '../components/HoldToCompleteButton';
 import BASE_URL from '../apiConfig.js';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const SAC_STATE_LOGO = require('../assets/sac-state-logo1.png');
 
 class Question {
@@ -239,10 +239,6 @@ const QuestionRenderer = ({ question, answers, profileCreationManager, currentQu
 
 const TutorialScreen = ({ onPressNext, onSkip }) => (
     <View style={{ flex: 1 }}>
-    {/* Skip button */}
-    <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-      <Text style={styles.skipButtonText}>Skip</Text>
-    </TouchableOpacity>
 
         <ScrollView contentContainerStyle={styles.tutorialContainer}>
             <Text style={styles.tutorialTitle}>Tutorial</Text>
