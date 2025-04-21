@@ -53,7 +53,7 @@ const SignUpScreen = ({ navigation }) => {
         setLoading(true);
     
         try {
-            const response = await axios.post(`${BASE_URL}/signup`, {
+            const response = await axios.post(`${BASE_URL}/api/signup`, {
                 f_name: fName,
                 l_name: lName,
                 email,
@@ -75,6 +75,7 @@ const SignUpScreen = ({ navigation }) => {
             Alert.alert('Sign-up failed', message);
         } finally {
             setLoading(false);
+            navigation.navigate('VerificationScreen', { email });
         }
     };
 

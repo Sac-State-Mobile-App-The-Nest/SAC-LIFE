@@ -20,6 +20,7 @@ import AllServicesScreen from './src/screens/AllServicesScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import WellnessScreen from './src/screens/WellnessScreen';
 import WellnessHomeScreen from './src/screens/WellnessHomeScreen';
+import VerificationScreen from './src/screens/VerificationScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -89,6 +90,7 @@ export default function App() {
 
         <Stack.Screen name="WellnessScreen" component ={WellnessScreen} />
         <Stack.Screen name= "WellnessHomeScreen" component ={WellnessHomeScreen} />
+        <Stack.Screen name= "VerificationScreen" component ={VerificationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
     <Toast config={customToastConfig} />
