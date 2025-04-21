@@ -162,7 +162,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const getAllSacStateEvents = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/getAllCampusEvents`, {
+      const response = await axios.get(`http://${process.env.PROD_BACKEND_URL}:5000/api/events/getAllCampusEvents`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -185,7 +185,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const getAllStudentCreatedEvents = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/getAllStudentEvents`, {
+      const response = await axios.get(`http://${process.env.PROD_BACKEND_URL}:5000/api/events/getAllStudentEvents`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

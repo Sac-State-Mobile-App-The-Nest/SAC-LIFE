@@ -41,6 +41,7 @@
     "assetBundlePatterns": [
       "**/*",
       "src/assets/*"
-    ]
+    ],
+    "owner": "nlewis56"
   }
 }

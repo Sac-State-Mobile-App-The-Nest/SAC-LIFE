@@ -8,9 +8,9 @@ import axios from 'axios';
 import { fetchUserAreaOfStudy } from '../DashboardAPI/api';
 import { fetchUserYearOfStudy } from '../DashboardAPI/api';
 import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
-import PushNotificationService from '../notifications/PushNotificationService';
+//import PushNotificationService from '../notifications/PushNotificationService';
 import BASE_URL from '../apiConfig';
-import messaging from '@react-native-firebase/messaging';
+//import messaging from '@react-native-firebase/messaging';
 
 const SettingsScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -78,7 +78,7 @@ const SettingsScreen = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('token');
       // console.log("Attempting to display name");
-      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
+      const response = await axios.get(`${BASE_URL}/api/students/getName`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -157,7 +157,7 @@ const SettingsScreen = ({ navigation }) => {
     //call api to update the name
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/updatePreferredName`,
+      const response = await axios.put(`${BASE_URL}/api/students/updatePreferredName`,
         { newPreferredName },
         { headers: { Authorization: `Bearer ${token}` },}
       );
@@ -198,7 +198,7 @@ const SettingsScreen = ({ navigation }) => {
     // compare old password to new password and make sure it's not the same
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/updatePassword`,
+      const response = await axios.put(`${BASE_URL}/api/login_info/updatePassword`,
         {
           oldPassword,
           newPassword: newPass1, 

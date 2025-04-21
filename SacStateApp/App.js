@@ -4,7 +4,7 @@ import { ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import PushNotificationService, { registerForegroundHandler } from "./src/notifications/PushNotificationService";
+//import PushNotificationService, { registerForegroundHandler } from "./src/notifications/PushNotificationService";
 import Toast from 'react-native-toast-message';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -42,11 +42,11 @@ export default function App() {
           setIsFirstLaunch(false);
         }
 
-        // Initialize push notifications only AFTER checking AsyncStorage
-        registerForegroundHandler();
-        const userId = await AsyncStorage.getItem("userId");
-        await PushNotificationService.requestUserPermission(userId);
-        PushNotificationService.listenForNotifications();
+        // // Initialize push notifications only AFTER checking AsyncStorage
+        // registerForegroundHandler();
+        // const userId = await AsyncStorage.getItem("userId");
+        // await PushNotificationService.requestUserPermission(userId);
+        // PushNotificationService.listenForNotifications();
       } catch (error) {
         console.error("Error initializing app:", error);
       }
