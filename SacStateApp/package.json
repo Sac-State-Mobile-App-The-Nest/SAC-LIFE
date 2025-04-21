@@ -73,12 +73,15 @@
   },
   "jest": {
     "preset": "react-native",
-    "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect", "./jestSetup.js"],
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect",
+      "./jestSetup.js"
+    ],
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?@?react-native|@react-navigation|@expo|expo(nent)?|react-clone-referenced-element|react-native-svg|native-base)"
     ],
     "moduleNameMapper": {
-      "\\.(png|jpg|jpeg|gif|webp|svg|ttf|woff|otf)$": "<rootDir>/__mocks__/fileMock.js" 
+      "\\.(png|jpg|jpeg|gif|webp|svg|ttf|woff|otf)$": "<rootDir>/__mocks__/fileMock.js"
     }
   }
 }

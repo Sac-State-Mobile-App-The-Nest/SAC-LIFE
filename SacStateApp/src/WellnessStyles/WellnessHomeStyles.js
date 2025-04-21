@@ -1,7 +1,5 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet} from 'react-native';
 import * as colors from '../SacStateColors/GeneralColors';
-
-const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     // Background image styles
@@ -14,13 +12,11 @@ const styles = StyleSheet.create({
         opacity: 0.5,
         resizeMode: 'cover',
     },
-
     scrollContainer: {
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-
     container: {
         width: '90%',
         alignItems: 'center',
@@ -99,21 +95,6 @@ const styles = StyleSheet.create({
     },
     primaryButtonText: {
         color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    secondaryButton: {
-        width: '100%',
-        backgroundColor: '#FFFFFF',
-        paddingVertical: 15,
-        borderRadius: 25,
-        borderWidth: 2,
-        borderColor: colors.sacGreen,
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    secondaryButtonText: {
-        color: colors.sacGreen,
         fontSize: 18,
         fontWeight: 'bold',
     },

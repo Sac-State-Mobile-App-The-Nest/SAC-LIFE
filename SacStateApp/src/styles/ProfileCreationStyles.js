@@ -314,19 +314,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         textTransform: 'uppercase',
     },
-    skipButton: {
-        position: 'absolute',
-        top: 30,
-        right: 20,
-        padding: 10,
-        zIndex: 99,
-    },
-    skipButtonText: {
-        fontSize: 16,
-        color: colors.sacGreen,
-        fontWeight: 'bold',
-        textDecorationLine: 'underline',
-    },
 });
 
 export default styles;

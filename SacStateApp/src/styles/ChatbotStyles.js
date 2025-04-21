@@ -1,142 +1,147 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import * as colors from '../SacStateColors/GeneralColors';
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.offWhite,
-        padding: 0,
     },
     chatContainer: {
         flex: 1,
-        justifyContent: 'space-between',
-        padding: 0,
-        marginTop: 10,
     },
     messagesContainer: {
         flex: 1,
-        paddingHorizontal: 10,
-        paddingBottom: 15,
+        paddingHorizontal: 12,
+        paddingTop: 12,
     },
     messagesContentContainer: {
-        paddingBottom: 20,
+        flexGrow: 1,
+        paddingBottom: 120,
+        paddingTop: 10,
     },
-
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingHorizontal: 15,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderTopColor: colors.mutedGold,
-        borderBottomColor: colors.mutedGold,
-        backgroundColor: colors.whiteGreen,
+        paddingHorizontal: 12,
+        paddingVertical: Platform.OS === 'android' ? 10 : 12,
+        backgroundColor: colors.white,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 3,
     },
     input: {
         flex: 1,
-        height: 45,
-        backgroundColor: colors.fadedWhiteSmoke,
-        borderRadius: 25,
+        height: 44,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 22,
         paddingLeft: 40,
-        fontSize: 14,
+        paddingRight: 40, // give room for send icon
+        fontSize: 15,
         borderWidth: 1,
         borderColor: '#ddd',
-        marginRight: 10,
-    },
-    sendButton: {
-        padding: 12,
-        backgroundColor: colors.mutedSacGreen,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+        color: colors.sacGreen,
+      },
     searchIcon: {
-        paddingTop: 3,
-        marginLeft: 25,
+        position: 'absolute',
+        left: 60,
+        top: Platform.OS === 'android' ? 21 : 16,
         zIndex: 1,
+        tintColor: '#9E9E9E'
     },
     sendIcon: {
-        paddingLeft: 10,
-        marginRight: -10,
+        backgroundColor: '#F3F3F3',   // subtle background
+        borderRadius: 20,
+        padding: 6,
+        marginLeft: 6,
+        elevation: 2,                 // soft shadow
         color: colors.sacGreen,
     },
-   
-    // Sender labels with bubble around them
     senderLabelYou: {
         fontSize: 12,
+        fontWeight: '600',
         color: colors.white,
-        backgroundColor: colors.sacGreen, // Green background to make it stand out
-        paddingHorizontal: 8,
+        backgroundColor: colors.sacGreen,
+        paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: 12, // Rounded corners for the label bubble
-        marginTop: 4,
-        marginBottom: 4,
-        marginRight: 10,
+        borderRadius: 20,
         alignSelf: 'flex-end',
+        marginBottom: 2,
     },
-
     senderLabelBot: {
         fontSize: 12,
-        color: colors.gray,
-        marginBottom: 4, // Add some space between the sender label and the message bubble
-        marginLeft: 10,
+        fontWeight: '600',
+        color: colors.white,
+        backgroundColor: colors.mutedGold,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 20,
+        alignSelf: 'flex-start',
+        marginBottom: 2,
     },
-
-    // User message bubble container
     userMessageBubble: {
         maxWidth: '80%',
         padding: 12,
-        borderRadius: 20,
-        backgroundColor: colors.whiteGreen,
-        borderColor: colors.sacGreen,
-        borderWidth: 1,
+        borderRadius: 18,
+        backgroundColor: colors.sacGreen,
         alignSelf: 'flex-end',
-        marginRight: 5,
+        marginBottom: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
-
-    // Bot message bubble container
     botMessageBubble: {
         maxWidth: '80%',
         padding: 12,
-        borderRadius: 20,
+        borderRadius: 18,
         backgroundColor: colors.whiteGold,
-        borderColor: colors.mutedGold,
-        borderWidth: 1,
-        marginTop: 4,
-        marginBottom: 4,
         alignSelf: 'flex-start',
-        marginLeft: 5,
-    },
-
-    // Typing indicator bubble
-    typingIndicator: {
-        maxWidth: '80%',
-        padding: 12,
-        borderRadius: 20,
-        backgroundColor: colors.whiteGold,
-        borderColor: colors.mutedGold,
+        marginBottom: 8,
         borderWidth: 1,
-        alignSelf: 'flex-start',
+        borderColor: colors.mutedGold,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
-    typingIndicatorText: {
-        fontSize: 14,
-        fontStyle: 'italic',
-        color: colors.gray,
-    },
-
     userMessageText: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '500',
-        color: colors.sacGreen,
+        color: colors.white,
     },
     botMessageText: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '500',
         color: colors.sacGreen,
     },
+    typingDotsContainer: {
+        flexDirection: 'row',
+        paddingTop: 4,
+        paddingLeft: 10,
+        alignItems: 'center',
+        gap: 6,
+    },
+    typingDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: colors.sacGreen,
+        opacity: 0.6,
+    },
+    trashButton: {
+        position: 'absolute',
+        bottom: 75, // aligns above the tab bar but below the input
+        left: 20,
+        padding: 10,
+        backgroundColor: '#F3F3F3',
+        borderRadius: 20,
+        elevation: 2,
+        zIndex: 10,
+    }
 });
 
 export default styles;

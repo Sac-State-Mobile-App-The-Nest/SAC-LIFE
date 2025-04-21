@@ -8,9 +8,10 @@ import axios from 'axios';
 import { fetchUserAreaOfStudy } from '../DashboardAPI/api';
 import { fetchUserYearOfStudy } from '../DashboardAPI/api';
 import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
-import PushNotificationService from '../notifications/PushNotificationService';
+//import PushNotificationService from '../notifications/PushNotificationService';
 import BASE_URL from '../apiConfig';
-import messaging from '@react-native-firebase/messaging';
+import * as filter from 'leo-profanity';
+//import messaging from '@react-native-firebase/messaging';
 
 const SettingsScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -29,6 +30,7 @@ const SettingsScreen = ({ navigation }) => {
     displayUserPreferredName();
     displayUserAreaOfStudy();
     displayUserYearOfStudy();
+    filter.loadDictionary();
 
     AsyncStorage.getItem('notificationsEnabled').then(val => {
       if (val !== null) setNotificationsEnabled(JSON.parse(val));
@@ -78,7 +80,7 @@ const SettingsScreen = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('token');
       // console.log("Attempting to display name");
-      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/getName`, {
+      const response = await axios.get(`${BASE_URL}/api/students/getName`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -135,8 +137,12 @@ const SettingsScreen = ({ navigation }) => {
       return;
     }
     //check if name contains letters only
-    if (!/^[A-Za-z]+$/.test(trimmedName)) {
+    if (filter.isProfane(trimmedName)) {
       Alert.alert("Error", "Name can only contain letters.");
+      return;
+    }
+    if (isProfane(trimmedName)) {
+      Alert.alert("Error", "Name contains inappropriate language.");
       return;
     }
     //check if name isn't same as the current name
@@ -157,7 +163,7 @@ const SettingsScreen = ({ navigation }) => {
     //call api to update the name
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/updatePreferredName`,
+      const response = await axios.put(`${BASE_URL}/api/students/updatePreferredName`,
         { newPreferredName },
         { headers: { Authorization: `Bearer ${token}` },}
       );
@@ -185,11 +191,30 @@ const SettingsScreen = ({ navigation }) => {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
+
+    if (filter.isProfane(newPass1)) {
+      Alert.alert("Error", "Password cannot contain inappropriate language.");
+      return;
+    }
+
     //checking if password length is long enough
     if (newPass1.length < 6 || newPass1.length > 25){
       Alert.alert("Error", "Password must be between 10 and 25 characters long.");
       return;
     }
+
+     // check for uppercase letter
+    if (!/[A-Z]/.test(newPass1)) {
+      Alert.alert("Error", "Password must include at least one uppercase letter.");
+      return;
+    }
+
+    // check for special character
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPass1)) {
+      Alert.alert("Error", "Password must include at least one special character.");
+      return;
+    }
+
 
     //call api to change password
     // that checks if the password (hashed) isn't already in the database for that userid,
@@ -198,7 +223,7 @@ const SettingsScreen = ({ navigation }) => {
     // compare old password to new password and make sure it's not the same
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/updatePassword`,
+      const response = await axios.put(`${BASE_URL}/api/login_info/updatePassword`,
         {
           oldPassword,
           newPassword: newPass1, 
@@ -271,12 +296,11 @@ const SettingsScreen = ({ navigation }) => {
       <View style={styles.sectionContainer}>
         
         <SettingsItem icon="pencil" text="Edit Preferred Name" onPress={() => openModal('editProfileName')} />
-        <SettingsItem icon="moon-outline" text="Theme (Light/Dark Mode)" onPress={() => openModal('editTheme')} />
         <SettingsItem icon={notificationsEnabled ? "notifications" : "notifications-off"}
           text={notificationsEnabled ? "Disable Notifications" : "Enable Notifications"}
           onPress={toggleNotifications}
         />
-        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => logout(navigation)} />
+        <SettingsItem icon="log-out-outline" text="Logout" onPress={() => openModal('logoutConfirm')} />
         {/* <SettingsItem icon="add-circle" text="Increase Font Size" />
         <SettingsItem icon="remove-circle" text="Decrease Font Size" /> */}
       </View>
@@ -304,15 +328,59 @@ const SettingsScreen = ({ navigation }) => {
         <SettingsItem icon="document-text-outline" text="Terms of Service" onPress={() => openModal('tos')}/>
       </View>
 
-      {/* Centered Modal with Blurred Background */}
-      <ProfileModals modalVisible={modalVisible} modalContent={modalContent} newPassword={newPassword} 
-        setNewPassword={setNewPassword} newPreferredName={newPreferredName} setNewPreferredName={setNewPreferredName} 
-        updateNameFunction={updateNameFunction} updatePasswordFunction={updatePasswordFunction}
-        setModalVisible={setModalVisible} newPassword2={newPassword2} setNewPassword2={setNewPassword2}
-        oldPassword={oldPassword} setOldPassword={setOldPassword} setModalContent={setModalContent}
-        navigation={navigation} logout={logout}
+      {/* Modals */}
+      {modalContent === 'logoutConfirm' && modalVisible && (
+        <Modal transparent={true} animationType="fade" visible={modalVisible}>
+          <View style={styles.blurBackground}>
+            <View style={styles.centeredModal}>
+              <Text style={styles.modalTitle}>Are you sure you want to log out?</Text>
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={() => {
+                  logout(navigation, 'logout');
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.saveButtonText}>Yes</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+
+      {/* Centered Modal for Other Settings */}
+      {modalContent !== 'logoutConfirm' && (
+        <ProfileModals
+          modalVisible={modalVisible}
+          modalContent={modalContent}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          newPreferredName={newPreferredName}
+          setNewPreferredName={setNewPreferredName}
+          updateNameFunction={updateNameFunction}
+          updatePasswordFunction={updatePasswordFunction}
+          setModalVisible={setModalVisible}
+          newPassword2={newPassword2}
+          setNewPassword2={setNewPassword2}
+          oldPassword={oldPassword}
+          setOldPassword={setOldPassword}
+          setModalContent={setModalContent}
+          navigation={navigation}
+          logout={logout}
         />
+      )}
     </ScrollView>
+
+    
   );
 };
 
