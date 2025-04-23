@@ -1,2 +1,2 @@
-const BASE_URL = "https://sacstate-backend.azurewebsites.net";
+const BASE_URL = "http://192.168.1.223:5000";
 export default BASE_URL;

@@ -23,7 +23,7 @@ const ChatbotScreen = () => {
             try {
                 const username = await AsyncStorage.getItem('username');
                 if (!username) return;
-                const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/api/students/getLoggedInUser?username=${username}`);
+                const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
                 const data = await res.json();
                 if (data?.std_id) {
                     setLoggedInStudentId(data.std_id);
@@ -90,7 +90,7 @@ const ChatbotScreen = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message, std_id: loggedInStudentId }),
                 });
-                const data = await res.json();
+                const data = await response.json();
                 setMessages(prev => [...prev, { text: data.response, sender: 'HerkyBot' }]);
             } catch (err) {
                 console.error('Error:', err);
