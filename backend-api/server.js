@@ -20,6 +20,7 @@ const adminRoutes = require('./routes/admin_routes/adminRoutes')(poolPromise);
 const eventRoute = require('./routes/events')(poolPromise);
 const signUpRoute = require('./routes/signup');
 const notificationRoutes = require('./routes/notifications'); 
+const chatbotRoutes = require('./routes/chatbot');
 
 
 app.use('/api/students', studentsRoute);
@@ -31,6 +32,8 @@ app.use('/api/adminRoutes', adminRoutes);
 app.use('/api/events', eventRoute);
 app.use('/api/signup', signUpRoute);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chatbot', chatbotRoutes); 
+
 
 app.get('/api/helloMessage', (req, res) => {
     res.send('Hello from Node.js backend!');

@@ -413,6 +413,7 @@ module.exports = function (poolPromise) {
     }
   });
 
+
   router.delete('/deleteChatLogs', authenticateToken, async (req, res) => {
     const std_id = req.user.std_id;
     try{
@@ -430,6 +431,36 @@ module.exports = function (poolPromise) {
       res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
+
+  router.get('/getLoggedInUser', async (req, res) => {
+    const { username } = req.query;
+  
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+  
+    try {
+      const pool = await poolPromise;
+      const result = await pool.request()
+        .input('username', sql.NVarChar(255), username)
+        .query(`
+          SELECT username, std_id 
+          FROM login_info
+          WHERE username = @username
+        `);
+  
+      if (result.recordset.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      res.json(result.recordset[0]);
+    } catch (err) {
+      console.error('SQL error:', err);
+      res.status(500).json({ error: "Failed to retrieve logged-in user" });
+    }
+  });
+  
+
 
   return router;
 };
