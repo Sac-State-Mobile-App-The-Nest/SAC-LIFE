@@ -8,6 +8,7 @@ import axios from 'axios';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView, Platform, Linking } from 'react-native';
 import * as filter from 'leo-profanity';
 import moment from 'moment-timezone';
+import BASE_URL from '../apiConfig.js';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { pomegranite } from '../SacStateColors/GeneralColors';
 
@@ -162,7 +163,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const getAllSacStateEvents = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://${process.env.PROD_BACKEND_URL}:5000/api/events/getAllCampusEvents`, {
+      const response = await axios.get(`${BASE_URL}/api/events/getAllCampusEvents`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -185,7 +186,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const getAllStudentCreatedEvents = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://${process.env.PROD_BACKEND_URL}:5000/api/events/getAllStudentEvents`, {
+      const response = await axios.get(`${BASE_URL}/api/events/getAllStudentEvents`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -292,7 +293,7 @@ const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const deleteEvent = async (selectedEvent) => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.delete(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/events/deleteEvent/${selectedEvent.event_id}`, {
+      const response = await axios.delete(`${BASE_URL}/api/events/deleteEvent/${selectedEvent.event_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

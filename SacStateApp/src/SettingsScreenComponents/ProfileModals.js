@@ -8,6 +8,7 @@ import { mutedDarkGreen, darkGray } from '../SacStateColors/GeneralColors';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import BASE_URL from '../apiConfig';
 
 const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword, newPreferredName, setNewPreferredName, updateNameFunction, 
   updatePasswordFunction, setModalVisible, newPassword2, setNewPassword2, oldPassword, setOldPassword, setModalContent, navigation, logout}) => {
@@ -17,7 +18,7 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
   const downloadHerkyBotHistory = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await axios.get(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/requestChatLogs`,
+      const response = await axios.get(`${BASE_URL}/api/students/requestChatLogs`,
         { 
           headers: { 
             Authorization: `Bearer ${token}` 
@@ -68,7 +69,7 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
   const deactivateAccountConfirm = async () => {
     try{
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.put(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/login_info/deactivateAccount`,
+      const response = await axios.put(`${BASE_URL}/api/login_info/deactivateAccount`,
         {}, 
         { 
           headers: { Authorization: `Bearer ${token}` } 
@@ -96,7 +97,7 @@ const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword
     try {
       const token = await AsyncStorage.getItem('token');
       console.log('delete clicked');
-      const response = await axios.delete(`http://${process.env.DEV_BACKEND_SERVER_IP}:5000/api/students/deleteChatLogs`, 
+      const response = await axios.delete(`${BASE_URL}/api/students/deleteChatLogs`, 
         { 
           headers: { Authorization: `Bearer ${token}` }
         }
