@@ -1,2 +1,4 @@
-const BASE_URL = "http://192.168.1.223:5000";
+import { PROD_BACKEND_URL } from '@env';
+
+const BASE_URL = PROD_BACKEND_URL;
 export default BASE_URL;

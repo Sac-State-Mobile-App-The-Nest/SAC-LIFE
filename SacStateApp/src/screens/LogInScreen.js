@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
 import styles from '../styles/LoginStyles';
-//import PushNotificationService from '../notifications/PushNotificationService';
+import PushNotificationService from '../notifications/PushNotificationService';
 
 import BASE_URL from '../apiConfig.js';
 
