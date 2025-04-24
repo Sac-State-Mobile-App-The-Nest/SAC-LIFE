@@ -9,6 +9,7 @@ import ParsedText from 'react-native-parsed-text';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/ChatbotStyles';
 import * as colors from '../SacStateColors/GeneralColors';
+import BASE_URL from '../apiConfig.js';
 
 const ChatbotScreen = () => {
     const [message, setMessage] = useState('');
@@ -23,7 +24,7 @@ const ChatbotScreen = () => {
             try {
                 const username = await AsyncStorage.getItem('username');
                 if (!username) return;
-                const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
+                const res = await fetch(`${BASE_URL}/api/students/getLoggedInUser?username=${username}`);
                 const data = await res.json();
                 if (data?.std_id) {
                     setLoggedInStudentId(data.std_id);
@@ -31,7 +32,7 @@ const ChatbotScreen = () => {
                 }
 
 
-                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
+                const response = await fetch(`${BASE_URL}/api/students/getLoggedInUser?username=${username}`);
                 const responseText = await response.text();
 
                 if (response.ok) {
@@ -56,7 +57,7 @@ const ChatbotScreen = () => {
     const fetchChatHistory = async (stdId) => {
         try {
 
-            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/chat-history/${stdId}`);
+            const response = await fetch(`${BASE_URL}/api/chatbot/chat-history/${stdId}`);
             if (response.ok) {
                 const history = await response.json();
                 setMessages(history.flatMap(chat => [
@@ -84,7 +85,7 @@ const ChatbotScreen = () => {
 
             try {
 
-                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/message`, {
+                const response = await fetch(`${BASE_URL}/api/chatbot/message`, {
 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -108,7 +109,7 @@ const ChatbotScreen = () => {
         }
 
         try {
-            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/clear-chat/${loggedInStudentId}`, {
+            const response = await fetch(`${BASE_URL}/api/chatbot/clear-chat/${loggedInStudentId}`, {
                 method: 'DELETE',
             });
 
