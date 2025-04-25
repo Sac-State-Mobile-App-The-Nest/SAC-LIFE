@@ -16,9 +16,7 @@ export const registerForegroundHandler = () => {
         text2: body,
         position: 'top',
         onPress: () => {
-          if (resourceLink) {
-            Linking.openURL(resourceLink);
-          }
+          if (resourceLink) Linking.openURL(resourceLink);
         },
         autoHide: true,
         visibilityTime: 120000,
@@ -44,7 +42,6 @@ class PushNotificationService {
       console.log("Notification permission denied.");
     }
   }
-  
 
   async getToken(userId) {
     try {
@@ -54,31 +51,38 @@ class PushNotificationService {
           console.error("❌ userId is missing and not found in storage");
           return null;
         }
-        userId = parseInt(fromStorage); // fallback
+        userId = parseInt(fromStorage);
       }
-  
+
       const token = await messaging().getToken();
       console.log("FCM Token:", token);
-  
+
       const deviceInfo = `${Platform.OS} - ${Platform.Version}`;
-  
+
       const response = await fetch(`${BASE_URL}/api/notifications/register-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, fcmToken: token, deviceInfo })
       });
-  
-      const result = await response.json();
-      console.log("JSON response from token register:", result);
-  
-      if (!response.ok) {
-        console.error("Failed to register FCM token on backend:", response.status, result);
+
+      const text = await response.text();
+
+      try {
+        const result = JSON.parse(text);
+        console.log("JSON response from token register:", result);
+
+        if (!response.ok) {
+          console.error("Failed to register FCM token on backend:", response.status, result);
+          return null;
+        }
+
+        console.log("FCM Token saved to backend:", result);
+        return token;
+      } catch (jsonErr) {
+        console.error("Failed to parse backend response:", text);
         return null;
       }
-  
-      console.log("FCM Token saved to backend:", result);
-      return token;
-  
+
     } catch (error) {
       console.error("Error getting or registering FCM Token:", error);
       return null;
@@ -86,29 +90,20 @@ class PushNotificationService {
   }
 
   listenForNotifications() {
-
-    messaging().onNotificationOpenedApp((remoteMessage) => {
+    messaging().onNotificationOpenedApp(remoteMessage => {
       const resourceLink = remoteMessage.data?.resource_link;
-      if (resourceLink) {
-        Linking.openURL(resourceLink); // opens default browser
-      }
+      if (resourceLink) Linking.openURL(resourceLink);
     });
 
-    messaging()
-  .getInitialNotification()
-  .then(remoteMessage => {
-    const resourceLink = remoteMessage?.data?.resource_link;
-    if (resourceLink) {
-      Linking.openURL(resourceLink); // opens if app was completely closed
-    }
-  });
+    messaging().getInitialNotification().then(remoteMessage => {
+      const resourceLink = remoteMessage?.data?.resource_link;
+      if (resourceLink) Linking.openURL(resourceLink);
+    });
 
-    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
       console.log("Notification received in background:", remoteMessage);
     });
   }
 }
-
-
 
 export default new PushNotificationService();
