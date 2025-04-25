@@ -31,7 +31,8 @@ router.post('/login', async (req, res) => {
 
         // Checks if the username and password input match any fields in the database
         const loginQuery = await request.query('SELECT * FROM login_info WHERE username = @username');
-        
+        request.input('std_id', sql.Int, loginQuery.recordset[0].std_id);
+        const emailVerifyQuery = await request.query('SELECT is_email_verified, email FROM test_students WHERE std_id = @std_id');
 
         // If there are no matches, recordset.length will be 0
         if (loginQuery.recordset.length == 0) {
@@ -41,6 +42,10 @@ router.post('/login', async (req, res) => {
             console.log(loginQuery.recordset[0].is_active);
             if (loginQuery.recordset[0].is_active === false){
                 return res.status(403).json({message: "Account Inactive"});
+            }
+            // check if email is verified. adds the email to send to verification screen
+            if (emailVerifyQuery.recordset[0].is_email_verified === false){
+                return res.status(403).json({message: "Account Not Verified", email: emailVerifyQuery.recordset[0].email});
             }
             // If the user exists, compare input password with the corresponding hashed password in the database
             // Get the hashed password from the database result
@@ -61,18 +66,18 @@ router.post('/login', async (req, res) => {
 
                     // Create JWT after authenticating the user
                     const user = loginQuery.recordset[0];
-                    const accessToken = jwt.sign(loginQuery.recordset[0], JWT_SECRET_TOKEN);
+                    // added student data (email, is_email_verified) with the login info
+                    const accessToken = jwt.sign({...loginQuery.recordset[0], ...emailVerifyQuery.recordset[0]}, JWT_SECRET_TOKEN);
 
                     //log the successful login for analytics
                     await request.query('INSERT INTO login_logs DEFAULT VALUES;');
-                    res.json({ 
+                    res.status(200).json({ 
                         accessToken: accessToken, 
                         userId: user.std_id 
                     });
                 } else {
                     // Passwords don't match, authentication failed
-                    res.send('Passwords do not match! Authentication failed.');
-                    console.log('Passwords do not match! Authentication failed.');
+                    return res.status(403).json({ message: 'Incorrect username or password.' });
                 }
             })
         }
@@ -88,6 +93,13 @@ router.get('/check-login-bool', authenticateToken, (req, res) => {
     const firstLogin = req.user.first_login;
     console.log(firstLogin);
     res.send(firstLogin);
+});
+
+// check if email is verified
+router.get('/check-email-verify-bool', authenticateToken, (req, res) => {
+    const is_email_verified = req.user.is_email_verified;
+    console.log(is_email_verified);
+    res.send(is_email_verified);
 });
 
 //updates the user password - takes in an old password and new password. Then checks if the new password(hashed) is in

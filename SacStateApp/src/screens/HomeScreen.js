@@ -19,6 +19,10 @@ const Dashboard = ({ navigation }) => {
         title="Go to Profile Creation"
         onPress={() => navigation.navigate('ProfileCreation')}
       />
+      <Button
+        title="Go to Email Verification"
+        onPress={() => navigation.navigate('VerificationScreen')}
+      />
       
     </View>
     
