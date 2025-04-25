@@ -30,7 +30,7 @@ app.use('/api/login_info', login_infoRoute);
 app.use('/api', adminLoginRoute);
 app.use('/api/adminRoutes', adminRoutes);
 app.use('/api/events', eventRoute);
-app.use('/signup', signUpRoute);
+app.use('/api/signup', signUpRoute);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/chatbot', chatbotRoutes); 
 

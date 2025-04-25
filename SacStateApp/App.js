@@ -17,6 +17,7 @@ import AllServicesScreen from './src/screens/AllServicesScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import WellnessScreen from './src/screens/WellnessScreen';
 import WellnessHomeScreen from './src/screens/WellnessHomeScreen';
+import VerificationScreen from './src/screens/VerificationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,22 +55,32 @@ export default function App() {
 
   return (
     <>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={isFirstLaunch ? "Welcome" : "LogIn"} screenOptions={{ headerShown: false }}>
-          {isFirstLaunch && <Stack.Screen name="Welcome" component={WelcomeScreen} />}
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="LogIn" component={LogInScreen} />
-          <Stack.Screen name="ProfileCreation" component={ProfileCreationScreen} />
-          <Stack.Screen name="AllServices" component={AllServicesScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
-          <Stack.Screen name="WellnessScreen" component={WellnessScreen} />
-          <Stack.Screen name="WellnessHomeScreen" component={WellnessHomeScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <Toast config={customToastConfig} />
-    </>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={isFirstLaunch ? "Welcome" : "LogIn"}
+        screenOptions={{ headerShown: false }}
+      >
+        {/* Include the Welcome screen only if it's the first launch */}
+        {isFirstLaunch && (
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        )}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="LogIn" component={LogInScreen} />
+        <Stack.Screen name="ProfileCreation" component={ProfileCreationScreen} />
+        <Stack.Screen name="AllServices" component={AllServicesScreen} />
+
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+
+        <Stack.Screen name="WellnessScreen" component ={WellnessScreen} />
+        <Stack.Screen name= "WellnessHomeScreen" component ={WellnessHomeScreen} />
+        <Stack.Screen name= "VerificationScreen" component ={VerificationScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+    <Toast config={customToastConfig} />
+
+  </>
   );
 }
 

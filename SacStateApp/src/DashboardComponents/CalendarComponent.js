@@ -8,6 +8,7 @@ import axios from 'axios';
 import { View, FlatList, TouchableOpacity, Text, Animated, Dimensions, Modal, TextInput, Button, Alert, ScrollView, Platform, Linking } from 'react-native';
 import * as filter from 'leo-profanity';
 import moment from 'moment-timezone';
+import BASE_URL from '../apiConfig.js';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { pomegranite } from '../SacStateColors/GeneralColors';
 import BASE_URL from '../apiConfig.js';

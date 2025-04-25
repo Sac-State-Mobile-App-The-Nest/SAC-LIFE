@@ -30,7 +30,7 @@ module.exports = function (poolPromise) {
       res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
   });
-
+  
   // Gets important information about students to be displayed on the student admin page
   router.get('/studentInfo', async (req, res) => {
     try {
@@ -97,6 +97,25 @@ module.exports = function (poolPromise) {
 
       const { f_name, m_name, l_name, preferred_name } = studentInfo.recordset[0];
       res.json({ f_name, m_name, l_name, preferred_name });
+    } catch (err) {
+      console.error('SQL error', err);
+      res.status(500).json({ message: 'Backend server error' });
+    }
+  });
+  router.get('/getEmail', authenticateToken, async (req, res) => {
+    const std_id = req.user.std_id
+    try {
+      const pool = await poolPromise;
+      const studentInfo = await pool.request()
+        .input('std_id', sql.Int, std_id)
+        .query(`SELECT email FROM test_students WHERE std_id = @std_id`);
+
+      if (studentInfo.recordset.length === 0) {
+        return res.status(404).json({ message: 'Student not found in database' });
+      }
+
+      const { email } = studentInfo.recordset[0];
+      res.json({ email });
     } catch (err) {
       console.error('SQL error', err);
       res.status(500).json({ message: 'Backend server error' });

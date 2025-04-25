@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BASE_URL from '../apiConfig.js';
 import axios from 'axios';
+import BASE_URL from '../apiConfig';
 
 const ProfileModals = ({ modalVisible, modalContent, newPassword, setNewPassword, newPreferredName, setNewPreferredName, updateNameFunction, 
   updatePasswordFunction, setModalVisible, newPassword2, setNewPassword2, oldPassword, setOldPassword, setModalContent, navigation, logout}) => {
