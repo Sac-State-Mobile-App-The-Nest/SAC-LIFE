@@ -28,7 +28,7 @@ router.post('/message', async (req, res) => {
 
     const tags = tagResult.recordset.map(row => row.tag_name);
     const tagDescription = tags.length > 0
-      ? `This student has the following tags: ${tags.join(', ')}.`
+      ? `This student has the following tags: ${tags.join(', ')}. Use this to personalize responses.`
       : 'No tag data is available for this student.';
 
     const response = await axios.post(
