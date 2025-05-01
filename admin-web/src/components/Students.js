@@ -268,7 +268,7 @@ function Students() {
         checked={students.length > 0 && selectedStudents.length === students.length}
       />
     </th>
-    <th></th> {/* Expand/Collapse button column */}
+    <th></th>{/* Expand/Collapse button column */}
     <th>First Name</th>
     <th>Last Name</th>
     <th>Preferred Name</th>

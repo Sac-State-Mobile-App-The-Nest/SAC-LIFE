@@ -23,14 +23,31 @@ const ChatbotScreen = () => {
             try {
                 const username = await AsyncStorage.getItem('username');
                 if (!username) return;
-                const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/api/students/getLoggedInUser?username=${username}`);
+                const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
                 const data = await res.json();
                 if (data?.std_id) {
                     setLoggedInStudentId(data.std_id);
                     fetchChatHistory(data.std_id);
                 }
-            } catch (err) {
-                console.error("Error fetching student ID:", err);
+
+
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
+                const responseText = await response.text();
+
+                if (response.ok) {
+                    const userData = JSON.parse(responseText);
+                    if (userData.std_id) {
+                        setLoggedInStudentId(userData.std_id);
+                        fetchChatHistory(userData.std_id);
+                    } else {
+                        console.error(" std_id missing in response.");
+                    }
+                } else {
+                    console.error(` Failed to fetch student ID, status: ${response.status}, body:`, responseText);
+                }
+            } catch (error) {
+                console.error(" Error fetching student ID:", error);
+
             }
         };
         fetchStudentId();
@@ -38,14 +55,20 @@ const ChatbotScreen = () => {
 
     const fetchChatHistory = async (stdId) => {
         try {
-            const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/chat-history/${stdId}`);
-            const history = await res.json();
-            setMessages(history.flatMap(chat => [
-                { text: chat.student_question, sender: 'You' },
-                { text: chat.bot_response, sender: 'SacLifeBot' }
-            ]));
-        } catch (err) {
-            console.error("Error fetching chat history:", err);
+
+            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/chat-history/${stdId}`);
+            if (response.ok) {
+                const history = await response.json();
+                setMessages(history.flatMap(chat => [
+                    { text: chat.student_question, sender: 'You' },
+                    { text: chat.bot_response, sender: 'SacLifeBot' }
+                ]));
+            } else {
+                console.error(` Failed to fetch chat history, status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error("Error fetching chat history:", error);
+
         }
     };
 
@@ -60,12 +83,14 @@ const ChatbotScreen = () => {
             setIsTyping(true);
 
             try {
-                const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/message`, {
+
+                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/message`, {
+
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message, std_id: loggedInStudentId }),
                 });
-                const data = await res.json();
+                const data = await response.json();
                 setMessages(prev => [...prev, { text: data.response, sender: 'HerkyBot' }]);
             } catch (err) {
                 console.error('Error:', err);
@@ -77,28 +102,29 @@ const ChatbotScreen = () => {
     };
 
     const handleClearChat = async () => {
-        if (!loggedInStudentId) return;
-        Alert.alert(
-          'Clear Chat',
-          'Are you sure you want to clear all messages?',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Yes',
-              onPress: async () => {
-                try {
-                  const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:3000/clear-chat/${loggedInStudentId}`, {
-                    method: 'DELETE',
-                  });
-                  if (res.ok) setMessages([]);
-                } catch (err) {
-                  console.error("Error clearing chat:", err);
-                }
-              },
-            },
-          ]
-        );
-      };
+        if (!loggedInStudentId) {
+            console.error(" Cannot clear chat — no std_id available.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/clear-chat/${loggedInStudentId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                console.log("Chat history cleared.");
+                setMessages([]);
+            } else {
+                console.error(` Failed to clear chat history, status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(" Error clearing chat:", error);
+        }
+
+    };
+
+   
 
     const AnimatedDot = ({ delay = 0 }) => {
         const scaleAnim = useRef(new Animated.Value(0.5)).current;
@@ -114,6 +140,8 @@ const ChatbotScreen = () => {
         }, []);
         return <Animated.View style={[styles.typingDot, { transform: [{ scale: scaleAnim }] }]} />;
     };
+    
+
 
     const AnimatedMessage = ({ children, style }) => {
         const slideAnim = useRef(new Animated.Value(20)).current;
@@ -129,7 +157,9 @@ const ChatbotScreen = () => {
                 {children}
             </Animated.View>
         );
-    };
+    }
+
+   
 
     return (
       <View style={styles.container}>
@@ -182,7 +212,7 @@ const ChatbotScreen = () => {
             )}
           </ScrollView>
     
-          {/* ✅ Only input area is keyboard-aware */}
+          
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 86 : 20}

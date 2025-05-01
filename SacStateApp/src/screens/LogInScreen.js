@@ -25,6 +25,11 @@ const LogInScreen = () => {
         try {
             console.log("BASE_URL:", BASE_URL);
             const response = await axios.post(`${BASE_URL}/api/login_info/login`, { username, password, });   // Will add IP's to a .env file in the future
+            if(!response.data.accessToken) {
+                console.log('response: ', response);
+                throw new Error(response.data || "Authentication failed");
+            }
+            console.log('login response:', response);
             const token = response.data.accessToken;
             const userId = response.data.userId; 
 
@@ -42,8 +47,6 @@ const LogInScreen = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            setLoading(false);
-
             Alert.alert('Login successful');
             // If login is successful, navigate to homescreen
             if(booleanResponse.data == true) {
@@ -53,7 +56,12 @@ const LogInScreen = () => {
             }
         } catch (error) {
             if (error.response && error.response.status === 403){
-                Alert.alert("Error", error.response.data.message);
+                // Alert.alert("Error", error.response.data.message);
+                if(error.response.data.email){
+                    navigation.navigate('VerificationScreen', { email: error.response.data.email });
+                    return;
+                }
+                setError(error.response.data.message);
                 return;
             }
             // Handle the error case
@@ -63,6 +71,8 @@ const LogInScreen = () => {
                 Alert.alert('Login failed', 'An unexpected error occurred.');
             }
         console.error("Error logging in:", error.message);
+    } finally {
+        setLoading(false);
     }
 };
 

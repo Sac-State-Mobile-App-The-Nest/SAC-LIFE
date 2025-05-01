@@ -5,8 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import styles from '../styles/SettingsStyles'; // Import styles
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { fetchUserAreaOfStudy } from '../DashboardAPI/api';
-import { fetchUserYearOfStudy } from '../DashboardAPI/api';
+import { fetchUserAreaOfStudy, fetchUserYearOfStudy } from '../DashboardAPI/api';
 import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
 //import PushNotificationService from '../notifications/PushNotificationService';
 import BASE_URL from '../apiConfig';
@@ -137,12 +136,8 @@ const SettingsScreen = ({ navigation }) => {
       return;
     }
     //check if name contains letters only
-    if (filter.isProfane(trimmedName)) {
+    if (!/^[A-Za-z]+$/.test(trimmedName)) {
       Alert.alert("Error", "Name can only contain letters.");
-      return;
-    }
-    if (isProfane(trimmedName)) {
-      Alert.alert("Error", "Name contains inappropriate language.");
       return;
     }
     //check if name isn't same as the current name
@@ -155,7 +150,11 @@ const SettingsScreen = ({ navigation }) => {
       Alert.alert("Error", "Name cannot be longer than 20 characters");
       return;
     }
-
+    // check if name contains inappropriate language
+    if (filter.check(trimmedName)) {
+      Alert.alert("Error", "Name contains inappropriate language.");
+      return;
+    }
     //capitalize first letter, lowercase rest
     let formattedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
 
@@ -191,8 +190,8 @@ const SettingsScreen = ({ navigation }) => {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
-
-    if (filter.isProfane(newPass1)) {
+    //check if password has bad words
+    if (filter.check(newPass1)) {
       Alert.alert("Error", "Password cannot contain inappropriate language.");
       return;
     }
