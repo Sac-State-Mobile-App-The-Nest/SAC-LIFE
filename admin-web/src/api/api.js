@@ -1,11 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://sacstate-backend.azurewebsites.net/api';
+// const API_BASE_URL = 'https://sacstate-backend.azurewebsites.net/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Create Axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json' }
 });
 
 /**
