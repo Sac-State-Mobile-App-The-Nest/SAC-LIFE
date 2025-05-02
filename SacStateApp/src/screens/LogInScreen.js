@@ -37,8 +37,6 @@ const LogInScreen = () => {
       const boolResponse = await axios.get(`${BASE_URL}/api/login_info/check-login-bool`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      Alert.alert('Login successful');
       setLoading(false);
 
       if (boolResponse.data === true) {
@@ -119,9 +117,7 @@ const LogInScreen = () => {
           )}
         </View>
 
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip} testID="skipButton">
-          <Text style={styles.skipButtonText}>Developer Skip Button</Text>
-        </TouchableOpacity>
+  
       </View>
     </ImageBackground>
   );

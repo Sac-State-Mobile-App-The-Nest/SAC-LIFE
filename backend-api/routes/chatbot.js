@@ -28,7 +28,7 @@ router.post('/message', async (req, res) => {
 
     const tags = tagResult.recordset.map(row => row.tag_name);
     const tagDescription = tags.length > 0
-      ? `This student has the following tags: ${tags.join(', ')}.`
+      ? `This student has the following tags: ${tags.join(', ')}. Use this to personalize responses.`
       : 'No tag data is available for this student.';
 
     const response = await axios.post(
@@ -40,7 +40,7 @@ router.post('/message', async (req, res) => {
             role: 'system',
             content: `
               You are HerkyBot, an AI assistant for Sac State students.
-              Answer using the following context:
+              Answer questions concisely and helpfully using the following context.
               ${tagDescription}
 
               - **Dining:** [Dining Info](https://www.dining.csus.edu/campus-eateries-2/)

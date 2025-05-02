@@ -11,7 +11,6 @@ import moment from 'moment-timezone';
 import BASE_URL from '../apiConfig.js';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { pomegranite } from '../SacStateColors/GeneralColors';
-import BASE_URL from '../apiConfig.js';
 
 const CalendarComponent = ({ selectedDate, setSelectedDate }) => {
   const [currentWeek, setCurrentWeek] = useState([]);
