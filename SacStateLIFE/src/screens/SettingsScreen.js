@@ -7,10 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { fetchUserAreaOfStudy, fetchUserYearOfStudy } from '../DashboardAPI/api';
 import ProfileModals from '../SettingsScreenComponents/ProfileModals'; // when a user clicks on a profile/setting screen button, it'll render this
-//import PushNotificationService from '../notifications/PushNotificationService';
+import PushNotificationService from '../notifications/PushNotificationService';
 import BASE_URL from '../apiConfig';
 import * as filter from 'leo-profanity';
-//import messaging from '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
 
 const SettingsScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);

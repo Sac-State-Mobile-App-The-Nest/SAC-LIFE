@@ -1,14 +1,11 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-//import PushNotificationService, { registerForegroundHandler } from "./src/notifications/PushNotificationService";
+import { registerForegroundHandler } from "./src/notifications/PushNotificationService";
 import Toast from 'react-native-toast-message';
-import { Text, TouchableOpacity, View } from 'react-native';
-
-
+import { TouchableOpacity, Text, View } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
@@ -22,7 +19,6 @@ import WellnessScreen from './src/screens/WellnessScreen';
 import WellnessHomeScreen from './src/screens/WellnessHomeScreen';
 import VerificationScreen from './src/screens/VerificationScreen';
 
-
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -31,7 +27,6 @@ export default function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Check AsyncStorage for first launch flag
         const value = await AsyncStorage.getItem("hasSeenWelcome");
 
         if (value === null) {
@@ -43,29 +38,19 @@ export default function App() {
           setIsFirstLaunch(false);
         }
 
-        // // Initialize push notifications only AFTER checking AsyncStorage
-        // registerForegroundHandler();
-        // const userId = await AsyncStorage.getItem("userId");
-        // await PushNotificationService.requestUserPermission(userId);
-        // PushNotificationService.listenForNotifications();
+        // Foreground handler always runs
+        registerForegroundHandler();
+
       } catch (error) {
         console.error("Error initializing app:", error);
       }
     };
 
     initializeApp();
-
   }, []);
 
-
-  // While checking AsyncStorage, show a loading indicator.
   if (isFirstLaunch === null) {
-    return (
-      <ActivityIndicator
-        size="large"
-        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-      />
-    );
+    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} />;
   }
 
   return (

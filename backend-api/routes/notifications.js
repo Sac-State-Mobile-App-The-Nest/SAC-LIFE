@@ -37,7 +37,7 @@ router.post('/register-token', async (req, res) => {
         res.status(200).json({ message: 'FCM Token saved successfully' });
     } catch (err) {
         console.error('Error saving FCM token:', err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
@@ -62,7 +62,7 @@ router.delete('/remove-token', async (req, res) => {
         res.status(200).json({ message: 'FCM Token removed successfully' });
     } catch (err) {
         console.error('Error deleting FCM token:', err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
@@ -124,7 +124,7 @@ router.post('/welcome', async (req, res) => {
         res.status(200).json({ message: 'Notification sent', successCount: response.successCount });
     } catch (err) {
         console.error('Error sending welcome notification:', err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
@@ -199,7 +199,7 @@ router.post('/wellness', async (req, res) => {
         res.status(200).json({ message: 'Wellness notification sent', successCount: response.successCount });
     } catch (err) {
         console.error('Error sending wellness notification:', err);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

@@ -95,8 +95,11 @@ router.get('/verify', async (req, res) => {
 
     try {
 
+        console.log("Verifying token:", token);
         const decoded = jwt.verify(token, JWT_SECRET);
         const email = decoded.email;
+
+        console.log("Decoded email:", email);
 
         // Mark email as verified on database
         await sql.connect(config);
