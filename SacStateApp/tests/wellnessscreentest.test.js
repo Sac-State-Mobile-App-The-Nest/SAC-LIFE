@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import WellnessCreation from '../src/screens/WellnessScreen';
+import WellnessScreen from '../src/screens/WellnessScreen';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // Mock dependencies
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -10,7 +12,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
+  useNavigation: jest.fn(),
   useFocusEffect: jest.fn(),
 }));
 
@@ -20,19 +22,23 @@ global.fetch = jest.fn(() =>
 );
 
 describe('WellnessScreen Unit Tests', () => {
+  const mockNavigate = jest.fn();
+  
   beforeEach(() => {
     jest.clearAllMocks();
     AsyncStorage.getItem.mockResolvedValue('test-token');
+    useNavigation.mockReturnValue({ navigate: mockNavigate });
+    useFocusEffect.mockImplementation((callback) => callback());
   });
 
   test('renders first question correctly', () => {
-    const { getByText } = render(<WellnessCreation />);
+    const { getByText } = render(<WellnessScreen />);
     expect(getByText('Question 1 of 5')).toBeTruthy();
     expect(getByText('Do you feel that you need academic assistance?')).toBeTruthy();
   });
 
   test('navigates between questions', () => {
-    const { getByText } = render(<WellnessCreation />);
+    const { getByText } = render(<WellnessScreen />);
     
     // Go to next question
     fireEvent.press(getByText('Next'));
@@ -44,14 +50,14 @@ describe('WellnessScreen Unit Tests', () => {
   });
 
   test('records answer selections', () => {
-    const { getByText } = render(<WellnessCreation />);
+    const { getByText } = render(<WellnessScreen />);
     fireEvent.press(getByText('Agree'));
     fireEvent.press(getByText('Next'));
     expect(getByText('Question 2 of 5')).toBeTruthy();
   });
 
   test('shows completion screen after last question', () => {
-    const { getByText } = render(<WellnessCreation />);
+    const { getByText } = render(<WellnessScreen />);
     
     // Advance through all questions
     for (let i = 0; i < 5; i++) {
@@ -62,7 +68,7 @@ describe('WellnessScreen Unit Tests', () => {
   });
 
   test('submits answers successfully', async () => {
-    const { getByText } = render(<WellnessCreation />);
+    const { getByText } = render(<WellnessScreen />);
     
     // Complete all questions
     for (let i = 0; i < 5; i++) {
@@ -73,6 +79,7 @@ describe('WellnessScreen Unit Tests', () => {
     
     await waitFor(() => {
       expect(fetch).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('Dashboard');
     });
   });
 
@@ -80,7 +87,7 @@ describe('WellnessScreen Unit Tests', () => {
     fetch.mockImplementationOnce(() => Promise.reject(new Error('API Error')));
     jest.spyOn(Alert, 'alert');
     
-    const { getByText } = render(<WellnessCreation />);
+    const { getByText } = render(<WellnessScreen />);
     
     // Complete all questions
     for (let i = 0; i < 5; i++) {
