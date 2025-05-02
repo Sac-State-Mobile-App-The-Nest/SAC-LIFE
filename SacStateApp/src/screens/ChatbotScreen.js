@@ -25,37 +25,21 @@ const ChatbotScreen = () => {
                 if (!username) return;
                 const res = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
                 const data = await res.json();
-                if (data?.std_id) {
-                    setLoggedInStudentId(data.std_id);
-                    fetchChatHistory(data.std_id);
-                }
-
-
-                const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/students/getLoggedInUser?username=${username}`);
-                const responseText = await response.text();
-
-                if (response.ok) {
-                    const userData = JSON.parse(responseText);
-                    if (userData.std_id) {
-                        setLoggedInStudentId(userData.std_id);
-                        fetchChatHistory(userData.std_id);
-                    } else {
-                        console.error(" std_id missing in response.");
-                    }
+                if (res.ok && data?.std_id) {
+                  setLoggedInStudentId(data.std_id);
+                  fetchChatHistory(data.std_id);
                 } else {
-                    console.error(` Failed to fetch student ID, status: ${response.status}, body:`, responseText);
+                  console.error("Failed to fetch student ID:", data);
                 }
-            } catch (error) {
-                console.error(" Error fetching student ID:", error);
-
-            }
-        };
+              } catch (error) {
+                console.error("Error fetching student ID:", error);
+              }
+            };
         fetchStudentId();
     }, []);
 
     const fetchChatHistory = async (stdId) => {
         try {
-
             const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/chat-history/${stdId}`);
             if (response.ok) {
                 const history = await response.json();
@@ -83,14 +67,13 @@ const ChatbotScreen = () => {
             setIsTyping(true);
 
             try {
-
                 const response = await fetch(`http://${DEV_BACKEND_SERVER_IP}:5000/api/chatbot/message`, {
-
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message, std_id: loggedInStudentId }),
                 });
                 const data = await response.json();
+
                 setMessages(prev => [...prev, { text: data.response, sender: 'HerkyBot' }]);
             } catch (err) {
                 console.error('Error:', err);
@@ -219,7 +202,7 @@ const ChatbotScreen = () => {
           >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.inputContainer}>
-                <TouchableOpacity onPress={handleClearChat} style={{ paddingRight: 10 }}>
+                <TouchableOpacity onPress={handleClearChat} testID="delete-button" style={{ paddingRight: 10 }}>
                   <MaterialIcons name="delete-outline" size={24} color={colors.sacGreen} />
                 </TouchableOpacity>
     
@@ -230,7 +213,7 @@ const ChatbotScreen = () => {
                   onChangeText={setMessage}
                   placeholder="Ask me a question..."
                 />
-                <TouchableOpacity onPress={handleSend}>
+                <TouchableOpacity onPress={handleSend} testID="send-button">
                   <MaterialIcons name="send" size={22} style={styles.sendIcon} />
                 </TouchableOpacity>
               </View>
