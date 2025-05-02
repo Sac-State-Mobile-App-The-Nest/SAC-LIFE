@@ -199,9 +199,9 @@ module.exports = function (poolPromise) {
 
   /**
    * PUT: Updates student details
-   * Only super-admins can update student records.
+   * Only super-admins, support-admins, and content-managers can update student records.
    */
-  router.put('/student/:studentId', authenticateToken, verifyRole(['super-admin']), async (req, res) => {
+  router.put('/student/:studentId', authenticateToken, verifyRole(['super-admin', 'content-manager', 'support-admin']), async (req, res) => {
     const { studentId } = req.params;
     const { preferred_name, expected_grad } = req.body;
   
