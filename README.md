@@ -23,18 +23,21 @@
  #### Darryl Nguyen  
  #### Aaron Jumawan  
 
-## Synopsis  
+##  Synopsis  
 
-### Our work has focused on creating a secure, personalized, and user-friendly application with the following accomplishments:
-  - ***Fully Functional Backend:*** Students can now log in securely using JWT authentication, with hashed passwords stored in an Azure SQL database.
-  - **Personalized Profiles:** Each student’s profile is tailored with unique tags based on their responses, enabling customized campus service recommendations.
-  - **Enhanced UI:** We've revamped the app’s user interface for better usability and a modern, polished look.
-  - **Personal Dashboard Updates:** The dashboard now includes a calendar feature that displays precise dates, helping students stay organized.
-  - **AI Chatbot Integration:** We’re leveraging Google Dialogflow to provide a responsive chatbot for improved student support.
+### Our team focused on building a secure, personalized, and user-friendly platform with the following core accomplishments:
 
-  On the backend, we’ve implemented a relational database using Azure SQL to manage student data, campus services, and informational tags. Admins can now add or remove users through the admin website, and we've designed a query system to recommend campus services to students based on their tags, creating a personalized experience. The database schema is optimized for scalability and efficiency, ensuring robust data management as the app grows.  
-  
-For authentication, we’ve implemented a system that uses username and password logins, with plans to integrate SSO via Shibboleth/SAML to meet Sac State’s authentication standards. The admin website supports distinct roles: Super User (managing admin users), Admins (managing general users), and a Support role (view-only access). These features ensure secure and role-based access control, aligning with our project’s goals for both user and administrative functionality.  
+- **Robust Backend Infrastructure:** Students authenticate securely using JWT tokens, with encrypted passwords stored in an Azure SQL database for enhanced security.
+- **Smart Profile Personalization:** Each user completes a brief onboarding questionnaire to generate unique service tags. These tags drive personalized service recommendations across the app.
+- **Modernized User Interface:** The mobile app UI has been redesigned using React Native and Expo to deliver a clean, accessible, and responsive user experience.
+- **Interactive Dashboard:** The student dashboard features an integrated calendar to track both personal and campus events, improving organization and time management.
+- **AI Chatbot Integration:** HerkyBot, powered by the OpenAI API, provides intelligent, real-time responses to student questions about resources, deadlines, and campus navigation.
+
+Behind the scenes, Sac LIFE uses a normalized Azure SQL database to store and manage student profiles, chatbot logs, service data, and tag relationships. The system includes a tag-based query engine that surfaces relevant services based on each student’s unique attributes.
+
+Administrative functionality is enabled via a secure React-based dashboard. Admin users can view student data, manage chatbot logs, and oversee campus services. Role-based access control is in place, with three permission levels: Super Admin (full access), Admin (general management), and Support (read-only).
+
+
 
 ## Testing 
 We employed a combination of manual testing, unit tests, and integration tests to ensure the functionality and reliability of the SAC-LIFE Mobile Application.
