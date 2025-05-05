@@ -36,6 +36,8 @@ Behind the scenes, Sac LIFE uses a normalized Azure SQL database to store and ma
 
 Administrative functionality is enabled via a secure React-based dashboard. Admin users can view student data, manage chatbot logs, and oversee campus services. Role-based access control is in place, with three permission levels: Super Admin (full access), Admin (general management), and Support (read-only).
 
+The Sac State LIFE app is an initiative led by Dr. Basia D. Ellis, Ph.D., an Associate Professor of Child and Adolescent Development at Sacramento State University. As the Product Owner, Dr. Ellis is dedicated to enhancing digital infrastructure to improve student engagement and access to support services. The project leverages research insights and interdisciplinary collaboration to create a comprehensive mobile application that empowers students, fosters campus connection, and supports academic success. With a focus on addressing key student needs, this app aims to transform the way students interact with campus resources and services.
+
 
 
 ## Testing 
