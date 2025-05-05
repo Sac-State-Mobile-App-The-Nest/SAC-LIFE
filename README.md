@@ -49,8 +49,9 @@ We employed a combination of manual testing, unit tests, and integration tests t
          > Dashboard navigation and AI chatbot responses.
          > Admin panel functionality for managing users and tags.
   
-  2. Unit Testing (In Progress)
-     - Focused on backend API routes and database queries.
+  2. Unit Testing 
+     - Focused on testing each feautre of teh app and admin website
+     - Tested each screen of the Sac LIFE App 
      - Tools: Jest for JavaScript-based testing.
     
   3. Integration Testing
@@ -63,34 +64,35 @@ We employed a combination of manual testing, unit tests, and integration tests t
 
   ### How to Run Tests  
   ---
-  > **Backend API Testing**  
-  ```cmd
-  cd backend-api
-  npm test
-  ```
   > **Mobile App Testing**
   ```cmd
-  cd SacStateApp
-  npm start
+  cd SacStateLIFE
+  npx jest
   ```
    > **Admin Website Testing**
   ```cmd
   cd admin-web
-  npm start
+  npx jest
+  ```
+ > **Specfic File Testing**
+  ```cmd
+  npx jest path/to/your/testFile.test.js
   ```
   
 
 ## Deployment
-  The SAC-LIFE Mobile Application consists of three main components: the mobile app, the admin website, and the backend API. Each component is deployed separately to ensure scalability and modularity.
+  The SAC-LIFE Mobile Application consists of four main components: the mobile app, the admin website, and the backend API. Each component is deployed separately to ensure scalability and modularity.
   
   1. **Mobile App**  
-     - Deployed via Expo for development and testing.  
-     - For production, the app will be built into native binaries (APK for Android and IPA for iOS) using Expo's build tools.  
-     - Planned distribution through the Google Play Store and Apple App Store.  
+     - The app was deployed using Expo during development and testing.  
+     - For production, an Android App Bundle (AAB) was built using Expo's build tools.
+     - iOS deployment was deferred due to time constraints.
+     - The final plan is to distribute the app via the Google Play Store and, eventually, the Apple App Store. 
   
   2. **Admin Website**  
-     - Hosted using Docker containers for consistent environment replication.  
-     - Deployed on Azure or netilify with HTTPS enabled for secure connections.  
+     - Developed using React and deployed via Azure Static Web Apps.
+     - Connected to the backend API hosted on Azure App Service.
+     - Deployed on Azure with HTTPS enabled for secure connections.  
   
   3. **Backend API**  
      - Hosted on Microsoft Azure as a Node.js application.  
