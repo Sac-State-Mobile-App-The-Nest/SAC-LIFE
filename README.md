@@ -1,5 +1,5 @@
 # SAC-LIFE Mobile Application 
-  ![School Logo](SacStateApp/src/assets/Primary_Stacked_1_Color_Green_hires.png)
+  ![School Logo](SacStateLIFE/src/assets/Primary_Stacked_1_Color_Green_hires.png)
 
   ## Table of Contents
 
@@ -7,7 +7,6 @@
 - [Testing](#Testing)
 - [Deployment](#Deployment)
 - [ERD](#ERD)
-- [RoadMap](#Roadmap)
   
 
 
@@ -81,24 +80,44 @@ We employed a combination of manual testing, unit tests, and integration tests t
   
 
 ## Deployment
-  The SAC-LIFE Mobile Application consists of four main components: the mobile app, the admin website, and the backend API. Each component is deployed separately to ensure scalability and modularity.
+  The **SAC-LIFE Mobile Application** consists of five main components:  
+- Mobile App  
+- Admin Website  
+- Firebase Notifications  
+- SendGrid Email Integration  
+- Backend API
   
-  1. **Mobile App**  
-     - The app was deployed using Expo during development and testing.  
-     - For production, an Android App Bundle (AAB) was built using Expo's build tools.
-     - iOS deployment was deferred due to time constraints.
-     - The final plan is to distribute the app via the Google Play Store and, eventually, the Apple App Store. 
+Each component is deployed independently to support scalability, modular development, and easier maintenance.
+
   
-  2. **Admin Website**  
-     - Developed using React and deployed via Azure Static Web Apps.
-     - Connected to the backend API hosted on Azure App Service.
-     - Deployed on Azure with HTTPS enabled for secure connections.  
+  ### 1. **Mobile App**
+- Built with **React Native** using **Expo**.
+- During development and testing, the app was deployed using Expo Dev Client.
+- For production, an **Android App Bundle (AAB)** was built using Expo’s build tools.
+- iOS deployment was postponed due to time constraints.
+- Final distribution will be handled via the **Google Play Store**, with future plans for the **Apple App Store**.
+
   
-  3. **Backend API**  
-     - Hosted on Microsoft Azure as a Node.js application.  
-     - Connected to an Azure SQL database for reliable and scalable data storage.  
-     - Secured with environment variables for sensitive configuration (e.g., database credentials and JWT secrets).
-     - HTTPS enabled for secure connections.
+ ### 2. **Admin Website**
+- Built using **React** and deployed via **Azure Static Web Apps**.
+- Secured with **HTTPS** by default.
+- Integrated with the backend API hosted on Azure App Service.
+  
+  ### 3. **Backend API**
+- Built with **Node.js/Express** and hosted on **Azure App Service**.
+- Uses **Azure SQL Database** for structured and scalable data storage.
+- Environment variables are used to secure sensitive credentials (e.g., database access, JWT secrets).
+- API is accessible over **HTTPS**.
+
+  ### 4. **Firebase Notifications**
+- Integrated using **Firebase Cloud Messaging (FCM)**.
+- Supports personalized and event-triggered push notifications to users.
+- Tokens are stored in the database per user device to ensure delivery.
+
+  ### 5. **SendGrid Email Service**
+- Used to send confirmation email.
+- Integrated into the backend via SendGrid’s API.
+- Secured using API keys stored in environment variables.
   
   ### Deployment Steps  
   ---
@@ -106,61 +125,61 @@ We employed a combination of manual testing, unit tests, and integration tests t
   1. Clone the project repository to your local machine:  
      ```bash
      git clone https://github.com/Sac-State-Mobile-App-The-Nest/SAC-LIFE.git
-  
-  2. Navigate to the project directory:  
-     ```bash
      cd SAC-LIFE
-  ---
 
-  #### Mobile App 
-  1. Navigate to the mobile-app folder:  
-     ```bash
-     cd SacStateApp
-
-  2. Create a .env file with the following configuration:  
-     ```env
-     DEV_BACKEND_SERVER_IP=<your-IP-address>
-     # Replace the IP address with your own
-     # Make sure to also rename the env file from 'env' to '.env'
+  #### Mobile App
   
-  3. Install dependencies:  
-     ```bash
-     npm install
-
-  4. Start the development server:
-     ```bash
-     npm start
-
-  5. For production, build the app binaries:
-     ```bash
-     expo build:android
-     expo build:ios
-
-  6. Upload the generated binaries to the respective app stores.
-
-  ---
-  #### Admin Website
-  1. Navigate to the admin-web folder:  
-     ```bash
-     cd ../admin-web
+    ```bash
+    cd SacStateLIFe
+    ```
+     
+  1. Create a `.env` file (for local testing):
+    ```env
+    DEV_BACKEND_SERVER_IP=<your-backend-URL>
+    ```
   
   2. Install dependencies:  
      ```bash
      npm install
 
-  3. Start the development server:
-     ```bash
-     npm start
+  3. Start development (if needed):
+    ```bash
+    npx expo start --dev-client
+    ```
 
-  4. For now, access admin website locally
+  4. Build production binaries:
+    ```bash
+    eas build -p android --profile production
+    ```
+
+  5. Production version is uploaded to the **Google Play Console**.
+
+  ---
+  #### Admin Website
+  
+     ```bash
+     cd ../admin-web
+     ```
+  
+  1. Install dependencies:  
+     ```bash
+     npm install
+
+  2. Start locally (for development only):
+    ```bash
+    npm start
+    ```
+
+  3. Production deployment is live via **Azure Static Web Apps** via manual deployment with build folder into satic web app.
 
   ---
   #### Backend API
-  1. Navigate to the backend-api fodler:  
+  
      ```bash
      cd ../backend-api
-  
-  2. Create a .env file with the following configuration:  
+     ```
+     
+  2. Environment variables are managed securely in **Azure App Service**. 
      ```env
      DB_USER=<your-database-user>
      DB_PASSWORD=<your-database-password>
@@ -168,61 +187,34 @@ We employed a combination of manual testing, unit tests, and integration tests t
      DB_DATABASE=<your-database-name>
      JWT_SECRET_TOKEN=<your-secret-token>
      JWT_REFRESH_TOKEN=<your-refresh-token>
-     WT_SECRET_ADMIN=<your-adim-secret-token>
+     JWT_SECRET_ADMIN=<your-adim-secret-token>
+     PORT=<your-port-for-local-testing
+     SENDGRID_API_KEY=<your-sengrid-api-key>
+     OPENAI_API_KEY=<your-apoenAI-api-key
      # Make sure to also rename the env file from 'env' to '.env'
 
-  3. Install dependencies:
-     ```bash
-     npm install
+  2. To run locally (for development only):
+    ```bash
+    npm install
+    npm start
+    ```
 
-  4. Start the backend API server:
-     ```bash
-     npm start
-
-  5. Verify API endpoints using Postman or a similar tool
-
-  ---
-  ### Chatbot API
-  1. Navigate to the backend-api fodler:  
-       ```bash
-       cd ../chatbot-api
-
-  2. Start the chatbot server using Google Dialog Flow  
-       ```bash
-      npm install @google-cloud/dialogflow
-      npm start
-  3. Test on the app UI
+3. The production API is deployed on **Azure** and secured with HTTPS.
     
 
 ## Developer Instructions
 Placeholder for now
 
 ## App Layout and Flow
-![ERD 1](SacStateApp/src/assets/saclife_erdp1.PNG)  
+![ERD 1](SacStateLIFE/src/assets/saclife_erdp1.PNG)  
 
-![ERD 2](SacStateApp/src/assets/saclife_erdp2.PNG)
+![ERD 2](SacStateLIFE/src/assets/saclife_erdp2.PNG)
 
 
 ## ERD
-![ERD](SacStateApp/src/assets/saclife_erd_backend.png)  
+![ERD](SacStateLIFE/src/assets/saclife_erd_backend.png)  
 
-## Roadmap
-### Key Milestones  
 
-| Milestone                  | Start Date  | End Date    | Status       |
-|----------------------------|-------------|-------------|--------------|
-| Initial setup              | 2024-10-07  | 2024-11-17  | Completed    |
-| Personalized Dashbaord     | 2024-10-07  |             | In Progress  |
-| AI Powered Chatbot         | 2024-10-22  |             | In Progress  |
-| Admin Dashbaord            | 2024-10-07  |             | In Progress  |
-| Database Features          | 2024-10-07  |             | In Progress  |
-| Profle Creation Screen     | 2024-10-07  |             | In Progress  |
-| Notification System        |             |             | Not Started  |
-| Wellness Screen            |             |             | Not Started  |
-| Intro Screen               |             |             | Not Started  |
-
-### Visual Timeline
-![timeline](SacStateApp/src/assets/jira_roadmap.png)  
 
 
 
