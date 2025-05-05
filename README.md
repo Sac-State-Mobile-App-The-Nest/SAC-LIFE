@@ -50,7 +50,7 @@ We employed a combination of manual testing, unit tests, and integration tests t
          > Admin panel functionality for managing users and tags.
   
   2. Unit Testing 
-     - Focused on testing each feautre of teh app and admin website
+     - Focused on testing each feautre of the app and admin website
      - Tested each screen of the Sac LIFE App 
      - Tools: Jest for JavaScript-based testing.
     
