@@ -192,7 +192,7 @@ Each component is deployed independently to support scalability, modular develop
      JWT_SECRET_ADMIN=<your-adim-secret-token>
      PORT=<your-port-for-local-testing
      SENDGRID_API_KEY=<your-sengrid-api-key>
-     OPENAI_API_KEY=<your-apoenAI-api-key
+     OPENAI_API_KEY=<your-openAI-api-key
      # Make sure to also rename the env file from 'env' to '.env'
 
   2. To run locally (for development only):
