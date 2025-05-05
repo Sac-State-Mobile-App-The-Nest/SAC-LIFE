@@ -208,13 +208,15 @@ Each component is deployed independently to support scalability, modular develop
 Placeholder for now
 
 ## App Layout and Flow
-![ERD 1](SacStateLIFE/src/assets/saclife_erdp1.PNG)  
+![ERD 1](SacStateLIFE/assets/FlowChart_1.png)  
 
-![ERD 2](SacStateLIFE/src/assets/saclife_erdp2.PNG)
+![ERD 2](SacStateLIFE/assets/FlowChart_2.png)
+
+![ERD 3](SacStateLIFE/assets/FlowChart_3.png)
 
 
 ## ERD
-![ERD](SacStateLIFE/src/assets/saclife_erd_backend.png)  
+![ERD](SacStateLIFE/assets/UML_Diagram.png)  
 
 
 
