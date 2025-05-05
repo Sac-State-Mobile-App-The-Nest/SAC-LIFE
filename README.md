@@ -12,15 +12,15 @@
 
 
 ## Created by The Nest  
- #### Nicholas Lewis   
- #### Christian Buco   
- #### Randy Pham   
- #### Justin Rivera   
- #### Bryce Chao  
- #### Devin Grace  
- #### Vinny Thai  
- #### Darryl Nguyen  
- #### Aaron Jumawan  
+ #### Nicholas Lewis   nicholaslewis3452@gmail.com
+ #### Devin Grace      devinmg01@gmail.com
+ #### Christian Buco   callen.buco@gmail.com
+ #### Bryce Chao       Brycechao27@gmail.com
+ #### Randy Pham       randypham420@gmail.com
+ #### Justin Rivera    jkr17c@gmail.com
+ #### Vinny Thai       vinnythai.29@gmail.com
+ #### Darryl Nguyen    darrylnguyen2011@gmail.com
+ #### Aaron Jumawan    aaron.juma1.1995@gmail.com
 
 ##  Synopsis  
 
