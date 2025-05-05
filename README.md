@@ -1,5 +1,5 @@
 # SAC-LIFE Mobile Application 
-  ![School Logo](SacStateLIFE/src/assets/Sac_LIFE_app_icon.png)
+  ![School Logo](SacStateLIFE/assets/Sac_LIFE_app_icon.png)
 
   ## Table of Contents
 
