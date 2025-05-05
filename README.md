@@ -204,9 +204,6 @@ Each component is deployed independently to support scalability, modular develop
 3. The production API is deployed on **Azure** and secured with HTTPS.
     
 
-## Developer Instructions
-Placeholder for now
-
 ## App Layout and Flow
 ![ERD 1](SacStateLIFE/assets/FlowChart_1.png)  
 
